@@ -1,0 +1,32 @@
+{
+    "devDependencies": {
+        "babel-loader": "^9.1.2",
+        "connect-livereload": "^0.6.1",
+        "http-errors": "^2.0.0",
+        "husky": "^8.0.3",
+        "lint-staged": "^13.2.0",
+        "livereload": "^0.9.3",
+        "nodemon": "^2.0.22",
+        "webpack": "^5.77.0",
+        "webpack-cli": "^5.0.1"
+    },
+    "scripts": {
+        "start:dev": "concurrently \"npm:server:dev\" \"npm:build:dev\"",
+        "server:dev": "NODE_ENV=development nodemon -e js,pug --watch backend ./server.js",
+        "build": "webpack",
+        "build:dev": "webpack --watch",
+        "start": "node ./server.js",
+        "prepare": "husky install"
+    },
+    "dependencies": {
+        "cookie-parser": "^1.4.6",
+        "fs-extra": "^11.1.1",
+        "fs-promise": "^2.0.3",
+        "morgan": "^1.10.0",
+        "pug": "^3.0.2"
+    },
+    "lint-staged": {
+        "**/*": "prettier --write --ignore-unknown",
+        "frontend/**/*.js": "webpack"
+    }
+}
