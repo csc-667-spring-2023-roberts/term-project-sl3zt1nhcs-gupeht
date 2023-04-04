@@ -1,5 +1,30 @@
 {
-    "devDependencies": {
+    "name": "term-project-sl3zt1nhcs-gupeht",
+    "version": "1.0.0",
+    "description": "CSC 667 Term Project",
+    "main": "index.js",
+    "scripts": {
+        "start": "node ./backend/server.js",
+        "start:dev": "concurrently \"npm:server:dev\" \"npm:build:dev\"",
+        "server:dev": "NODE_ENV=development nodemon -e js,ejs --watch backend ./backend/server.js",
+        "build": "webpack",
+        "build:dev": "webpack --watch",
+        "prepare": "husky install"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/csc-667-spring-2023-roberts/term-project-sl3zt1nhcs-gupeht"
+    },
+    "author": "sl3zt1nhcsgupeht",
+    "type": "module",
+    "dependencies": {
+        "concurrently": "^8.0.1",
+        "cookie-parser": "^1.4.6",
+        "ejs": "^3.1.9",
+        "express": "^4.18.2",
+        "fs-extra": "^11.1.1",
+        "fs-promise": "^2.0.3",
+        "morgan": "^1.10.0",
         "babel-loader": "^9.1.2",
         "connect-livereload": "^0.6.1",
         "http-errors": "^2.0.0",
@@ -7,23 +32,10 @@
         "lint-staged": "^13.2.0",
         "livereload": "^0.9.3",
         "nodemon": "^2.0.22",
+        "prettier": "^2.8.4",
+        "ts-loader": "^9.4.2",
         "webpack": "^5.77.0",
         "webpack-cli": "^5.0.1"
-    },
-    "scripts": {
-        "start:dev": "concurrently \"npm:server:dev\" \"npm:build:dev\"",
-        "server:dev": "NODE_ENV=development nodemon -e js,pug --watch backend ./server.js",
-        "build": "webpack",
-        "build:dev": "webpack --watch",
-        "start": "node ./server.js",
-        "prepare": "husky install"
-    },
-    "dependencies": {
-        "cookie-parser": "^1.4.6",
-        "fs-extra": "^11.1.1",
-        "fs-promise": "^2.0.3",
-        "morgan": "^1.10.0",
-        "pug": "^3.0.2"
     },
     "lint-staged": {
         "**/*": "prettier --write --ignore-unknown",
