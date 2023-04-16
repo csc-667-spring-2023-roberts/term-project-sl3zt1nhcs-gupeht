@@ -1,14 +1,17 @@
 const express = require ('express');
 const router = express.Router();
-const bcyrpt = require('bcryptjs');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require("../database/db");
+
+
+
 
 router.post('/register', (req,res)=>{
 
     const {username,password,email} = req.body;
 
-    bcyrpt.hash(password,10).then(hashed =>{return db.query( 'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING user_id, username, email',
+    bcrypt.hash(password,10).then(hashed =>{return db.query( 'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING user_id, username, email',
             [username, hashedPassword, email])
         }).then(result =>{
             if(result.rowCount === 1){
@@ -36,17 +39,15 @@ router.post('/login',  (req,res)=>{
 
                 const user = result.rows[0];
 
-                return bcyrpt.compare(password,user.password)
+                return bcrypt.compare(password,user.password)
 
                     .then(isPasswordValid =>{
 
                         if (isPasswordValid){
 
                             const token = jwt.sign({user_id: user.user_id, username: user.username}, 'your_secret_key');
-
                             res.cookie('jwt',token);
-
-                            res.status(200).json({user_id: user.user_id, username: user.username});
+                            res.redirect('/'); 
                         }
                         else{
                             res.status(401).json({error:'Invalid username or password'});
