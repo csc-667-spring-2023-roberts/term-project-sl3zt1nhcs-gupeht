@@ -2,8 +2,7 @@ CREATE TABLE users (
   user_id SERIAL PRIMARY KEY,
   username VARCHAR(50) NOT NULL UNIQUE,
   password VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  balance INTEGER NOT NULL DEFAULT 0
+  email VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE INDEX idx_users_username ON users(username);
@@ -12,8 +11,7 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE TABLE players (
   player_id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(user_id),
-  game_id INTEGER NOT NULL REFERENCES games(game_id),
-  balance INTEGER NOT NULL DEFAULT 0,
+  game_id INTEGER NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'active'
 );
 
@@ -24,21 +22,44 @@ CREATE INDEX idx_players_status ON players(status);
 CREATE TABLE game_tables (
   table_id SERIAL PRIMARY KEY,
   max_players INTEGER NOT NULL DEFAULT 9,
-  pot INTEGER NOT NULL DEFAULT 0,
   dealer_id INTEGER REFERENCES players(player_id),
   small_blind INTEGER NOT NULL DEFAULT 1
 );
 
+CREATE TABLE lobbies (
+  lobby_id SERIAL PRIMARY KEY,
+  lobby_owner INTEGER NOT NULL REFERENCES users(user_id),
+  num_players INTEGER NOT NULL,
+  num_rounds INTEGER NOT NULL,
+  starting_chips INTEGER NOT NULL
+);
+
 CREATE TABLE games (
-  game_id SERIAL PRIMARY KEY,
+  game_id INTEGER PRIMARY KEY REFERENCES lobbies(lobby_id),
   table_id INTEGER NOT NULL REFERENCES game_tables(table_id),
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP,
-  winner_id INTEGER REFERENCES players(player_id)
+  winner_id INTEGER REFERENCES players(player_id),
+  pot INTEGER NOT NULL DEFAULT 0,
+  current_bet INTEGER NOT NULL DEFAULT 0,
+  is_done BOOLEAN NOT NULL DEFAULT FALSE,
+  round_number INTEGER NOT NULL DEFAULT 0,
+  player_number INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX idx_games_table_id ON games(table_id);
 CREATE INDEX idx_games_winner_id ON games(winner_id);
+
+CREATE TABLE lobby_players (
+  lobby_id INTEGER NOT NULL REFERENCES lobbies(lobby_id),
+  player_id INTEGER NOT NULL REFERENCES players(player_id),
+  PRIMARY KEY (lobby_id, player_id)
+);
+
+CREATE INDEX idx_lobby_players_lobby_id ON lobby_players(lobby_id);
+CREATE INDEX idx_lobby_players_player_id ON lobby_players(player_id);
+
+-- The rest of the tables are not changed
 
 CREATE TABLE cards (
   card_id SERIAL PRIMARY KEY,
