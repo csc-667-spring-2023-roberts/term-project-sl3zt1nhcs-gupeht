@@ -6,6 +6,8 @@ const cookieParser = require("cookie-parser");
 const env = process.env.NODE_ENV || 'development';
 const config = require(`./config/${env}`)
 const { errorHandler} = require("./middleware/errorHandler");
+const {sessionMiddleware} = require ('./middleware/sessionUser');
+const {requireAuth} = require ('./middleware/authMiddleware');
 const app = express();
 
 app.use(morgan("dev"));
@@ -20,7 +22,7 @@ app.use(express.static(path.join(__dirname, "backend", "static")));
 const rootRoutes = require("./routes/root");
 const authRoutes = require ("./routes/auth");
 
-
+app.use(sessionMiddleware);
 app.use("/", rootRoutes);
 app.use("/auth",authRoutes);
 app.use(errorHandler);

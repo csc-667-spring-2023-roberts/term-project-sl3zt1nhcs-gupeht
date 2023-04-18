@@ -45,7 +45,7 @@ router.post('/login',  (req,res)=>{
 
                         if (isPasswordValid){
 
-                            const token = jwt.sign({user_id: user.user_id, username: user.username}, 'your_secret_key');
+                            const token = jwt.sign({user_id: user.user_id, username: user.username}, 'peanut_butter_is_bad');
                             res.cookie('jwt',token);
                             res.redirect('/'); 
                         }

@@ -10,7 +10,7 @@ CREATE INDEX idx_users_email ON users(email);
 
 CREATE TABLE players (
   player_id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(user_id),
+  user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
   game_id INTEGER NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'active'
 );
@@ -35,12 +35,11 @@ CREATE TABLE lobbies (
 );
 
 CREATE TABLE games (
-  game_id INTEGER PRIMARY KEY REFERENCES lobbies(lobby_id),
+  game_id INTEGER PRIMARY KEY REFERENCES lobbies(lobby_id) ON DELETE CASCADE,
   table_id INTEGER NOT NULL REFERENCES game_tables(table_id),
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP,
   winner_id INTEGER REFERENCES players(player_id),
-  pot INTEGER NOT NULL DEFAULT 0,
   current_bet INTEGER NOT NULL DEFAULT 0,
   is_done BOOLEAN NOT NULL DEFAULT FALSE,
   round_number INTEGER NOT NULL DEFAULT 0,
@@ -50,9 +49,28 @@ CREATE TABLE games (
 CREATE INDEX idx_games_table_id ON games(table_id);
 CREATE INDEX idx_games_winner_id ON games(winner_id);
 
+CREATE TABLE pots (
+  pot_id SERIAL PRIMARY KEY,
+  game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
+  pot_amount INTEGER NOT NULL DEFAULT 0,
+  is_main_pot BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE INDEX idx_pots_game_id ON pots(game_id);
+
+CREATE TABLE side_pots (
+  pot_id INTEGER NOT NULL REFERENCES pots(pot_id) ON DELETE CASCADE,
+  side_pot_number INTEGER NOT NULL,
+  side_pot_amount INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (pot_id, side_pot_number)
+);
+
+CREATE INDEX idx_side_pots_pot_id ON side_pots(pot_id);
+
+
 CREATE TABLE lobby_players (
-  lobby_id INTEGER NOT NULL REFERENCES lobbies(lobby_id),
-  player_id INTEGER NOT NULL REFERENCES players(player_id),
+  lobby_id INTEGER NOT NULL REFERENCES lobbies(lobby_id) ON DELETE CASCADE,
+  player_id INTEGER NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
   PRIMARY KEY (lobby_id, player_id)
 );
 
@@ -71,8 +89,8 @@ CREATE INDEX idx_cards_suit_rank ON cards(suit, rank);
 
 CREATE TABLE hands (
   hand_id SERIAL PRIMARY KEY,
-  player_id INTEGER NOT NULL REFERENCES players(player_id),
-  table_id INTEGER NOT NULL REFERENCES game_tables(table_id),
+  player_id INTEGER NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
+  table_id INTEGER NOT NULL REFERENCES game_tables(table_id) ON DELETE CASCADE, 
   game_id INTEGER NOT NULL REFERENCES games(game_id),
   is_community_hand BOOLEAN NOT NULL DEFAULT FALSE
 );
@@ -83,7 +101,7 @@ CREATE INDEX idx_hands_game_id ON hands(game_id);
 
 CREATE TABLE card_in_hand (
   card_id INTEGER NOT NULL REFERENCES cards(card_id),
-  hand_id INTEGER NOT NULL REFERENCES hands(hand_id),
+  hand_id INTEGER NOT NULL REFERENCES hands(hand_id) ON DELETE CASCADE,
   PRIMARY KEY (card_id, hand_id)
 );
 
