@@ -4,7 +4,7 @@ const path = require("path");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 const env = process.env.NODE_ENV || 'development';
-const config = require(`./config/${env}`)
+const config = require(`../backend/config/${env}`);
 const { errorHandler} = require("./middleware/errorHandler");
 const {sessionMiddleware} = require ('./middleware/sessionUser');
 const {requireAuth} = require ('./middleware/authMiddleware');
@@ -40,4 +40,3 @@ app.use((request, response, next) => {
   next(createError(404));
 });
 
-app.usr

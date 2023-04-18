@@ -1,6 +1,6 @@
 const session = require('express-session');
 
-modules.exports = {
+module.exports = {
 
     sessionMiddleware: session({
         secret: 'peanut_butter_is_bad',
