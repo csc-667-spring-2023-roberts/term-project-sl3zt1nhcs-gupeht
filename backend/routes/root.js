@@ -1,15 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const rootController = require('../controllers/rootControler');
 
+router.get('/home',rootController.getHome);
 
-
-router.get("/", (req, res) => {
-    const name = "person";
-    
-    res.render("home", {
-      title: "Hi World!",
-      message: "Our first template.",
-    });
-  });
-
-  module.exports = router
+module.exports = router

@@ -11,7 +11,7 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE TABLE IF NOT EXISTS players (
   player_id SERIAL PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-  game_id INTEGER NOT NULL,
+  game_id INTEGER NOT NULL  REFERENCES games(game_id),
   status VARCHAR(20) NOT NULL DEFAULT 'active'
 );
 

@@ -7,7 +7,6 @@ const env = process.env.NODE_ENV || 'development';
 const config = require(`../backend/config/${env}`);
 const { errorHandler} = require("./middleware/errorHandler");
 const {sessionMiddleware} = require ('./middleware/sessionUser');
-const {requireAuth} = require ('./middleware/authMiddleware');
 const app = express();
 
 app.use(morgan("dev"));
@@ -21,21 +20,26 @@ app.use(express.static(path.join(__dirname, "backend", "static")));
 
 const rootRoutes = require("./routes/root");
 const authRoutes = require ("./routes/auth");
+const gameRoutes = require('./routes/gameRouter');
+const userRoutes = require('./routes/userRouter');
 
-app.use(sessionMiddleware);
+app.use(sessionMiddleware);// declared globally so is accessible to all routes
+
 app.use("/", rootRoutes);
-app.use("/auth",authRoutes);
+app.use("/api/auth",authRoutes);
+app.use('/api/game',gameRoutes);
+app.use('/api/user',userRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || config.PORT;
 
 
 app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
+  console.log(`Server started on port ${PORT}.....`);
 });
 
-/** Existing server.js content **/
 
+// Handle 404 erors
 app.use((request, response, next) => {
   next(createError(404));
 });

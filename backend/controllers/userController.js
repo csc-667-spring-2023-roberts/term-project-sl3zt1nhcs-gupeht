@@ -1,17 +1,15 @@
 const express = require ('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require("../database/db");
 
 
-
-
-router.post('/register', (req,res)=>{
+exports.resgister = ( req,res)=>{
 
     const {username,password,email} = req.body;
 
-    bcrypt.hash(password,10).then(hashed =>{return db.query( 'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING user_id, username, email',
+    bcrypt.hash(password,10).then(hashedPassword =>{return db.query( 'INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING user_id, username, email',
             [username, hashedPassword, email])
         }).then(result =>{
             if(result.rowCount === 1){
@@ -24,10 +22,9 @@ router.post('/register', (req,res)=>{
             res.status(500).json({err: err.message});
         });
 
-});
+};
 
-
-router.post('/login',  (req,res)=>{
+exports.login = ( req,res) =>{
 
     const {username,password} = req.body;
 
@@ -62,6 +59,4 @@ router.post('/login',  (req,res)=>{
             res.status(500).json({error: error.message});
         });
 
-});
-
-module.exports = router;
+};

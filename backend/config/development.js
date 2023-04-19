@@ -2,7 +2,7 @@ module.exports ={
     database:{
         host:"localhost",
         port: "5432" ,
-        user:"mohamedsharif",
+        user:"",
         password:"", // default
        database:"postgres",
     },
