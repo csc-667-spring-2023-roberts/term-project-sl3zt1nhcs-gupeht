@@ -1,30 +1,32 @@
 const db  = require ('../database/db');
 const {CustomError} = require('../middleware/customErrorHandler');
-
+const tableModel = require('./tableModel');
 const gameModel ={};
 
-gameModel.createGame = (table_id, start_time) =>{
 
-    return new Promise (( resolve , reject ) =>{
+gameModel.createGameAndTable = ( max_players,small_blind,start_time)=>{
 
-        const query = `INSERT INTO games (table_id, start_time) VALUES ($1, $2) RETURNING game_id`;
-        const values = [table_id,start_time];
+    return new Promise((resolve, reject)=>{
+        let created_table_id;
 
-        db.query(query,values).then(result=>{
-
-            if ( result.rowCount > 0 ){
-                resolve(result.rows[0].game_id);
+        tableModel.createTable(max_players,small_blind).then((table_id)=>{
+            created_table_id = table_id;
+            const createGameQuery = `INSERT INTO games (table_id, start_time) VALUES ($1, $2) RETURNING game_id`;
+            const gameValues = [table_id,start_time];
+            return db.query(createGameQuery,gameValues);
+        })
+        .then((gameResult)=>{
+            if (gameResult.rowCount === 0){
+                throw new CustomError('Failed to create game',500);
             }
             else{
-                reject( new CustomError("No rows affected",404));
-            }  
-        })
-        .catch (err=>{
+                resolve({table_id:created_table_id, game_id: gameResult.rows[0].game_id});
+            }
+        }).catch((err)=>{
             reject(err);
         });
     });
 };
-
 
 gameModel.getGameById = (game_id) =>{
 

@@ -1,21 +1,26 @@
 const gameModel = require('../models/gameModel');
 
-    exports.createGame = (req, res) =>{
-
+    exports.createGame = (req,res)=>{
         const result = {};
 
-        const { table_id, lobby_id, start_time} = req.body;
-    
-        gameModel.createGame(table_id,lobby_id,start_time).then( (game_id) =>{
-            result.game_id = game_id;
-            res.status(200).json({Result:result});
-            
-        })
-        .catch((err) =>{
+        const {max_players, small_blind} = req.body;
+
+        gameModel.createGameAndTable(max_players,small_blind,'NOW()')
+            .then(({table_id,game_id})=>{
+                result.table_id = table_id;
+                result.game_id = game_id;
+                if ( result.game_id){
+                    res.status(200).json({Result:result});
+                }
+                else{
+                    result.error= "Game was not created";
+                    res.status(500).json({Result:result});
+                }
+        }).catch((err)=>{
             result.error = err.message;
-            res.status(500).jsont({Result:result});
+            res.status(500).json({Result:result});
         });
-    
+
     };
 
     exports.getGameById= (req,res) =>{

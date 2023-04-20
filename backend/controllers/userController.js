@@ -43,7 +43,7 @@ exports.login = ( req,res) =>{
 
     const {username,password} = req.body;
 
-    const result = 
+    const result = {}
 
     db.query('Select * FROM users WHERE username = $1',[username])
 
