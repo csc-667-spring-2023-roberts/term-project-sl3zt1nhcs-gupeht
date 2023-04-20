@@ -94,7 +94,7 @@ gameModel.deleteGame = ( game_id) =>{
 };
 
 
-gameModel.getALlGames = () =>{
+gameModel.getAllGames = () =>{
 
     return new Promise ((resolve, reject) =>{
         const query=`SELECT * FROM game`;
