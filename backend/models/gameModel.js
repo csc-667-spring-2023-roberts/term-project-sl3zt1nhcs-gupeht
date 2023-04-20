@@ -114,6 +114,44 @@ gameModel.getALlGames = () =>{
     });
 };
 
+gameModel.getCurrentGameByPlayerId = (player_id) =>{
+    return new Promise((resolve, reject)=>{
+        const query = `SELECT * FROM games WHERE game_id IN (SELECT game_id FROM players WHERE player_id = $1)`;
+        db.query(query, [player_id]).then((result)=>{
+            if (result.rows.length >0){
+                resolve(result.rows[0]);
+            }
+            else{
+                reject(new CustomError(`No game found with player_id ${player_id}`,404));
+            }
+        }).catch(err=>{
+            reject(err);
+        });
+    });
+};
+
+
+gameModel.joinGame = (user_id,game_id) =>{
+
+    return new Promise ((resolve, reject)=>{
+
+        const query = `INSERT INTO players (user_id, game_id) VALUES ($1. $2) RETURNING player_id`;
+        const values = [user_id,game_id];
+
+        db.query(query,values).then((result)=>{
+            if ( result.rowCount > 0){
+                resolve ( result.rows[0].player_id);
+            }
+            else{
+                reject(new CustomError(`Player ${user_id} could not join game`,404))
+            }
+        })
+    })
+    .catch((err)=>{
+        reject(err);
+    });
+};
+
 
 
 module.exports = gameModel;

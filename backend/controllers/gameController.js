@@ -45,3 +45,27 @@ const gameModel = require('../models/gameModel');
             res.status(500).json({error:err.message});
         });
     };
+
+    exports.getCurrentByPlayerId= (req,res)=>{
+
+        const {player_id} = req.params;
+
+        gameModel.getCurrentGameByPlayerId(player_id).then((game)=>{
+            res.status(200).json(game);
+        })
+        .catch(err=>{
+            res.status(500).json({erro:err.message});
+        });
+    };
+
+    exports.joinGame = (req,res)=>{
+
+        const {user_id, game_id} = req.body;
+
+        gameModel.joinGame(user_id,game_id).then((player_id)=>{
+            res.status(200).json({player_id:player_id});
+        })
+        .catch((err)=>{
+            res.status(500).json({error: err.message});
+        })
+    }
