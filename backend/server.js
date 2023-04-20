@@ -19,7 +19,7 @@ app.set("view engine", "pug");
 app.use(express.static(path.join(__dirname, "backend", "static")));
 
 const rootRoutes = require("./routes/root");
-const authRoutes = require ("./routes/auth");
+const authRoutes = require ("./routes/userRouter");
 const gameRoutes = require('./routes/gameRouter');
 const userRoutes = require('./routes/userRouter');
 

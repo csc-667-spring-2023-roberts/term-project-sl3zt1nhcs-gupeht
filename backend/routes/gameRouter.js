@@ -10,3 +10,5 @@ router.get('/lobby',authMiddleware.requireAuth,gameController.getAllGames);
 router.post('/game',authMiddleware.requireAuth,gameController.createGame);
 router.get('/game/:game_id',authMiddleware.requireAuth,gameController.getGameById);
 router.delete('/game/:game_id',authMiddleware.requireAuth,gameController.deleteGame);
+
+module.exports = router;

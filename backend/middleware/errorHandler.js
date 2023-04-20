@@ -1,4 +1,4 @@
-const { customErrorHandler } = require("./customErroraHandler");
+const { customErrorHandler } = require("./customErrorHandler");
 
 
 module.exports = {
