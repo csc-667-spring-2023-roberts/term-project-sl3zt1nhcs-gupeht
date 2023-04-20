@@ -5,7 +5,9 @@ const gameModel = require('../models/gameModel');
 
         const {max_players, small_blind} = req.body;
 
-        gameModel.createGameAndTable(max_players,small_blind,'NOW()')
+        const deck = new Deck(); // create a new instance of the Deck class
+
+        gameModel.createGameAndTable(max_players,small_blind,'NOW()') // -> add deck here after now
             .then(({table_id,game_id})=>{
                 result.table_id = table_id;
                 result.game_id = game_id;
