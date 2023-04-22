@@ -8,6 +8,9 @@ const config = require(`../backend/config/${env}`);
 const { errorHandler} = require("./middleware/errorHandler");
 const {sessionMiddleware} = require ('./middleware/sessionUser');
 const app = express();
+const server = http.createServer(app);
+const{initChatSocket} = require('./sockets/chatSocket');
+
 
 app.use(morgan("dev"));
 app.use(express.json());
@@ -22,13 +25,19 @@ const rootRoutes = require("./routes/root");
 const authRoutes = require ("./routes/userRouter");
 const gameRoutes = require('./routes/gameRouter');
 const userRoutes = require('./routes/userRouter');
+const lobbyRoutes = require('./routes/LobbyRouters');
+const playerRoutes = require('./routes/playerRouter')
+
 
 app.use(sessionMiddleware);// declared globally so is accessible to all routes
 
 app.use("/", rootRoutes);
-app.use("/api/auth",authRoutes);
-app.use('/api/game',gameRoutes);
-app.use('/api/user',userRoutes);
+app.use("/api/auth", authRoutes);
+app.use('/api/game', gameRoutes);
+app.use('/api/lobby', lobbyRoutes);
+app.use('/api/player', playerRoutes);
+app.use('/api/user', userRoutes);
+
 app.use(errorHandler);
 
 const PORT = process.env.PORT || config.PORT;
@@ -37,6 +46,8 @@ const PORT = process.env.PORT || config.PORT;
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}.....`);
 });
+
+initChatSocket(server);
 
 
 // Handle 404 erors

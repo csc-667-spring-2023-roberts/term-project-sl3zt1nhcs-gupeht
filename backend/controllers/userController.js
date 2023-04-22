@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const db = require("../database/db");
 
-exports.resgister = ( req,res)=>{
+exports.register = ( req,res)=>{
 
     const result = {};
 

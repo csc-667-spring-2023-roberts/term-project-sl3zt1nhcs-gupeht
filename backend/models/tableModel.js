@@ -54,7 +54,7 @@ tableModel.createTable = (max_players, small_blind) =>{
             }
         })
         .catch((err)=>{
-            reject(err);
+            reject(new CustomError('Failed to create table', 500));
         });
     });
 };
@@ -72,10 +72,9 @@ tableModel.getCurrentGame =(table_id)=>{
                     reject( new CustomError('Current game not listed',404));
                 }
             })
-            .catch((err)=>{
-                reject(err);
-            });
-    });
+        }).catch((err)=>{
+            reject(new CustomError('Error getting current game', 500));
+        });
 };
 
 tableModel.getPlayersAtTable = (table_id) =>{
@@ -135,3 +134,4 @@ tableModel.removePlayerFromTable = (table_id, player_id)=>{
     });
 };
 
+module.exports = tableModel;
