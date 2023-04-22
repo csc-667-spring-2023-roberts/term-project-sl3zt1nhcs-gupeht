@@ -2,6 +2,7 @@ const gameModel = require('../models/gameModel');
 const Deck = require('../models/deckModel');
 const chatModel = require('../models/chatModel');
 const {initChatSocket}= require("../sockets/chatSocket")
+const chatController = require('./chatController');
 
 exports.createGame = (req, res) => {
   const result = {};

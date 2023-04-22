@@ -13,4 +13,5 @@ router.get('/getgamebyplayer/:player_id', authMiddleware.requireAuth, gameContro
 router.delete('/deletegame/:game_id', authMiddleware.requireAuth, gameController.deleteGame);
 router.post('/startround/:game_id', authMiddleware.requireAuth, gameController.startNextRound);
 
+
 module.exports = router;
