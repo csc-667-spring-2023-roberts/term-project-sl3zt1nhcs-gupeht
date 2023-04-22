@@ -10,3 +10,6 @@ router.post('/create-lobby', authMiddleware.requireAuth, lobbyController.createL
 router.post('/add-player-to-lobby', authMiddleware.requireAuth, lobbyController.addPlayerToLobby);
 router.post('/start-game-in-lobby', authMiddleware.requireAuth, lobbyController.startGameInLobby);
 router.get('/get-lobby-by-id/:lobby_id', authMiddleware.requireAuth, lobbyController.getLobbyById);
+
+
+module.exports = router;

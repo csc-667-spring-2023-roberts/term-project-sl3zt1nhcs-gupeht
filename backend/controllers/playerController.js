@@ -109,3 +109,20 @@ exports.getPlayerByUserIdAndGameId = (req, res) => {
         }
       });
   };
+
+
+  exports.updatePlayer = (req, res) => {
+    const { player } = req.body;
+  
+    const result = {};
+  
+    playerModel.updatePlayer(player)
+      .then(() => {
+        result.message = 'Player updated successfully';
+        res.status(200).json({ Result: result });
+      })
+      .catch((error) => {
+        result.error = error.message;
+        res.status(500).json({ Result: result });
+      });
+  };

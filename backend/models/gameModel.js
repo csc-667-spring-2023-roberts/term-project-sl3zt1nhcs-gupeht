@@ -46,6 +46,26 @@ gameModel.createGameAndTable = (lobby_owner, max_players, small_blind, num_playe
     });
   };
 
+  gameModel.getAllPlayersInGame = (game_id) => {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT p.player_id, u.username
+        FROM players p
+        INNER JOIN users u ON p.user_id = u.user_id
+        WHERE p.game_id = $1
+      `;
+      const values = [game_id];
+  
+      db.query(query, values)
+        .then(result => {
+          resolve(result.rows);
+        })
+        .catch(err => {
+          reject(err);
+        });
+    });
+  };
+
 
   gameModel.getGameById = (game_id) => {
     return new Promise((resolve, reject) => {

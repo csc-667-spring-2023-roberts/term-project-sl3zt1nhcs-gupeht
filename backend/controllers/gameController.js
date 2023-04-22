@@ -21,7 +21,8 @@ exports.createGame = (req, res) => {
       chatModel.createChat(game_id, null, 'Open chat for game');
 
        // Initialize chat socket for the game
-       initChatSocket(req.app);
+       req.app.locals.io.emit("gameCreated", game_id);
+      
 
 
       // Deal hole cards to all players
@@ -70,10 +71,11 @@ exports.deleteGame = (req, res) => {
    // Delete chat for the game
    chatModel.deleteChatByGameId(game_id);
 
-   // Close the chat socket for the game
-   const io = req.app.get('socketio');
+  // Emit gameEnded event
+  req.app.locals.io.emit("gameEnded", game_id);
+   
    const gameRoom = `game-${game_id}`;
-   const chatSocket = io.of('/chat').in(gameRoom);
+   const chatSocket = req.app.locals.io.of('/chat').in(gameRoom);
    chatSocket.clients((error, clients) => {
      if (error) throw error;
 
@@ -151,6 +153,7 @@ exports.joinGame = (req, res) => {
         const playerIds = players.map((player) => player.player_id);
         playerIds.push(result.player_id);
         chatModel.createChat(game_id, playerIds, 'Open chat for game');
+        req.app.locals.io.emit("playerJoinedGame", { player_id: result.player_id, game_id });
   
         res.status(200).json({ Result: result });
       })
@@ -175,7 +178,7 @@ exports.joinGame = (req, res) => {
         res.status(200).json({ Result: result });
       })
       .then(() => {
-        const deck = new Decks();
+        const deck = new Deck();
         const cards = deck.shuffleDeck();
         return gameModel.addCardsToHolCards(game_id, cards);
       })

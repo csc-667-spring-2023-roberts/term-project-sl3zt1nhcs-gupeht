@@ -88,20 +88,6 @@ exports.startGameInLobby = (req, res) => {
     });
 };
 
-exports.getAllLobbies = (req, res) => {
-  const result = {};
-
-  lobbyModel
-    .getAllLobbies()
-    .then((lobbies) => {
-      result.lobbies = lobbies;
-      res.status(200).json({ Result: result });
-    })
-    .catch((err) => {
-      result.error = err.message;
-      res.status(500).json({ Result: result });
-    });
-};
 
 exports.getLobbyById = (req, res) => {
     const result = {};
