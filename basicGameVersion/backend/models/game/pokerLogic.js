@@ -72,9 +72,22 @@ pokerLogic.determineWinner = (players) => {
     return winners;
 };
 
-pokerLogic.handleBettingRound = (players, pot, currentPlayer) => {
-    // Your existing handleBettingRound implementation goes here
-};
+
+pokerLogic.handleBettingRound = (players, currentPlayer, minBet) => {
+
+    players.forEach((player) => {
+        
+      if (player.status === "active") {
+        const bet = Math.min(player.chips, minBet);
+        player.chips -= bet;
+        player.currentBet += bet;
+      }
+    });
+  
+    currentPlayer = players.find((player) => player.status === "active");
+  };
+
+
 
 pokerLogic.isFlush = (cards) => {
     const suits = {};

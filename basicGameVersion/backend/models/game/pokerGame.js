@@ -26,6 +26,28 @@ class PokerGame {
     return players;
   }
 
+
+  addPlayers(playerIds) {
+    playerIds.forEach((playerId) => {
+      this.players.push({
+        id: playerId,
+        name: `Player ${playerId + 1}`,
+        chips: 100,
+        currentBet: 0,
+        status: 'active',
+        hand: [],
+      });
+    });
+  }
+
+  removePlayer(playerId) {
+    const index = this.players.findIndex((player) => player.id === playerId);
+    if (index !== -1) {
+      this.players.splice(index, 1);
+    }
+  }
+
+
   playRound() {
     this.deck = pokerLogic.shuffleDeck(this.deck);
     pokerLogic.dealCards(this.players, this.deck);
@@ -55,18 +77,12 @@ class PokerGame {
     this.resetGameState();
   }
 
-  handleBettingRound() {
-    const result = pokerLogic.handleBettingRound(
-      this.players,
-      this.pot,
-      this.currentPlayer
-    );
+  handleBettingRound(minBet = 1) {
+    pokerLogic.handleBettingRound(this.players, this.currentPlayer, minBet);
 
-    if (result) {
-      // If there's a winner, return early and don't continue the round
-      return;
-    }
+    this.pot = this.players.reduce((acc, player) => acc + player.currentBet, 0);
   }
+ 
 
   resetGameState() {
     this.players.forEach((player) => {
@@ -78,6 +94,30 @@ class PokerGame {
     this.deck = pokerLogic.createDeck();
     this.communityCards = [];
     this.pot = 0;
+  }
+
+
+
+
+  toJson() {
+    return JSON.stringify({
+      players: this.players,
+      deck: this.deck,
+      communityCards: this.communityCards,
+      pot: this.pot,
+      currentPlayer: this.currentPlayer,
+    });
+  }
+
+  static fromJson(json) {
+    const data = JSON.parse(json);
+    const pokerGame = new PokerGame(data.players.length);
+    pokerGame.players = data.players;
+    pokerGame.deck = data.deck;
+    pokerGame.communityCards = data.communityCards;
+    pokerGame.pot = data.pot;
+    pokerGame.currentPlayer = data.currentPlayer;
+    return pokerGame;
   }
 }
 
