@@ -58,6 +58,13 @@ exports.dealCommunityCards = (game_id, round) => {
   });
 };
 
+
+// gameLogic.js
+exports.dealHoleCards = (deck) => {
+  return [deck.drawCard(), deck.drawCard()];
+};
+
+
 exports.determineWinner = (game_id) => {
   return Promise.all([
     playerController.getPlayersByGameId(game_id),

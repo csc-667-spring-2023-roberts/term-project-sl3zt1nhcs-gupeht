@@ -205,4 +205,41 @@ gameModel.startNextRound = (game_id) => {
   };
 
 
+
+exports.addHoleCards = (game_id, player_id, holeCards) => {
+  const [card1, card2] = holeCards;
+
+  // Save the hole cards to the database for the specific player and game
+  const query = `
+    INSERT INTO hole_cards (game_id, player_id, card1, card2)
+    VALUES (?, ?, ?, ?);
+  `;
+
+  return new Promise((resolve, reject) => {
+    db.query(query, [game_id, player_id, card1, card2], (err, result) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(result);
+      }
+    });
+  });
+};
+
+
+exports.addMessage = (game_id, player_id, message) => {
+  return pool.query(
+    'INSERT INTO chat (game_id, player_id, message) VALUES ($1, $2, $3) RETURNING chat_id',
+    [game_id, player_id, message]
+  )
+  .then((result) => {
+    return result.rows[0].chat_id;
+  })
+  .catch((error) => {
+    throw new Error(error);
+  });
+};
+
+
+
 module.exports = gameModel;
