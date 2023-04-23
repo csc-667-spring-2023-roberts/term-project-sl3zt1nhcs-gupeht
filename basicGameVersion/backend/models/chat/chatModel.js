@@ -3,6 +3,26 @@ const { CustomError } = require('');
 
 const chatModel = {};
 
+chatModel.createChatRoom = (gameId) => {
+  return new Promise((resolve, reject) => {
+    const query = `INSERT INTO chat_rooms (game_id) VALUES ($1)`;
+    const values = [gameId];
+
+    db.query(query, values)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          resolve(true);
+        } else {
+          reject(new CustomError('No rows affected', 404));
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+
 chatModel.addMessage = (userId, gameId, message) => {
   return new Promise((resolve, reject) => {
     const query = `INSERT INTO chat_messages (user_id, game_id, message, created_at) VALUES ($1, $2, $3, NOW())`;
