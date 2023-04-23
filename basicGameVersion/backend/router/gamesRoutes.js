@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const gameController = require('../controllers/gameController');
 const {authenticate} = require ('../middleware/auth.js');
+const tableController = require('../controllers/tableController');
 
+router.get('/',authenticate,tableController.getAllTables);
 router.post('/',authenticate ,gameController.createGame);
 router.post('/:gameId/players',authenticate ,gameController.addPlayersToGame);
 router.get('/:gameId/players',authenticate ,gameController.getPlayersByGameId);

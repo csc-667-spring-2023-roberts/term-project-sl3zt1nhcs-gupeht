@@ -226,6 +226,21 @@ exports.addHoleCards = (game_id, player_id, holeCards) => {
   });
 };
 
+gameModel.getCommunityCards = (game_id) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT card FROM community_cards WHERE game_id=$1 ORDER BY id ASC`;
+    const values = [game_id];
+
+    db.query(query, values)
+      .then((result) => {
+        const cards = result.rows.map((row) => row.card);
+        resolve(cards);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
 
 exports.addMessage = (game_id, player_id, message) => {
   return pool.query(

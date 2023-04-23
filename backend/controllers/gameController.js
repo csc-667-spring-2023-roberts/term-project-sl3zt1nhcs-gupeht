@@ -64,7 +64,7 @@ exports.getGameById = (req, res) => {
     });
 };
 
-const chatModel = require('../models/chatModel');
+
 
 exports.addMessage = (req, res) => {
   const { game_id, sender_id, message } = req.body;
@@ -338,3 +338,165 @@ exports.getPlayerHoleCards = (req, res) => {
       res.status(500).json({ Result: result });
     });
 };
+
+// Function to handle player betting
+exports.bet = (req, res) => {
+  const { player_id, game_id, amount } = req.body;
+  const result = {};
+
+  gameModel
+    .getPlayerChips(player_id)
+    .then(({ chips }) => {
+      if (chips < amount) {
+        throw new Error('Player does not have enough chips');
+      }
+      return gameModel.bet(player_id, game_id, amount);
+    })
+    .then(() => {
+      // Add bet amount to pot
+      return gameModel.addToPot(game_id, amount);
+    })
+    .then(() => {
+      result.message = 'Bet placed successfully';
+      res.status(200).json({ Result: result });
+    })
+    .catch((err) => {
+      result.error = err.message;
+      res.status(500).json({ Result: result });
+    });
+};
+
+// Function to handle player raising
+exports.raise = (req, res) => {
+  const { player_id, game_id, amount } = req.body;
+  const result = {};
+
+  gameModel
+    .getPlayerChips(player_id)
+    .then(({ chips }) => {
+      if (chips < amount) {
+        throw new Error('Player does not have enough chips');
+      }
+      return gameModel.raise(player_id, game_id, amount);
+    })
+    .then(() => {
+      // Add raise amount to pot
+      return gameModel.addToPot(game_id, amount);
+    })
+    .then(() => {
+      result.message = 'Raise placed successfully';
+      res.status(200).json({ Result: result });
+    })
+    .catch((err) => {
+      result.error = err.message;
+      res.status(500).json({ Result: result });
+    });
+};
+
+// Function to handle managing the pot
+exports.managePot = (req, res) => {
+  const { game_id } = req.params;
+  const result = {};
+
+  gameModel
+    .getPot(game_id)
+    .then(({ pot }) => {
+      result.pot = pot;
+      res.status(200).json({ Result: result });
+    })
+    .catch((err) => {
+      result.error = err.message;
+      res.status(500).json({ Result: result });
+    });
+};
+
+
+// Function to handle pre-flop round of betting
+exports.preFlopRound = (req, res) => {
+  const { game_id } = req.params;
+  const result = {};
+
+  gameModel
+    .setGameState(game_id, 'pre_flop')
+    .then(() => {
+      result.message = 'Pre-flop round started successfully';
+      // Notify players of round start in chat
+      chatModel.addMessage(game_id, null, `Pre-flop round started`);
+      res.status(200).json({ Result: result });
+    })
+    .catch((err) => {
+      result.error = err.message;
+      res.status(500).json({ Result: result });
+    });
+};
+
+exports.placeBet = (req, res) => {
+  const { game_id, player_id, bet_amount } = req.body;
+
+  gameModel
+    .getPlayerChips(player_id)
+    .then(({ chips }) => {
+      if (chips < bet_amount) {
+        throw new Error('Player does not have enough chips to place bet');
+      }
+
+      return gameModel.addBet(game_id, player_id, bet_amount);
+    })
+    .then(() => {
+      res.status(200).json({ message: 'Bet placed successfully' });
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
+};
+
+exports.raiseBet = (req, res) => {
+  const { game_id, player_id, bet_amount } = req.body;
+
+  gameModel
+    .getPlayerChips(player_id)
+    .then(({ chips }) => {
+      if (chips < bet_amount) {
+        throw new Error('Player does not have enough chips to raise bet');
+      }
+
+      return gameModel.getLastBet(game_id);
+    })
+    .then(({ player_id: lastPlayerId, amount: lastBetAmount }) => {
+      if (lastPlayerId === player_id) {
+        throw new Error('Cannot raise own bet');
+      }
+
+      if (bet_amount <= lastBetAmount) {
+        throw new Error('Raise amount must be greater than previous bet');
+      }
+
+      return gameModel.addBet(game_id, player_id, bet_amount);
+    })
+    .then(() => {
+      res.status(200).json({ message: 'Bet raised successfully' });
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
+};
+
+
+function getPot(game_id) {
+  return gameModel.getAllBets(game_id)
+    .then((bets) => {
+      return bets.reduce((total, bet) => {
+        return total + bet.amount;
+      }, 0);
+    });
+}
+
+
+exports.updatePot = (game_id) => {
+  return getPot(game_id)
+    .then((pot) => {
+      return gameModel.updatePot(game_id, pot);
+    });
+};
+
+

@@ -30,7 +30,7 @@ const chatRoutes = require('./routes/chatRoutes');
 const userRoutes = require('./routes/userRouter');
 const lobbyRoutes = require('./routes/LobbyRouters');
 const playerRoutes = require('./routes/playerRouter');
-const chatRoutes = require('./routes/chatRoutes');
+
 
 const io = socketIO(server);
 
@@ -57,7 +57,6 @@ const PORT = process.env.PORT || config.PORT;
 server.listen(PORT, () => {
   console.log(`Server started on port ${PORT}.....`);
 });
-
 
 // Handle 404 erors
 app.use((request, response, next) => {

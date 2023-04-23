@@ -1,15 +1,18 @@
 const gameModel = require('../models/gameModel');
 const gameController = {};
+const tableController = require('../controllers/tableController');
 
 gameController.createGame = (req, res, next) => {
+    const { table } = req.body;
     const result = {};
-    const { tableId } = req.body;
-    gameModel.createGame(tableId)
+  
+    tableController.createTable(table)
+      .then((tableId) => {
+        return gameModel.createGame(tableId);
+      })
       .then((gameId) => {
-        result.success = true;
         result.gameId = gameId;
-        result.message = 'Game Created';
-        res.status(200).json({ result });
+        res.status(200).json(result);
       })
       .catch((err) => {
         next(err);
@@ -20,11 +23,19 @@ gameController.createGame = (req, res, next) => {
   gameController.addPlayersToGame = (req, res, next) => {
     const { gameId, playerIds } = req.body;
     const result = {};
-  
-    gameModel.addPlayersToGame(gameId, playerIds)
+    
+    // First, get the table ID associated with the game
+    gameModel.getTableIdByGameId(gameId)
+      .then((tableId) => {
+        // Then, add the players to the table using the table controller
+        return tableController.addPlayersToTable(tableId, playerIds);
+      })
+      .then(() => {
+        // Finally, add the players to the game using the game model
+        return gameModel.addPlayersToGame(gameId, playerIds);
+      })
       .then(() => {
         result.success = true;
-        result.message = `Added ${playerIds.length} players to game ${gameId}`;
         res.status(200).json(result);
       })
       .catch((err) => {
