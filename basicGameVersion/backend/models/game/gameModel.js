@@ -30,7 +30,7 @@ gameModel.createGame = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
 
 gameModel.storeGame = (gameId, pokerGame) => {
     const query = `INSERT INTO games_data (game_id, game_data) VALUES ($1, $2)`;
-    const values = [gameId, JSON.stringify(pokerGame.toJson())];
+    const values = [gameId, pokerGame.toJson()];
 
     return db
         .query(query, values)

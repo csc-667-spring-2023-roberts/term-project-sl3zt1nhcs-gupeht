@@ -75,6 +75,35 @@ class PokerGame {
         this.resetGameState();
     }
 
+    handlePlayerAction(playerId, action, amount) {
+        const player = this.players.find((p) => p.id === playerId);
+
+        if (!player) {
+            throw new Error("Player not found");
+        }
+
+        switch (action) {
+            case "fold":
+                player.status = "folded";
+                break;
+            case "call":
+                const highestBet = Math.max(...this.players.map((p) => p.currentBet));
+                player.chips -= highestBet - player.currentBet;
+                player.currentBet = highestBet;
+                break;
+            case "raise":
+                const totalBet = player.currentBet + amount;
+                if (totalBet > player.chips) {
+                    throw new Error("Not enough chips to raise");
+                }
+                player.chips -= amount;
+                player.currentBet = totalBet;
+                break;
+            default:
+                throw new Error("Invalid action");
+        }
+    }
+
     handleBettingRound(minBet = 1) {
         pokerLogic.handleBettingRound(this.players, this.currentPlayer, minBet);
 
@@ -91,6 +120,15 @@ class PokerGame {
         this.deck = pokerLogic.createDeck();
         this.communityCards = [];
         this.pot = 0;
+    }
+
+    getState() {
+        return {
+            players: this.players,
+            communityCards: this.communityCards,
+            pot: this.pot,
+            currentPlayer: this.currentPlayer,
+        };
     }
 
     toJson() {
