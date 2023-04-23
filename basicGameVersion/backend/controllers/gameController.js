@@ -13,7 +13,6 @@ gameController.createGame = async (req, res, next) => {
   }
 };
 
-
 gameController.loadGame = async (req, res, next) => {
   try {
     const { gameId } = req.params;
@@ -55,7 +54,6 @@ gameController.dealCards = async (req, res, next) => {
   }
 };
 
-
 gameController.handleBettingRound = async (req, res, next) => {
   try {
     const { gameId } = req.params;
@@ -66,7 +64,6 @@ gameController.handleBettingRound = async (req, res, next) => {
   }
 };
 
-// This function gets the table details of a game
 gameController.getTableByGameId = async (req, res, next) => {
   try {
     const { gameId } = req.params;
@@ -78,8 +75,6 @@ gameController.getTableByGameId = async (req, res, next) => {
   }
 };
 
-
-// This function starts a game, deals cards, and initiates the first betting round
 gameController.startGame = async (req, res, next) => {
   try {
     const { gameId } = req.params;
@@ -91,7 +86,6 @@ gameController.startGame = async (req, res, next) => {
   }
 };
 
-// This function retrieves the current state of the game (e.g., players, community cards, pot, etc.)
 gameController.getGameState = async (req, res, next) => {
   try {
     const { gameId } = req.params;
@@ -102,7 +96,6 @@ gameController.getGameState = async (req, res, next) => {
   }
 };
 
-// This function handles a player's action (e.g., fold, call, raise) during a betting round
 gameController.handlePlayerAction = async (req, res, next) => {
   try {
     const { gameId } = req.params;
@@ -111,6 +104,18 @@ gameController.handlePlayerAction = async (req, res, next) => {
     pokerGame.handlePlayerAction(playerId, action, amount);
     await gameModel.updateGame(gameId, pokerGame);
     res.status(200).json({ success: true, message: 'Player action handled' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+gameController.playRound = async (req, res, next) => {
+  try {
+    const { gameId } = req.params;
+    const pokerGame = await gameModel.loadGame(gameId);
+    pokerGame.playRound();
+    await gameModel.updateGame(gameId, pokerGame);
+    res.status(200).json({ success: true, message: 'Round played' });
   } catch (err) {
     next(err);
   }

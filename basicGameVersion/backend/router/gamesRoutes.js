@@ -1,47 +1,39 @@
 const express = require('express');
 const router = express.Router();
 const gameController = require('../controllers/gameController');
-const {authenticate} = require ('../middleware/auth.js');
-
+const { authenticate } = require('../middleware/auth.js');
 
 // Create a new game
-router.post('/game',authenticate ,gameController.createGame);
+router.post('/game', authenticate, gameController.createGame);
+
+// Load a game
+router.get('/game/:gameId', authenticate, gameController.loadGame);
+
+// Update a game
+router.put('/game/:gameId', authenticate, gameController.updateGame);
 
 // Add players to a game
-router.post('/game/:gameId/players',authenticate ,gameController.addPlayersToGame);
-
-// Get players by game ID
-router.get('/game/:gameId/players',authenticate ,gameController.getPlayersByGameId);
+router.post('/game/:gameId/players', authenticate, gameController.addPlayersToGame);
 
 // Deal cards in a game
-router.put('/game/:gameId/deal',authenticate ,gameController.dealCards);
+router.put('/game/:gameId/deal', authenticate, gameController.dealCards);
 
-// Get community cards by game ID
-router.get('/game/:gameId/community-cards',authenticate ,gameController.getCommunityCardsByGameId);
-
-// Add a community card to a game
-router.post('/game/:gameId/community-card',authenticate ,gameController.addCommunityCardToGame);
-
-// Get pot amount by game ID
-router.get('/game/:gameId/pot',authenticate ,gameController.getPotByGameId);
-
-// Place a bet in a game
-router.post('/game/:gameId/bet', authenticate,gameController.placeBet);
-
-// Handle a game (process the winner)
-router.put('/game/:gameId/handle',authenticate ,gameController.handleGame);
+// Handle a betting round in a game
+router.put('/game/:gameId/betting-round', authenticate, gameController.handleBettingRound);
 
 // Get table details by game ID
-router.get('/game/:gameId/table',authenticate ,gameController.getTableByGameId);
+router.get('/game/:gameId/table', authenticate, gameController.getTableByGameId);
 
 // Start a game
-router.put('/game/:gameId/start',authenticate ,gameController.startGame);
+router.put('/game/:gameId/start', authenticate, gameController.startGame);
 
 // Get the game state by game ID
-router.get('/game/:gameId/state', authenticate,gameController.getGameState);
+router.get('/game/:gameId/state', authenticate, gameController.getGameState);
 
 // Handle a player's action during a betting round
-router.post('/game/:gameId/player-action', authenticate,gameController.handlePlayerAction);
+router.post('/game/:gameId/player-action', authenticate, gameController.handlePlayerAction);
 
+// Play a round in a game
+router.put('/game/:gameId/play-round', authenticate, gameController.playRound);
 
 module.exports = router;
