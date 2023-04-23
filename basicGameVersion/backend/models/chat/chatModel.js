@@ -1,5 +1,5 @@
 const db = require('../../database/db');
-const { CustomError } = require('');
+const { CustomError } = require("../../middleware/customErrorHandler");
 
 const chatModel = {};
 

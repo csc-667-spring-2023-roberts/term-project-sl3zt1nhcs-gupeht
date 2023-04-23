@@ -1,5 +1,5 @@
-const db = require('../database/db');
-const { CustomError } = require('../middleware/customErrorHandler');
+const db = require('../../database/db');
+const { CustomError } = require('../../middleware/customErrorHandler');
 
 const tableModel = {};
 

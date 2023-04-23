@@ -3,12 +3,13 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const http = require('http');
 const setupSocket = require('./socket');
-const { sessionMiddleware, cookieMiddleware } = require('./middlewares/authMiddleware');
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const gameRoutes = require('./routes/gameRoutes');
-const tableRoutes = require('./routes/tableRoutes');
+const { sessionMiddleware, cookieMiddleware } = require('./middleware/sessionMiddleWare');
+
+const userRoutes = require('./router/userRoutes');
+const gameRoutes = require('./router/gamesRoutes');
 const chatController = require('./controllers/chatController');
+
+const {customErrorHandler} = require('./middleware/customErrorHandler');
 
 const app = express();
 const server = http.createServer(app);
@@ -26,16 +27,16 @@ app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 
 // middleware
+app.use(customErrorHandler);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(sessionMiddleware);
 app.use(cookieMiddleware);
 
-// routes
-app.use('/auth', authRoutes);
+
 app.use('/user', userRoutes);
 app.use('/game', gameRoutes);
-app.use('/table', tableRoutes);
+
 
 // 404 error handling
 app.use((req, res, next) => {

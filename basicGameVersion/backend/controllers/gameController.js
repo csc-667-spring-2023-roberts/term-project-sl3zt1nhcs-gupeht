@@ -1,6 +1,6 @@
-const gameModel = require('../models/gameModel');
+const gameModel = require('../models/game/gameModel');
+const tableModel = require('../models/table/tableModel');
 const gameController = {};
-const tableModel = require('../controllers/tableController');
 
 gameController.createGame = async (req, res, next) => {
   try {

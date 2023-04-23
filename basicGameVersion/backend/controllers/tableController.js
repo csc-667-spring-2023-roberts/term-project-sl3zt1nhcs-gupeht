@@ -1,4 +1,4 @@
-const tableModel = require('../models/tableModel');
+const tableModel = require('../models/table/tableModel');
 
 const tableController = {};
 
