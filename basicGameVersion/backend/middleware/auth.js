@@ -4,11 +4,13 @@ const db = require('../database/db');
 
 const authMiddleware = (req, res, next) => {
   // Get the JWT token from the request headers
-  const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return next(new CustomError('Authorization header missing or invalid', 401));
   }
+
+  const token = authHeader.split(' ')[1];
 
   // Verify the token and extract the user ID
   jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -31,7 +33,7 @@ const authMiddleware = (req, res, next) => {
         next();
       })
       .catch((err) => {
-        next(err);
+        next(new CustomError('Error while verifying user', 500));
       });
   });
 };

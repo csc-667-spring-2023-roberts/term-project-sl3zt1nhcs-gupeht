@@ -29,11 +29,25 @@ userController.getUserById = (req, res) => {
     });
 };
 
-userController.getCurrentUser = (req, res, next) => {
-  
-  const userId = req.user.id;
+userController.login = (req, res, next) => {
+  const { username, password } = req.body;
 
-  userModel.getUserById(userId)
+  userModel.login(req, username, password)
+    .then((user) => {
+      res.status(200).json({ user });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+userController.logout = (req, res, next) => {
+  userModel.logout(req);
+  res.status(200).json({ message: 'User logged out successfully' });
+};
+
+userController.getCurrentUser = (req, res, next) => {
+  userModel.getCurrentUser(req)
     .then((user) => {
       res.status(200).json({ user });
     })

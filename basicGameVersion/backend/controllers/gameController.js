@@ -1,153 +1,119 @@
 const gameModel = require('../models/gameModel');
 const gameController = {};
-const tableController = require('../controllers/tableController');
+const tableModel = require('../controllers/tableController');
 
-gameController.createGame = (req, res, next) => {
-    const { table } = req.body;
-    const result = {};
-  
-    tableController.createTable(table)
-      .then((tableId) => {
-        return gameModel.createGame(tableId);
-      })
-      .then((gameId) => {
-        result.gameId = gameId;
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  };
+gameController.createGame = async (req, res, next) => {
+  try {
+    const { tableName, maxPlayers, minBuyIn, maxBuyIn } = req.body;
+    const tableId = await tableModel.createTable(tableName, maxPlayers, minBuyIn, maxBuyIn);
+    const gameId = await gameModel.createGame(tableId);
+    res.status(201).json({ gameId });
+  } catch (err) {
+    next(err);
+  }
+};
 
 
-  gameController.addPlayersToGame = (req, res, next) => {
-    const { gameId, playerIds } = req.body;
-    const result = {};
-    
-    // First, get the table ID associated with the game
-    gameModel.getTableIdByGameId(gameId)
-      .then((tableId) => {
-        // Then, add the players to the table using the table controller
-        return tableController.addPlayersToTable(tableId, playerIds);
-      })
-      .then(() => {
-        // Finally, add the players to the game using the game model
-        return gameModel.addPlayersToGame(gameId, playerIds);
-      })
-      .then(() => {
-        result.success = true;
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  };
-
-
-  gameController.getPlayersByGameId = (req, res, next) => {
+gameController.loadGame = async (req, res, next) => {
+  try {
     const { gameId } = req.params;
-    const result = {};
-  
-    gameModel.getPlayersByGameId(gameId)
-      .then((players) => {
-        result.players = players;
-        result.message = `Found ${players.length} players in game ${gameId}`;
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        result.error = err.message;
-        result.status = err.status || 500;
-        next(result);
-      });
-  };
-
-
-  gameController.dealCards = (req, res, next) => {
-    const { gameId } = req.params;
-    const result = {};
-    gameModel.dealCards(gameId)
-      .then((hands) => {
-        result.success = true;
-        result.hands = hands;
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  };
-
-  gameController.getCommunityCardsByGameId = (req, res, next) => {
-    const { gameId } = req.params;
-    const result = {};
-    gameModel.getCommunityCardsByGameId(gameId)
-      .then((cards) => {
-        result.cards = cards;
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  };
-
-
-gameController.addCommunityCardToGame = (req, res, next) => {
-    const { gameId, cardId } = req.body;
-    const result = {};
-    gameModel.addCommunityCardToGame(gameId, cardId)
-      .then(() => {
-        result.success = true;
-        result.message = 'Community card added successfully';
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  };
-  
-
-  gameController.getPotByGameId = (req, res, next) => {
-    const { gameId } = req.params;
-    const result = {};
-    gameModel.getPotByGameId(gameId)
-      .then((pot) => {
-        result.success = true;
-        result.pot = pot;
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  };
-  
-
-gameController.placeBet = (req, res, next) => {
-    const { playerId, handId, amount } = req.body;
-    const result = {};
-    gameModel.placeBet(playerId, handId, amount)
-      .then(() => {
-        result.success = true;
-        result.message = `Player ${playerId} placed a bet of ${amount} on hand ${handId}`;
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  };
-  
-
-gameController.handleGame = (req, res, next) => {
-    const { gameId } = req.params;
-    const result = {};
-    gameModel.handleGame(gameId)
-      .then((winner) => {
-        result.success = true;
-        result.winner = winner;
-        res.status(200).json(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
+    const pokerGame = await gameModel.loadGame(gameId);
+    res.status(200).json(pokerGame);
+  } catch (err) {
+    next(err);
+  }
 };
   
-  
+gameController.updateGame = async (req, res, next) => {
+  try {
+    const { gameId } = req.params;
+    const { pokerGame } = req.body;
+    await gameModel.updateGame(gameId, pokerGame);
+    res.status(200).json({ success: true, message: 'Game updated' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+gameController.addPlayersToGame = async (req, res, next) => {
+  try {
+    const { gameId, playerIds } = req.body;
+    await gameModel.addPlayersToGame(gameId, playerIds);
+    res.status(200).json({ success: true, message: 'Players added to game' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+gameController.dealCards = async (req, res, next) => {
+  try {
+    const { gameId } = req.params;
+    await gameModel.dealCards(gameId);
+    res.status(200).json({ success: true, message: 'Cards dealt' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+gameController.handleBettingRound = async (req, res, next) => {
+  try {
+    const { gameId } = req.params;
+    await gameModel.handleBettingRound(gameId);
+    res.status(200).json({ success: true, message: 'Betting round handled' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// This function gets the table details of a game
+gameController.getTableByGameId = async (req, res, next) => {
+  try {
+    const { gameId } = req.params;
+    const tableId = await gameModel.getTableIdByGameId(gameId);
+    const table = await tableModel.getTableById(tableId);
+    res.status(200).json(table);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+// This function starts a game, deals cards, and initiates the first betting round
+gameController.startGame = async (req, res, next) => {
+  try {
+    const { gameId } = req.params;
+    await gameModel.dealCards(gameId);
+    await gameModel.handleBettingRound(gameId);
+    res.status(200).json({ success: true, message: 'Game started' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// This function retrieves the current state of the game (e.g., players, community cards, pot, etc.)
+gameController.getGameState = async (req, res, next) => {
+  try {
+    const { gameId } = req.params;
+    const pokerGame = await gameModel.loadGame(gameId);
+    res.status(200).json(pokerGame.getState());
+  } catch (err) {
+    next(err);
+  }
+};
+
+// This function handles a player's action (e.g., fold, call, raise) during a betting round
+gameController.handlePlayerAction = async (req, res, next) => {
+  try {
+    const { gameId } = req.params;
+    const { playerId, action, amount } = req.body;
+    const pokerGame = await gameModel.loadGame(gameId);
+    pokerGame.handlePlayerAction(playerId, action, amount);
+    await gameModel.updateGame(gameId, pokerGame);
+    res.status(200).json({ success: true, message: 'Player action handled' });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = gameController;
