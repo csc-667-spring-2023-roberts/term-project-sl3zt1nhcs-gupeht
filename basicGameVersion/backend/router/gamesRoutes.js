@@ -7,7 +7,7 @@ const authenticate  = require('../middleware/auth');
 router.post('/game', authenticate, gameController.createGame);
 
 // Load a game
-router.get('/game/:gameId', authenticate, gameController.loadGame);
+router.get('/game/:gameId', authenticate, gameController.getGameState);
 
 // Update a game
 router.put('/game/:gameId', authenticate, gameController.updateGame);
