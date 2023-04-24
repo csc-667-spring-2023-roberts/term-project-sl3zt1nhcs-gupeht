@@ -23,10 +23,10 @@ chatModel.createChatRoom = (gameId) => {
 };
 
 
-chatModel.addMessage = (userId, gameId, message) => {
+chatModel.addMessage = (playerId, gameId, message) => {
   return new Promise((resolve, reject) => {
-    const query = `INSERT INTO chat_messages (user_id, game_id, message, created_at) VALUES ($1, $2, $3, NOW())`;
-    const values = [userId, gameId, message];
+    const query = `INSERT INTO chat_messages (player_id, game_id, message, created_at) VALUES ($1, $2, $3, NOW())`;
+    const values = [playerId, gameId, message];
 
     db.query(query, values)
       .then((result) => {
@@ -42,11 +42,12 @@ chatModel.addMessage = (userId, gameId, message) => {
   });
 };
 
+
 chatModel.getMessages = (gameId) => {
   return new Promise((resolve, reject) => {
-    const query = `SELECT cm.chat_message_id, u.username, cm.message, cm.created_at 
+    const query = `SELECT cm.chat_message_id, p.name as player_name, cm.message, cm.created_at 
                    FROM chat_messages cm 
-                   INNER JOIN users u ON cm.user_id = u.user_id 
+                   INNER JOIN players p ON cm.player_id = p.player_id 
                    WHERE cm.game_id = $1 
                    ORDER BY cm.created_at ASC 
                    LIMIT 50`;

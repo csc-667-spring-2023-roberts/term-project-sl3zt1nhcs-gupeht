@@ -148,11 +148,11 @@ associated with the given gameId, then calls the addPlayers method
 on the PokerGame instance with the playerIds parameter. 
 Finally, it updates the game data in the games_data table.
 */
-gameModel.addPlayersToGame = (gameId, playerIds) => {
+gameModel.addPlayerToGame = (gameId, playerId) => {
     return gameModel
         .loadGame(gameId)
         .then((pokerGame) => {
-            pokerGame.addPlayers(playerIds);
+            pokerGame.addPlayer(playerId);
             return gameModel.updateGame(gameId, pokerGame);
         })
         .catch((err) => {
@@ -160,23 +160,23 @@ gameModel.addPlayersToGame = (gameId, playerIds) => {
         });
 };
 
-gameModel.isUserInGame = (userId, gameId) => {
+gameModel.isPlayerInGame = (playerId, gameId) => {
     return new Promise((resolve, reject) => {
-      const query = `SELECT COUNT(*) 
-                     FROM players 
-                     WHERE user_id = $1 AND game_id = $2`;
-      const values = [userId, gameId];
-  
-      db.query(query, values)
-        .then((result) => {
-          resolve(result.rows[0].count > 0);
-        })
-        .catch((err) => {
-          console.error(err);
-          reject(err);
-        });
+        const query = `SELECT COUNT(*) 
+                       FROM players 
+                       WHERE player_id = $1 AND game_id = $2`;
+        const values = [playerId, gameId];
+
+        db.query(query, values)
+            .then((result) => {
+                resolve(result.rows[0].count > 0);
+            })
+            .catch((err) => {
+                console.error(err);
+                reject(err);
+            });
     });
-  };
+};
 
 /*
 This function removes a player from a game. It first loads the PokerGame instance 

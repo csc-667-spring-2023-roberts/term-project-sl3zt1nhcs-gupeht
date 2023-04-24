@@ -1,66 +1,54 @@
-CREATE TABLE IF NOT EXISTS users (
-  user_id SERIAL PRIMARY KEY,
-  username VARCHAR(50) NOT NULL UNIQUE,
-  password VARCHAR(100) NOT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE
+CREATE TABLE tables (
+    table_id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    max_players INTEGER NOT NULL,
+    min_buy_in NUMERIC(10, 2) NOT NULL,
+    max_buy_in NUMERIC(10, 2) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS game_tables (
-  table_id SERIAL PRIMARY KEY,
-  max_players INTEGER NOT NULL DEFAULT 9
+
+CREATE TABLE games (
+    game_id SERIAL PRIMARY KEY,
+    table_id INTEGER NOT NULL REFERENCES tables(table_id),
+    start_time TIMESTAMP NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS games (
-  game_id SERIAL PRIMARY KEY,
-  table_id INTEGER NOT NULL REFERENCES game_tables(table_id) ON DELETE CASCADE,
-  start_time TIMESTAMP NOT NULL,
-  end_time TIMESTAMP,
-  winner_id INTEGER,
-  is_done BOOLEAN NOT NULL DEFAULT FALSE
+
+CREATE TABLE games_data (
+    game_data_id SERIAL PRIMARY KEY,
+    game_id INTEGER NOT NULL REFERENCES games(game_id),
+    game_data JSON NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS players (
-  player_id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-  game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
-  status VARCHAR(20) NOT NULL DEFAULT 'active'
+
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(255) NOT NULL UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS hands (
-  hand_id SERIAL PRIMARY KEY,
-  player_id INTEGER NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
-  game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE
+
+CREATE TABLE players (
+    player_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id),
+    game_id INTEGER NOT NULL REFERENCES games(game_id),
+    buy_in NUMERIC(10, 2) NOT NULL,
+    cash_out NUMERIC(10, 2) NOT NULL,
+    UNIQUE (user_id, game_id)
 );
 
-CREATE TABLE IF NOT EXISTS cards (
-  card_id SERIAL PRIMARY KEY,
-  suit VARCHAR(10) NOT NULL,
-  rank VARCHAR(5) NOT NULL
+
+CREATE TABLE chat_rooms (
+    chat_room_id SERIAL PRIMARY KEY,
+    game_id INTEGER NOT NULL UNIQUE REFERENCES games(game_id)
 );
 
-CREATE TABLE IF NOT EXISTS card_in_hand (
-  card_id INTEGER NOT NULL REFERENCES cards(card_id),
-  hand_id INTEGER NOT NULL REFERENCES hands(hand_id) ON DELETE CASCADE,
-  PRIMARY KEY (card_id, hand_id)
-);
 
-CREATE TABLE IF NOT EXISTS hol_cards (
-  game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
-  card_id INTEGER NOT NULL REFERENCES cards(card_id),
-  PRIMARY KEY (game_id, card_id)
+CREATE TABLE chat_messages (
+    chat_message_id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(user_id),
+    game_id INTEGER NOT NULL REFERENCES games(game_id),
+    message TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL
 );
-
-CREATE TABLE IF NOT EXISTS games_data (
-  game_data_id SERIAL PRIMARY KEY,
-  game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
-  data JSON NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS chat (
-  chat_id SERIAL PRIMARY KEY,
-  game_id INTEGER REFERENCES games(game_id) ON DELETE CASCADE,
-  player_id INTEGER REFERENCES players(player_id) ON DELETE SET NULL,
-  message TEXT NOT NULL,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-

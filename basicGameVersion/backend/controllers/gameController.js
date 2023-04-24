@@ -126,12 +126,13 @@ gameController.removePlayerFromGame = (req, res, next) => {
     gameModel
         .removePlayerFromGame(gameId, playerId)
         .then(() => {
-            return chatController.removePlayerFromGame(gameId,playerId); 
+            return chatController.removePlayerFromChat(gameId, playerId); // Changed line
         }).then((chat_data)=>{
             result.chat_data = chat_data;
             result.success = true;
             result.gameId = gameId;
-            result.message = `Players : ${result.playerIds} removed from game ${result.gameId}`;
+            result.playerId = playerId; // Changed line
+            result.message = `Player : ${result.playerId} removed from game ${result.gameId}`; // Changed line
             res.status(200).json(result);
         })
         .catch((err) => {
@@ -140,6 +141,7 @@ gameController.removePlayerFromGame = (req, res, next) => {
             next(err);
         });
 };
+
 /*
 This function handles the request for getting a table and its associated game.
 It takes the tableId from the request parameters and calls the getTableById
