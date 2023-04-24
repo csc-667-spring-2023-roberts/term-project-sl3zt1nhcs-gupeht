@@ -50,6 +50,12 @@ CREATE TABLE IF NOT EXISTS hol_cards (
   PRIMARY KEY (game_id, card_id)
 );
 
+CREATE TABLE IF NOT EXISTS games_data (
+  game_data_id SERIAL PRIMARY KEY,
+  game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
+  data JSON NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS chat (
   chat_id SERIAL PRIMARY KEY,
   game_id INTEGER REFERENCES games(game_id) ON DELETE CASCADE,

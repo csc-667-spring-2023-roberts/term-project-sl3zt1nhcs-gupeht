@@ -18,8 +18,8 @@ router.post('/game/:gameId/players', authenticate, gameController.addPlayersToGa
 // Remove a player from a game
 router.delete('/game/:gameId/players/:playerId', authenticate, gameController.removePlayerFromGame);
 
-// Get table details by game ID
-router.get('/game/:gameId/table', authenticate, gameController.getTableByGameId);
+// Get table details
+router.get('/table/:tableId', authenticate, gameController.getTable);
 
 // Get the game state by game ID
 router.get('/game/:gameId/state', authenticate, gameController.getGameState);
