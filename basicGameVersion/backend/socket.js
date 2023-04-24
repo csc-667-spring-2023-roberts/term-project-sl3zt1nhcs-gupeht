@@ -2,9 +2,6 @@ const socketIO = require("socket.io");
 const gameModel = require("./models/game/gameModel");
 const chatController = require("./controllers/chatController");
 
-const socketIO = require("socket.io");
-const gameModel = require("./models/game/gameModel");
-const chatController = require("./controllers/chatController");
 
 const setupSocket = (server) => {
     const io = socketIO(server);
