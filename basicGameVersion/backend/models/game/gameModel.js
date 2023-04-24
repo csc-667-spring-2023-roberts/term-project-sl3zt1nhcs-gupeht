@@ -2,7 +2,6 @@ const db = require("../../database/db");
 const { CustomError } = require("../../middleware/customErrorHandler");
 const PokerGame = require("./pokerGame");
 const tableModel = require("../table/tableModel");
-const chatModel = require("../chat/chatModel");
 const gameModel = {};
 /*
 This function creates a new game by calling the tableModel.createTable 
@@ -26,7 +25,7 @@ gameModel.createGame = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
             if (result.rowCount > 0) {
                 const gameId = result.rows[0].game_id;
                 const pokerGame = new PokerGame(maxPlayers); // Update the constructor call
-                return Promise.all([gameModel.storeGame(gameId, pokerGame), chatModel.createChatRoom(gameId)]).then(() => gameId);
+                return Promise.all([gameModel.storeGame(gameId, pokerGame)]).then(() => gameId);
             } else {
                 throw new CustomError("Failed to create game", 500);
             }
@@ -35,7 +34,25 @@ gameModel.createGame = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
             throw err;
         });
 };
-
+/*
+this function retrieves all games from the database
+This can be used so the front end can display all current games
+in the lobby
+*/
+gameModel.getAllGames = () =>{
+    const query = `SELECT * FROM games`;
+    return db.query(query).then((result)=>{
+        if (result.rowCount > 0){
+            return result.rows;
+        }
+        else{
+            throw new CustomError("There is no games",400);
+        }
+    })
+    .catch((err)=>{
+        throw new CustomError("Failed to load games from database",500);
+    });
+};
 /*
 This function stores a PokerGame instance in the games_data table. 
 It takes the gameId and the pokerGame object, serializes the game object 
@@ -88,20 +105,24 @@ using JSON.stringify, and updates the table entry.
 If the update is unsuccessful, it throws a custom error.
 */
 gameModel.updateGame = (gameId, pokerGame) => {
-    const query = `UPDATE games_data SET game_data = $2 WHERE game_id = $1`;
-    const values = [gameId, JSON.stringify(pokerGame)];
-
-    return db
-        .query(query, values)
+    return new Promise((resolve, reject) => {
+      const query = `UPDATE games_data SET game_data = $2 WHERE game_id = $1`;
+      const values = [gameId, JSON.stringify(pokerGame)];
+  
+      db.query(query, values)
         .then((result) => {
-            if (result.rowCount === 0) {
-                throw new CustomError("Failed to update game data", 500);
-            }
+          if (result.rowCount === 0) {
+            reject(new CustomError("Failed to update game data", 500));
+          } else {
+            resolve();
+          }
         })
         .catch((err) => {
-            throw err;
+          reject(err);
         });
-};
+    });
+  };
+  
 /*
 This function retrieves the game associated with a given tableId
 from the games table. If the game is not found, 
@@ -138,6 +159,24 @@ gameModel.addPlayersToGame = (gameId, playerIds) => {
             throw err;
         });
 };
+
+gameModel.isUserInGame = (userId, gameId) => {
+    return new Promise((resolve, reject) => {
+      const query = `SELECT COUNT(*) 
+                     FROM players 
+                     WHERE user_id = $1 AND game_id = $2`;
+      const values = [userId, gameId];
+  
+      db.query(query, values)
+        .then((result) => {
+          resolve(result.rows[0].count > 0);
+        })
+        .catch((err) => {
+          console.error(err);
+          reject(err);
+        });
+    });
+  };
 
 /*
 This function removes a player from a game. It first loads the PokerGame instance 

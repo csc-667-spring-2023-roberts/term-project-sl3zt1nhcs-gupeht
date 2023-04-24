@@ -106,6 +106,7 @@ deducts the minimum bet from their chips and adds it to their current bet.
 It also updates the currentPlayer to the next active player.
 */
 pokerLogic.handleBettingRound = (players, currentPlayer, minBet) => {
+    
     players.forEach((player) => {
         if (player.status === "active") {
             const bet = Math.min(player.chips, minBet);

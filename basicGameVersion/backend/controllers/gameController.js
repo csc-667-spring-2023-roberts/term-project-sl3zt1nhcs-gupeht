@@ -91,7 +91,7 @@ gameController.addPlayersToGame = (req, res, next) => {
     const result = {};
     gameModel
         .addPlayersToGame(gameId, playerIds)
-        .then(() => {
+        .then( async() => {
             result.success = true;
             result.playerIds = playerIds;
             result.gameId = gameId;
@@ -104,7 +104,6 @@ gameController.addPlayersToGame = (req, res, next) => {
             next(err);
         });
 };
-
 /*
 This function handles the request for removing a player from a game.
 It takes the gameId and playerId from the request body and calls the 
@@ -156,7 +155,6 @@ gameController.getTable = (req, res, next) => {
             next(err);
         });
 };
-
 /*
 This function handles the request for getting the current game state.
 It takes the gameId from the request parameters and calls the loadGame method in the gameModel.
@@ -180,7 +178,6 @@ gameController.getGameState = (req, res, next) => {
             next(err);
         });
 };
-
 /*
 This function handles the request for handling a player's action in a game. 
 It takes the gameId from the request parameters and the playerId, action,

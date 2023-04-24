@@ -2,23 +2,14 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const http = require('http');
-const setupSocket = require('./socket');
 const { sessionMiddleware, cookieMiddleware } = require('./middleware/sessionMiddleWare');
-
 const userRoutes = require('./router/userRoutes');
 const gameRoutes = require('./router/gamesRoutes');
-const chatController = require('./controllers/chatController');
-
 const {customErrorHandler} = require('./middleware/customErrorHandler');
-
 const app = express();
 const server = http.createServer(app);
 
-const io = setupSocket(server);
-
-app.set('io',io);
-chatController.setIoInstance(io); 
-
+ 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
