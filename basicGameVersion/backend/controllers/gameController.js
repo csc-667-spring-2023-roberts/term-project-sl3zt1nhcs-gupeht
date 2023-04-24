@@ -1,6 +1,7 @@
 const gameModel = require("../models/game/gameModel");
 const tableModel = require("../models/table/tableModel");
 const gameController = {};
+const chatController = require('../controllers/chatController');
 /*
 Note: By calling loadGame, you retrieve the game data from the database
 and deserialize it into a PokerGame instance. This instance can then be 
@@ -40,6 +41,10 @@ gameController.createGame = (req, res, next) => {
         })
         .then((gameId) => {
             result.gameId = gameId;
+            return chatController.createChatRoom(gameId);  
+        })
+        .then((chatId)=>{
+            result.chatId= chatId;
             res.status(201).json(result);
         })
         .catch((err) => {
@@ -91,7 +96,11 @@ gameController.addPlayersToGame = (req, res, next) => {
     const result = {};
     gameModel
         .addPlayersToGame(gameId, playerIds)
-        .then( async() => {
+        .then( () => {
+            return chatController.addPlayersToChat(gameId,playerIds);
+        })
+        .then((chat_data)=>{
+            result.chat_data = chat_data;
             result.success = true;
             result.playerIds = playerIds;
             result.gameId = gameId;
@@ -117,6 +126,9 @@ gameController.removePlayerFromGame = (req, res, next) => {
     gameModel
         .removePlayerFromGame(gameId, playerId)
         .then(() => {
+            return chatController.removePlayerFromGame(gameId,playerId); 
+        }).then((chat_data)=>{
+            result.chat_data = chat_data;
             result.success = true;
             result.gameId = gameId;
             result.message = `Players : ${result.playerIds} removed from game ${result.gameId}`;
