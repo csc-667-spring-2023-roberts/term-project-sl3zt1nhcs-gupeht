@@ -1,13 +1,13 @@
 const path = require("path");
 
 module.exports = {
-  entry: "./frontend/index.js",
+  entry: "./public/js/main.js",
   output: {
-    path: path.join(__dirname, "backend", "static", "scripts"),
-    publicPath: "/backend/static/scripts",
+    path: path.join(__dirname, "public", "scripts"),
+    publicPath: "../backend/src/public/static/scripts",
     filename: "bundle.js",
   },
-  mode: "production",
+  mode: "development",
   module: {
     rules: [
       {
