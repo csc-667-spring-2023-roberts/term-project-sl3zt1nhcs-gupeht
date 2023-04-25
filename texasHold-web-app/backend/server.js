@@ -5,6 +5,7 @@ const http = require('http');
 const { sessionMiddleware, cookieMiddleware } = require('./middleware/sessionMiddleWare');
 const userRoutes = require('./router/userRoutes');
 const gameRoutes = require('./router/gamesRoutes');
+const root  = require('./router/root');
 const {customErrorHandler} = require('./middleware/customErrorHandler');
 const app = express();
 const server = http.createServer(app);
@@ -25,6 +26,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(sessionMiddleware);
 app.use(cookieMiddleware);
 
+app.use('/',root);
 app.use('/user', userRoutes);
 app.use('/game', gameRoutes);
 
