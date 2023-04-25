@@ -8,4 +8,14 @@ router.post('/login', userController.login);
 router.post('/logout', authMiddleware, userController.logout);
 router.get('/me', authMiddleware, userController.getCurrentUser);
 
+
+//front end routes
+router.get('/register',(req,res)=>{
+    res.render('register');
+});
+
+router.get('/login',(req,res)=>{
+    res.render('login');
+});
+
 module.exports = router;

@@ -1,10 +1,10 @@
 
 const express = require('express');
 const router = express.Router();
-const rootControlelr = require('../controllers/root')
+const rootController = require('../controllers/root')
 
 
-router.get('/main',rootControlelr.main );
+router.get('/',rootController.main );
 
 
 
