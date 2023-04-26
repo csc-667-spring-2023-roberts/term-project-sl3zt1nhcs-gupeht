@@ -1,4 +1,4 @@
-CREATE TABLE tables (
+CREATE TABLE  IF NOT EXISTS tables (
     table_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     max_players INTEGER NOT NULL,
@@ -7,21 +7,21 @@ CREATE TABLE tables (
 );
 
 
-CREATE TABLE games (
+CREATE TABLE IF NOT EXISTS  games (
     game_id SERIAL PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES tables(table_id),
     start_time TIMESTAMP NOT NULL
 );
 
 
-CREATE TABLE games_data (
+CREATE TABLE IF NOT EXISTS games_data (
     game_data_id SERIAL PRIMARY KEY,
     game_id INTEGER NOT NULL REFERENCES games(game_id),
     game_data JSON NOT NULL
 );
 
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE users (
 );
 
 
-CREATE TABLE players (
+CREATE TABLE IF NOT EXISTS players (
     player_id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(user_id),
     game_id INTEGER NOT NULL REFERENCES games(game_id),
@@ -39,13 +39,13 @@ CREATE TABLE players (
 );
 
 
-CREATE TABLE chat_rooms (
+CREATE TABLE IF NOT EXISTS chat_rooms (
     chat_room_id SERIAL PRIMARY KEY,
     game_id INTEGER NOT NULL UNIQUE REFERENCES games(game_id)
 );
 
 
-CREATE TABLE chat_messages (
+CREATE TABLE IF NOT EXISTS chat_messages (
     chat_message_id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(user_id),
     game_id INTEGER NOT NULL REFERENCES games(game_id),

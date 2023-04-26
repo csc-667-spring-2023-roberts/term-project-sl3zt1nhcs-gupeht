@@ -1,23 +1,22 @@
-const express = require('express');
-const path = require('path');
-const bodyParser = require('body-parser');
-const http = require('http');
-const { sessionMiddleware, cookieMiddleware } = require('./middleware/sessionMiddleWare');
-const userRoutes = require('./router/userRoutes');
-const gameRoutes = require('./router/gamesRoutes');
-const root  = require('./router/root');
-const {customErrorHandler} = require('./middleware/customErrorHandler');
+const express = require("express");
+const path = require("path");
+const bodyParser = require("body-parser");
+const http = require("http");
+const { sessionMiddleware, cookieMiddleware } = require("./middleware/sessionMiddleWare");
+const userRoutes = require("./router/userRoutes");
+const gameRoutes = require("./router/gamesRoutes");
+const root = require("./router/root");
+const { customErrorHandler } = require("./middleware/customErrorHandler");
 const app = express();
 const server = http.createServer(app);
-const setupSocket = require('./socket');
-
+const setupSocket = require("./socket");
 
 // view engine setup
-app.set('views', path.join(__dirname,'../../frontend/views'));
-app.set('view engine', 'ejs');
+app.set("views", path.join(__dirname, "../../frontend/views"));
+app.set("view engine", "ejs");
 
 // Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, "public")));
 
 // middleware
 app.use(customErrorHandler);
@@ -26,26 +25,53 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(sessionMiddleware);
 app.use(cookieMiddleware);
 
-app.use('/',root);
-app.use('/user', userRoutes);
-app.use('/game', gameRoutes);
+app.use("/", root);
+app.use("/user", userRoutes);
+app.use("/game", gameRoutes);
 
-// start server
-const port = process.env.PORT || 3000;
-const io = setupSocket(server);
-console.log(`Socket is running on port ${port}`);
+//Creates database
+const { CreateTableError, createTables } = require("./database/createTables");
 
+const result = {};
 
-// 404 error handling
-app.use((req, res, next) => {
-  res.status(404).json({ message: 'Not Found' });
-});
+createTables()
+    .then((resultStatus) => {
+        result.message = resultStatus.message;
+        // start server here
+        const port = process.env.PORT || 3000;
+        const io = setupSocket(server);
+        result.socketMessage = `Socket is running on port ${port}`;
 
-// error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(err.statusCode || 500).json({ message: err.message });
-});
+        // 404 error handling
+        app.use((req, res, next) => {
+            res.status(404).json({ message: "Not Found" });
+        });
 
+        // error handling
+        app.use((err, req, res, next) => {
+            console.error(err.stack);
+            res.status(err.statusCode || 500).json({ message: err.message });
+        });
 
-server.listen(port, () => console.log(`Server running on port ${port}`));
+        return new Promise((resolve, reject) => {
+            server.listen(port, () => {
+                result.serverMessage = `Server running on port ${port}`;
+                console.log(result.serverMessage);
+                resolve(result);
+            });
+        });
+    })
+    .catch((error) => {
+        if (error instanceof CreateTableError) {
+            result.message = ("Error in creating table", error.message);
+        } else {
+            result.internal = ("Error in createTables", error);
+        }
+        return Promise.reject(result);
+    })
+    .then((result) => {
+        console.log("Server started successfully", result);
+    })
+    .catch((result) => {
+        console.log("Error starting server", result);
+    });
