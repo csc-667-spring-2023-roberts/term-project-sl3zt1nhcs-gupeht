@@ -96,13 +96,17 @@ userModel.getUserByEmail = (username) => {
   });
 };
 
+userModel.comparePassword = (password, hashedPassword) => {
+  return bcrypt.compare(password, hashedPassword);
+};
+
 
 userModel.login = async (req, username, password) => {
   try {
     const user = await userModel.getUserByUsername(username);
     if (user) {
-  
-      if (await bcrypt.compare(password, user.password)) {
+      const passwordMatch = await userModel.comparePassword(password, user.password);
+      if (passwordMatch) {
         // Remove the password field before returning the user object
         delete user.password;
         // Set session data
