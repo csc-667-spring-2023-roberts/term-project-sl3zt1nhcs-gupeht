@@ -3,15 +3,15 @@ const userModel = require('../models/users/userModel');
 const userController = {};
 
 userController.createUser = (req, res) => {
-  const { username, email, password } = req.body;
+  const { username, password, email } = req.body;
 
-  userModel.createUser(username, email, password)
+  userModel.createUser(username, password, email)
     .then(() => {
-      res.status(201).json({ message: 'User created successfully' });
+      res.redirect('/');
     })
     .catch((err) => {
       res.status(err.status || 500).json({ message: err.message });
-    });
+    })
 };
 
 userController.getUserById = (req, res) => {
@@ -34,7 +34,7 @@ userController.login = (req, res, next) => {
 
   userModel.login(req, username, password)
     .then((user) => {
-      res.status(200).json({ user });
+      res.status(200).redirect('/');
     })
     .catch((err) => {
       next(err);
