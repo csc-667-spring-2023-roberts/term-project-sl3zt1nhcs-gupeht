@@ -34,7 +34,7 @@ userController.login = (req, res, next) => {
 
   userModel.login(req, username, password)
     .then((user) => {
-      res.status(200).json({ user });
+      res.status(200).redirect('/');
     })
     .catch((err) => {
       next(err);
