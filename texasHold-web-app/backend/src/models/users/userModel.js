@@ -4,12 +4,18 @@ const bcrypt = require('bcrypt');
 
 const userModel = {};
 
-userModel.createUser = (username, password, email) => {
+userModel.createUser = (username, email, password) => {
   return new Promise(async (resolve, reject) => {
+
     try {
       const existingUser = await userModel.getUserByUsername(username);
+      const existingEmail = await userModel.getUserByEmail(email);
       if (existingUser) {
         reject(new CustomError('Username already exists', 409));
+      }
+      if(existingEmail){
+        reject(new CustomError('Email already exists', 409));
+
       } else {
         const hashedPassword = await bcrypt.hash(password, 10);
         const query = `INSERT INTO users (username, password, email) VALUES ($1, $2, $3) RETURNING *`;
@@ -55,6 +61,25 @@ userModel.getUserById = (user_id) => {
 userModel.getUserByUsername = (username) => {
   return new Promise((resolve, reject) => {
     const query = `SELECT user_id, username, password, email FROM users WHERE username = $1`;
+    const values = [username];
+
+    db.query(query, values)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          resolve(result.rows[0]);
+        } else {
+          resolve(null);
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+userModel.getUserByEmail = (username) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT user_id, username, password, email FROM users WHERE email = $1`;
     const values = [username];
 
     db.query(query, values)
