@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt');
 
 const userModel = {};
 
-userModel.createUser = (username, email, password) => {
+userModel.createUser = (username, password, email) => {
   return new Promise(async (resolve, reject) => {
 
     try {
