@@ -77,26 +77,19 @@ userModel.comparePassword = (password, hashedPassword) => {
 };
 
 
-userModel.login = async (req, username, password) => {
+userModel.login = async (username, password) => {
   try {
     const user = await userModel.getUserByUsername(username);
     if (user) {
       const passwordMatch = await userModel.comparePassword(password, user.password);
       if (passwordMatch) {
-        // Remove the password field before returning the user object
         delete user.password;
 
-        // Set session data
-        req.session.userId = user.user_id;
-
-        // Generate the JWT token
         const token = jwt.sign({ sub: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-        // Store the JWT token in the session
-        req.session.token = token;
-
-        // Update the JWT token in the user database
         await userModel.storeAuthToken(user.user_id, token);
+
+        user.auth_token = token;
 
         return user;
       } else {
@@ -109,7 +102,6 @@ userModel.login = async (req, username, password) => {
     throw err;
   }
 };
-
 
 userModel.logout = (req) => {
   // Clear session data

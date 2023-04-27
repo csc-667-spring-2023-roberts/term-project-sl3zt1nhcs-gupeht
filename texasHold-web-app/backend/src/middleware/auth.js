@@ -5,11 +5,15 @@ async function authMiddleware(req, res, next) {
   // Get the token from the Authorization header
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader) {
     return res.status(401).json({ message: 'Authentication required' });
   }
 
   const token = authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
 
   try {
     // Verify the token
@@ -18,7 +22,7 @@ async function authMiddleware(req, res, next) {
     // Get the stored token from the database
     const storedToken = await userModel.getAuthTokenByUserId(decoded.sub);
 
-    // Compare the received token with the stored token
+    // Compare the token from the header with the stored token
     if (token !== storedToken) {
       return res.status(401).json({ message: 'Invalid token' });
     }
@@ -32,4 +36,3 @@ async function authMiddleware(req, res, next) {
 }
 
 module.exports = authMiddleware;
-

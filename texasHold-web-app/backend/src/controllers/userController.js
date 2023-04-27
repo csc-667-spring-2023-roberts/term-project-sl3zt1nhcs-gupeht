@@ -34,13 +34,12 @@ userController.getUserById = (req, res) => {
 userController.login = (req, res, next) => {
   const { username, password } = req.body;
 
-  userModel.login(req, username, password)
+  userModel.login( username, password)
     .then(async (user) => {
-      // Store the JWT token in the database
-      await userModel.storeAuthToken(user.user_id, req.session.token);
+      const token = user.auth_token;
+      delete user.auth_token;
 
-      // Return the JWT token in the response
-      res.status(200).json({ user, token: req.session.token });
+      res.status(200).json({ user, token });
     })
     .catch((err) => {
       next(err);
