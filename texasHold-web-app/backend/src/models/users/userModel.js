@@ -1,6 +1,7 @@
 const db = require('../../database/db');
 const { CustomError } = require('../../middleware/customErrorHandler');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const userModel = {};
 
@@ -84,8 +85,16 @@ userModel.login = async (req, username, password) => {
       if (passwordMatch) {
         // Remove the password field before returning the user object
         delete user.password;
+
         // Set session data
         req.session.userId = user.user_id;
+
+        // Generate the JWT token
+        const token = jwt.sign({ sub: user.user_id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // Store the JWT token in the session
+        req.session.token = token;
+
         return user;
       } else {
         throw new CustomError('Incorrect password', 401);
@@ -97,6 +106,7 @@ userModel.login = async (req, username, password) => {
     throw err;
   }
 };
+
 
 userModel.logout = (req) => {
   // Clear session data

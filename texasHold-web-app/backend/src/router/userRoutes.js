@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.post('/register', userController.createUser);
 router.post('/login', userController.login);
-router.post('/logout', authMiddleware, userController.logout);
+router.post('/logout', userController.logout);
 router.get('/me', authMiddleware, userController.getCurrentUser);
 
 
@@ -17,5 +17,11 @@ router.get('/register',(req,res)=>{
 router.get('/login',(req,res)=>{
     res.render('login');
 });
+
+
+
+
+
+
 
 module.exports = router;
