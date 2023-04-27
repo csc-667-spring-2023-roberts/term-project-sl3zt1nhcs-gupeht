@@ -5,8 +5,8 @@ module.exports = {
     main: './public/js/main.js',
   },
   output: {
-    filename: '[name].bundle.js',
-    path: path.resolve(__dirname, 'dist'),
+    filename: 'bundle.js',
+    path: path.resolve(__dirname,'public', 'dist'),
   },
   module: {
     rules: [
