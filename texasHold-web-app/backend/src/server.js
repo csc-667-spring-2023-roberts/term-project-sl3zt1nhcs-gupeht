@@ -21,7 +21,9 @@ app.set("views", path.join(__dirname, "../../frontend/src/public/views"));
 app.set("view engine", "ejs");
 
 // Serve static files for front end
-app.use(express.static(path.join(__dirname, "../../frontend/src/public")));
+app.use(express.static(path.join(__dirname, "../../frontend/src/public/")));
+
+
 
 // middleware
 app.use(customErrorHandler);
