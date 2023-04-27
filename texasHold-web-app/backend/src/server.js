@@ -23,8 +23,6 @@ app.set("view engine", "ejs");
 // Serve static files for front end
 app.use(express.static(path.join(__dirname, "../../frontend/src/public/")));
 
-
-
 // middleware
 app.use(customErrorHandler);
 app.use(bodyParser.json());
@@ -38,11 +36,8 @@ app.use("/", root);
 app.use("/user", userRoutes);
 app.use("/game", gameRoutes);
 
-
 //Creates database
 const { CreateTableError, createTables } = require("./database/createTables");
-
-
 
 const result = {};
 
