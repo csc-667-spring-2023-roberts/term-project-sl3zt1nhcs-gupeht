@@ -3,21 +3,22 @@ const userController = require('../controllers/userController');
 const authMiddleware = require('../middleware/auth');
 const router = express.Router();
 
+// User routes
 router.post('/register', userController.createUser);
 router.post('/login', userController.login);
-router.post('/logout', userController.logout);
+router.post('/logout', authMiddleware, userController.logout); // Add authMiddleware to protect the logout route
 router.get('/me', authMiddleware, userController.getCurrentUser);
 
-
-//front end routes
-router.get('/register',(req,res)=>{
-    res.render('register');
+// Front-end routes
+router.get('/register', (req, res) => {
+  res.render('register');
 });
 
-router.get('/login',(req,res)=>{
-    res.render('login');
+router.get('/login', (req, res) => {
+  res.render('login');
 });
 
+module.exports = router;
 
 
 

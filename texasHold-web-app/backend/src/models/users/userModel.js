@@ -95,6 +95,9 @@ userModel.login = async (req, username, password) => {
         // Store the JWT token in the session
         req.session.token = token;
 
+        // Update the JWT token in the user database
+        await userModel.storeAuthToken(user.user_id, token);
+
         return user;
       } else {
         throw new CustomError('Incorrect password', 401);
@@ -132,6 +135,48 @@ userModel.getCurrentUser = async (req) => {
   } catch (err) {
     throw err;
   }
+};
+
+userModel.storeAuthToken = (user_id, auth_token) => {
+  return new Promise((resolve, reject) => {
+    const query = `UPDATE users SET auth_token = $1 WHERE user_id = $2`;
+    const values = [auth_token, user_id];
+
+    db.query(query, values)
+      .then((result) => {
+        if (result.rowCount > 0) {
+          resolve();
+        } else {
+          reject(new CustomError('No rows affected', 404));
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
+};
+
+userModel.clearAuthToken = (user_id) => {
+  return userModel.storeAuthToken(user_id, null);
+};
+
+userModel.getAuthTokenByUserId = (user_id) => {
+  return new Promise((resolve, reject) => {
+    const query = `SELECT auth_token FROM users WHERE user_id = $1`;
+    const values = [user_id];
+
+    db.query(query, values)
+      .then((result) => {
+        if (result.rows.length > 0) {
+          resolve(result.rows[0].auth_token);
+        } else {
+          reject(new CustomError('User not found', 404));
+        }
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 };
 
 module.exports = userModel;

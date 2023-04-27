@@ -29,11 +29,16 @@ userController.getUserById = (req, res) => {
     });
 };
 
+// Update the login function in userController
+
 userController.login = (req, res, next) => {
   const { username, password } = req.body;
 
   userModel.login(req, username, password)
-    .then((user) => {
+    .then(async (user) => {
+      // Store the JWT token in the database
+      await userModel.storeAuthToken(user.user_id, req.session.token);
+
       // Return the JWT token in the response
       res.status(200).json({ user, token: req.session.token });
     })
@@ -42,17 +47,22 @@ userController.login = (req, res, next) => {
     });
 };
 
-userController.logout = (req, res, next) => {
+
+userController.logout = async (req, res, next) => {
   if (req.method === 'POST' || req.method === 'GET') {
-    userModel.logout(req);
-    // Clear the JWT token from the session
-    req.session.token = null;
-    res.status(200).json({ message: 'User logged out successfully' });
+    try {
+      // Clear the JWT token from the database
+      await userModel.clearAuthToken(req.user.sub);
+
+      userModel.logout(req);
+      res.status(200).json({ message: 'User logged out successfully' });
+    } catch (err) {
+      next(err);
+    }
   } else {
     next(new CustomError('Invalid HTTP method', 405));
   }
 };
-
 
 userController.getCurrentUser = (req, res, next) => {
   userModel.getCurrentUser(req)
