@@ -17,11 +17,11 @@ const userController = require("./controllers/userController");
 
 
 // view engine setup
-app.set("views", path.join(__dirname, "../../frontend/views"));
+app.set("views", path.join(__dirname, "../../frontend/src/public/views"));
 app.set("view engine", "ejs");
 
 // Serve static files for front end
-app.use(express.static(path.join(__dirname, "../../frontend/public")));
+app.use(express.static(path.join(__dirname, "../../frontend/src/public")));
 
 // middleware
 app.use(customErrorHandler);
