@@ -20,8 +20,8 @@ const userController = require("./controllers/userController");
 app.set("views", path.join(__dirname, "../../frontend/views"));
 app.set("view engine", "ejs");
 
-// Serve static files
-app.use(express.static(path.join(__dirname, "public")));
+// Serve static files for front end
+app.use(express.static(path.join(__dirname, "../../frontend/public")));
 
 // middleware
 app.use(customErrorHandler);
