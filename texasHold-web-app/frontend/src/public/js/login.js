@@ -1,3 +1,6 @@
+
+import { checkLoginStatus } from './main';
+
 export async function login(event) {
   const username = document.querySelector('#login-form input[name="username"]').value;
   const password = document.querySelector('#login-form input[name="password"]').value;
@@ -36,37 +39,3 @@ export async function login(event) {
   }
 }
 
-export async function logout() {
-  try {
-    // Get the JWT token from localStorage or sessionStorage
-    const token = localStorage.getItem('token');
-
-    const response = await fetch('/user/logout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Add the Authorization header
-      },
-    });
-
-    if (response.status === 200) {
-      // Remove the JWT token from the localStorage or sessionStorage
-      localStorage.removeItem('token');
-
-      alert('User logged out successfully');
-
-      checkLoginStatus(); // Update the logout link visibility
-        // Redirect to the desired page after successful login
-        setTimeout(()=>{
-          location.href='/';
-        },1000);
-      
-    } else {
-      const errorData = await response.json();
-      alert(errorData.message);
-    }
-  } catch (error) {
-    console.error(error);
-    alert('An error occurred during logout');
-  }
-}

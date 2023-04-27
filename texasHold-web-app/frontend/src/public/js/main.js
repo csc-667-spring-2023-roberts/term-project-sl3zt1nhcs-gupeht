@@ -1,10 +1,10 @@
 
-const register = require('./register');
-const login = require('./login');
-const logout = require('./logout');
+import { register } from './register';
+import { login } from './login';
+import {logout} from './logout';
 
 
-function checkLoginStatus() {
+export function checkLoginStatus() {
   const token = localStorage.getItem('token');
   const logoutLink = document.querySelector('#logout');
   if (token && logoutLink) {

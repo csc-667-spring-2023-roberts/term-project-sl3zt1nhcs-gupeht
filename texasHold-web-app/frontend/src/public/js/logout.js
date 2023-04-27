@@ -1,3 +1,5 @@
+import { checkLoginStatus } from './main';
+
 export async function logout() {
   try {
     // Get the JWT token from localStorage or sessionStorage
@@ -14,6 +16,9 @@ export async function logout() {
     if (response.status === 200) {
       // Remove the JWT token from the localStorage or sessionStorage
       localStorage.removeItem('token');
+
+      // Update the logout link visibility
+      checkLoginStatus();
 
         // Hide the Logout link
         const logoutLink = document.querySelector('#logout');
