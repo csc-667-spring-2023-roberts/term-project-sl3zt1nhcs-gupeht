@@ -17,11 +17,11 @@ const userController = require("./controllers/userController");
 
 
 // view engine setup
-app.set("views", path.join(__dirname, "../../frontend/views"));
+app.set("views", path.join(__dirname, "../../frontend/src/public/views"));
 app.set("view engine", "ejs");
 
-// Serve static files
-app.use(express.static(path.join(__dirname, "public")));
+// Serve static files for front end
+app.use(express.static(path.join(__dirname, "../../frontend/src/public/")));
 
 // middleware
 app.use(customErrorHandler);
@@ -36,11 +36,8 @@ app.use("/", root);
 app.use("/user", userRoutes);
 app.use("/game", gameRoutes);
 
-
 //Creates database
 const { CreateTableError, createTables } = require("./database/createTables");
-
-
 
 const result = {};
 

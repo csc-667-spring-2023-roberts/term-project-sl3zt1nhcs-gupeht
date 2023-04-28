@@ -7,21 +7,28 @@
     <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
+    <%- include('partials/navbar', { user: user }) %>
     <h1>Register</h1>
-    <form  id="register-form" action="/user/register" method="POST">
-        <label for="username">username:</label>
+    <link rel ="stylesheet" href="/css/main.css">
+    <form id="register-form" action="/user/register" method="POST">
+        <label for="username">Username:</label>
         <input type="text" name="username" id="username" required>
-
-        <label for="email">Email</label>
-        <input type="text" name="email" id="email" required>
-
+      
+        <label for="email">Email:</label>
+        <input type="email" name="email" id="email" required>
+      
         <label for="password">Password:</label>
         <input type="password" name="password" id="password" required>
-
+      
         <button type="submit">Register</button>
-    </form>
+      </form>
+      
+      <div id="message" class="message"></div>
+      
     <a href="/user/login">Already have an account? Login</a>
-    <script src="/js/main.js"></script>
-    <script src="../../backend/src/static/scripts/bundle.js"></script>
+    <div id="message" class="message"></div>
+    <script src="/dist/bundle.js"></script>
+
+
 </body>
 </html>

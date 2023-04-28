@@ -29,30 +29,47 @@ userController.getUserById = (req, res) => {
     });
 };
 
+// Update the login function in userController
+
 userController.login = (req, res, next) => {
   const { username, password } = req.body;
 
-  userModel.login(req, username, password)
-    .then((user) => {
-      // Return the JWT token in the response
-      res.status(200).json({ user, token: req.session.token });
+  userModel.login( username, password)
+    .then(async (user) => {
+      /*
+      In the userController.login method, after successfully
+      logging in, we need to set the user in the session
+      data so that we can retrieve it later. We can do
+      this by adding the following line of code:
+      */
+      req.session.userId = user.user_id;
+      console.log(req.session.userId);
+      const token = user.auth_token;
+      delete user.auth_token;
+
+      res.status(200).json({ user, token });
     })
     .catch((err) => {
       next(err);
     });
 };
 
-userController.logout = (req, res, next) => {
+
+userController.logout = async (req, res, next) => {
   if (req.method === 'POST' || req.method === 'GET') {
-    userModel.logout(req);
-    // Clear the JWT token from the session
-    req.session.token = null;
-    res.status(200).json({ message: 'User logged out successfully' });
+    try {
+      // Clear the JWT token from the database
+      await userModel.clearAuthToken(req.user.sub);
+
+      userModel.logout(req);
+      res.status(200).json({ message: 'User logged out successfully' });
+    } catch (err) {
+      next(err);
+    }
   } else {
     next(new CustomError('Invalid HTTP method', 405));
   }
 };
-
 
 userController.getCurrentUser = (req, res, next) => {
   userModel.getCurrentUser(req)
