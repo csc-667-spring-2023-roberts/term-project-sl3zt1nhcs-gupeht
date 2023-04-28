@@ -11,18 +11,11 @@ router.get('/me', authMiddleware, userController.getCurrentUser);
 
 // Front-end routes
 router.get('/register', (req, res) => {
-  res.render('index');
+  res.render('register');
 });
 
 router.get('/login', (req, res) => {
-  res.render('index');
+  res.render('login');
 });
-
-module.exports = router;
-
-
-
-
-
 
 module.exports = router;

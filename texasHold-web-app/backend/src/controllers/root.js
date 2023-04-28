@@ -1,10 +1,9 @@
 const rootController = {};
 
-rootController.main =(req,res,next)=>{
+rootController.main =(req,res)=>{
 
 
-    res.render('index');
-    next();
+    res.render('index', {user:res.locals.user});
 };
 
 module.exports = rootController;
