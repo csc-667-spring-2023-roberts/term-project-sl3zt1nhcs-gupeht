@@ -1,8 +1,8 @@
+// public/js/main.js
 
 import { register } from './register';
 import { login } from './login';
-import {logout} from './logout';
-
+import { logout } from './logout';
 
 export function checkLoginStatus() {
   const token = localStorage.getItem('token');
@@ -41,7 +41,4 @@ document.addEventListener("DOMContentLoaded", () => {
       logout();
     });
   }
-
-
-  
 });

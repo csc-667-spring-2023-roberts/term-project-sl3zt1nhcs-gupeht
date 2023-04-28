@@ -1,12 +1,9 @@
-<!-- partials/navbar.ejs -->
-<% if (locals.user) { %>
-  <nav>
-    <a href="/">Home</a>
-    <a href="/" id="logout">Logout</a>
-  </nav>
-<% } else { %>
-  <nav>
-    <a href="/user/register">Register</a>
-    <a href="/user/login">Login</a>
-  </nav>
-<% } %>
+<!-- views/partials/navbar.ejs -->
+
+<nav>
+  <% if (user) { %>
+    <span>Welcome <%= user.username %>!</span>
+    <a href="/game-lobby">Game Lobby</a>
+    <a href="#" id="logout">Logout</a>
+  <% } %>
+</nav>
