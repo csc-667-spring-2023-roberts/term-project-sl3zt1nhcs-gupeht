@@ -36,6 +36,14 @@ userController.login = (req, res, next) => {
 
   userModel.login( username, password)
     .then(async (user) => {
+      /*
+      In the userController.login method, after successfully
+      logging in, we need to set the user in the session
+      data so that we can retrieve it later. We can do
+      this by adding the following line of code:
+      */
+      req.session.userId = user.user_id;
+      console.log(req.session.userId);
       const token = user.auth_token;
       delete user.auth_token;
 
