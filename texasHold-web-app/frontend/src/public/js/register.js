@@ -1,3 +1,4 @@
+
 export async function register(event) {
   const username = document.querySelector('#register-form input[name="username"]').value;
   const email = document.querySelector('#register-form input[name="email"]').value;

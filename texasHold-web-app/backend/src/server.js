@@ -1,7 +1,6 @@
 const path = require("path");
 require('dotenv').config({path:path.join(__dirname,'config','.env')});
 
-
 const express = require("express");
 const bodyParser = require("body-parser");
 const http = require("http");
@@ -15,16 +14,15 @@ const server = http.createServer(app);
 const setupSocket = require("./socket");
 const userController = require("./controllers/userController");
 
-
 // view engine setup
 app.set("views", path.join(__dirname, "../../frontend/src/public/views"));
 app.set("view engine", "ejs");
 
 // Serve static files for front end
 app.use(express.static(path.join(__dirname, "../../frontend/src/public/")));
+app.use(express.static(path.join(__dirname, "../../frontend/src/public/")));
 
 // middleware
-app.use(customErrorHandler);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(sessionMiddleware);
@@ -32,9 +30,14 @@ app.use(cookieMiddleware);
 app.use(userController.getCurrentUser);
 
 
+
 app.use("/", root);
 app.use("/user", userRoutes);
 app.use("/game", gameRoutes);
+
+// Move customErrorHandler here, after the routes
+app.use(customErrorHandler);
+
 
 //Creates database
 const { CreateTableError, createTables } = require("./database/createTables");

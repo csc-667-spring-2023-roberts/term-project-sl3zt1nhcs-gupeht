@@ -18,4 +18,8 @@ router.get('/login', (req, res) => {
   res.render('login');
 });
 
+router.get('/lobby', authMiddleware, (req, res) => {
+  res.render('lobby', { user:res.locals.user });
+});
+
 module.exports = router;

@@ -1,5 +1,5 @@
 
-import { checkLoginStatus } from './main';
+import{fetchLobby} from './main'
 
 export async function login(event) {
   const username = document.querySelector('#login-form input[name="username"]').value;
@@ -23,11 +23,11 @@ export async function login(event) {
 
       messageDiv.textContent = 'User logged in successfully';
 
-      checkLoginStatus(); // Update the logout link visibility
+    
 
        // Redirect to the desired page after successful login
       setTimeout(()=>{
-        location.href='/';
+        fetchLobby();
       },1000);
     
     } else {

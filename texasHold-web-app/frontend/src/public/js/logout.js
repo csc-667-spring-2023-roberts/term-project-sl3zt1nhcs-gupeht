@@ -1,6 +1,9 @@
-import { checkLoginStatus } from './main';
+
 
 export async function logout() {
+
+  const messageDiv = document.getElementById('message');
+  
   try {
     // Get the JWT token from localStorage or sessionStorage
     const token = localStorage.getItem('token');
@@ -17,21 +20,16 @@ export async function logout() {
       // Remove the JWT token from the localStorage or sessionStorage
       localStorage.removeItem('token');
 
-      // Update the logout link visibility
-      checkLoginStatus();
+      messageDiv.textContent = 'User logged in successfully';
 
-        // Hide the Logout link
-        const logoutLink = document.querySelector('#logout');
-        if (logoutLink) {
-          logoutLink.classList.add('hidden');
-        }
-  
-      alert('User logged out successfully');
-      // Redirect to the login page after successful logout
-      location.href = '/user/login';
+      setTimeout(()=>{
+        location.href='/';
+      },1000);
+      
     } else {
-      const errorData = await response.json();
-      alert(errorData.message);
+      
+      const responseData = await response.json();
+      messageDiv.textContent = responseData.message;
     }
   } catch (error) {
     console.error(error);
