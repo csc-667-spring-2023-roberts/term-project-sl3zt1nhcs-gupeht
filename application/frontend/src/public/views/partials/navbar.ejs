@@ -1,0 +1,8 @@
+<!-- views/partials/navbar.ejs -->
+
+<nav>
+  <% if (user) { %>
+    <span>Welcome <%= user.username %>!</span>
+    <a href="/" id="logout">Logout</a>
+  <% } %>
+</nav>
