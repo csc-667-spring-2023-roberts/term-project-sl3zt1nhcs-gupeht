@@ -2,26 +2,7 @@ const gameModel = require("../models/game/gameModel");
 const tableModel = require("../models/table/tableModel");
 const gameController = {};
 const chatController = require('../controllers/chatController');
-/*
-Note: By calling loadGame, you retrieve the game data from the database
-and deserialize it into a PokerGame instance. This instance can then be 
-used to perform various game-related actions such as adding or removing players,
-handling player actions, or playing a round. Once the operations are complete,
-you can update the game state in the database using the updateGame function.
-This process of loading the game, performing actions, and then updating the
-game helps ensure that the game state remains consistent and up-to-date
-across different requests and operations.
-*/
 
-/*
-This function handles the request for creating a new game. 
-It takes the necessary parameters from the request body, such as tableName, 
-maxPlayers, minBuyIn, and maxBuyIn, then calls the createTable method 
-in the tableModel and the createGame method in the gameModel. 
-It then sends a JSON response with the tableId and gameId in the result object. 
-If there's an error, it sends an error response and calls the next middleware 
-with the error object.
-*/
 gameController.createGame = (req, res, next) => {
     const result = {};
 
