@@ -4,6 +4,7 @@ import { register } from "./register";
 import { login } from "./login";
 import { logout } from "./logout";
 import connectSocket from "./socket";
+import {createGame,joinGame,getGameList} from "./game";
 
 export async function fetchLobby() {
     const token = localStorage.getItem("token");
@@ -99,77 +100,3 @@ document.addEventListener("click", async (event) => {
         await joinGame(gameId);
     }
 });
-
-
-//TODO ... change the implementation
-async function createGame() {
-
-    const tablename = document.querySelector('#create-game-form input[tableName="tableName"]').value;
-    const maxPlayers = document.querySelector('#create-game-form input[maxPlayers="maxPlayers"]').value;
-    const minBuyin = document.querySelector('#create-game-form input[minBuyIn="minBuyIn"]').value;
-    const maxBuyIn = document.querySelector('#create-game-form input[maxBuyIn="maxBuyIn"]').value;
-
-    const token = localStorage.getItem("token");
-
-    try{
-      const response = await  fetch("/game/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", 
-        Authorization: `Bearer ${token}` 
-      },
-      body: JSON.stringify(Object.fromEntries(formData)),
-    })
-
-    const responseData = await response.json();
-
-
-    if ( response.status === 200){
-      messageDiv.textContent = "Joined Game"
-    }
-
-
-
-
-
-    }
-
-   
-        .then((res) => res.json())
-        .then((data) => {
-            if (data.error) {
-                showMessage(data.error);
-            } else {
-                window.location.href = `/game/${data.gameId}`;
-            }
-        });
-}
-
-async function joinGame(gameId) {
-    // Join game logic here
-    window.location.href = `/game/join/${gameId}`;
-}
-
-
-
-//SHOW LIST OF GAMES
-async function getGameList() {
-    //TODO CHANGE IMPLEMENTATION
-    const response = await fetch("/game/list");
-    const games = await response.json();
-
-    const gameListElement = document.getElementById("game-list");
-
-    if (games.length === 0) {
-        gameListElement.innerHTML = "<p>No games available. Create one!</p>";
-    } else {
-        const gameItems = games.map((game) => {
-            return `<div>
-                <h3>${game.tableName}</h3>
-                <p>Players: ${game.players.length}/${game.maxPlayers}</p>
-                <p>Buy-In: ${game.minBuyIn} - ${game.maxBuyIn}</p>
-                <button class="join-game" data-game-id="${game._id}">Join</button>
-              </div>`;
-        });
-        gameListElement.innerHTML = gameItems.join("");
-    }
-}

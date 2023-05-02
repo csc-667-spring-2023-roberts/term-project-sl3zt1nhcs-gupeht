@@ -5,7 +5,6 @@ const authenticate  = require('../middleware/auth');
 
 
 
-
 // Create a new game
 router.post('/create', authenticate, gameController.createGame);
 

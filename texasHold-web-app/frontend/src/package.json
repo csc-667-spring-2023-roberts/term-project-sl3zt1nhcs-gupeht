@@ -11,5 +11,9 @@
     "start": "node server",
     "build": "cross-env NODE_ENV=production webpack",
     "dev": "cross-env NODE_ENV=development webpack --watch"
+  },
+  "dependencies": {
+    "depcheck": "^1.4.3",
+    "socket.io-client": "^4.6.1"
   }
 }
