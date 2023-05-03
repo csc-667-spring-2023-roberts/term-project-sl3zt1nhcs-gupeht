@@ -10,7 +10,7 @@ CREATE TABLE  IF NOT EXISTS tables (
 CREATE TABLE IF NOT EXISTS  games (
     game_id SERIAL PRIMARY KEY,
     table_id INTEGER NOT NULL REFERENCES tables(table_id),
-    start_time TIMESTAMP NOT NULL
+    
 );
 
 
@@ -39,17 +39,3 @@ CREATE TABLE IF NOT EXISTS players (
     UNIQUE (user_id, game_id)
 );
 
-
-CREATE TABLE IF NOT EXISTS chat_rooms (
-    chat_room_id SERIAL PRIMARY KEY,
-    game_id INTEGER NOT NULL UNIQUE REFERENCES games(game_id)
-);
-
-
-CREATE TABLE IF NOT EXISTS chat_messages (
-    chat_message_id SERIAL PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(user_id),
-    game_id INTEGER NOT NULL REFERENCES games(game_id),
-    message TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL
-);

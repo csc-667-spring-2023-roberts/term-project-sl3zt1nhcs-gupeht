@@ -31,7 +31,7 @@ export async function login(event) {
       },1000);
     
     } else {
-      messageDiv.textContent = responseData.message;
+      messageDiv.textContent = 'Incorrect username or password';
     }
   } catch (error) {
     console.error(error);
