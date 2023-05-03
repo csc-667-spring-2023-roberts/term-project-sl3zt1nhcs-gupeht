@@ -24,36 +24,8 @@ tableController.addPlayersToTable = (req, res, next) => {
     });
 };
 
-tableController.removePlayerFromTable = (req, res, next) => {
-  const { tableId, playerId } = req.params;
-  tableModel.removePlayerFromTable(tableId, playerId)
-    .then(() => {
-      res.status(200).json({ success: true });
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
 
-tableController.getTableById = (req, res, next) => {
-  const { tableId } = req.params;
-  tableModel.getTableById(tableId)
-    .then((table) => {
-      res.status(200).json({ table });
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
 
-tableController.getAllTables = (req, res, next) => {
-  tableModel.getAllTables()
-    .then((tables) => {
-      res.status(200).json({ tables });
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
+
 
 module.exports = tableController;
