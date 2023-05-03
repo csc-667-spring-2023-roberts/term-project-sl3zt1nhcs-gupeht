@@ -1,5 +1,5 @@
 // socket.js
-import io from "socket.io-client";
+import {io} from "socket.io-client";
 
 const SOCKET_URL = "http://localhost:3000"; // Replace this URL with your server's address
 
