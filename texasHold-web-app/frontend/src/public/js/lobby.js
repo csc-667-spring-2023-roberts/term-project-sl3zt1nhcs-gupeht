@@ -6,7 +6,7 @@ document.getElementById('create-game-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
 
-    fetch('/api/game/create', {
+    fetch('/game/create', {
         method: 'POST',
         body: JSON.stringify(Object.fromEntries(formData)),
         headers: { 'Content-Type': 'application/json' },
