@@ -1,39 +1,20 @@
 const gameModel = require("../models/game/gameModel");
-const tableModel = require("../models/table/tableModel");
+
 const gameController = {};
 
 
-gameController.createGame = (req, res, next) => {
-    const result = {};
-
-    const { tableName, maxPlayers, minBuyIn, maxBuyIn } = req.body;
-
-    tableModel
-        .createTable(tableName, maxPlayers, minBuyIn, maxBuyIn)
-        .then((tableId) => {
-            result.tableId = tableId;
-            result.tabeData = {
-                tableName,
-                maxPlayers,
-                minBuyIn,
-                maxBuyIn,
-            };
-            return gameModel.createGame(tableId);
-        })
-        .then((gameId) => {
-            result.gameId = gameId;
+gameController.createGame = (req, res) => {
+    const { chips, numPlayers, numRounds, minBet} = req.body;
+  
+    gameModel.createGame(chips, numPlayers, numRounds, minBet)
+      .then((game) => {
         
-        })
-        .then((chatId)=>{
-            result.chatId= chatId;
-            res.status(201).json(result);
-        })
-        .catch((err) => {
-            result.error = err.message;
-            res.status(err.status || 500).json(result);
-            next(err);
-        });
-};
+        res.status(201).json({ message: 'User created successfully', game });
+      })
+      .catch((err) => {
+        res.status(err.status || 500).json({ message: err.message });
+      })
+  };
 
 /*
 This function handles the request for updating a game. 

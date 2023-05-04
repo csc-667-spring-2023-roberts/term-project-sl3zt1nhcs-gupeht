@@ -4,7 +4,7 @@ const gameController = require('../controllers/gameController');
 const authenticate   = require('../middleware/auth');
 
 // Create a new game
-router.post('/create', authenticate, gameController.createGame);
+router.post('/create', gameController.createGame);
 
 // Join a game
 router.post('/join/:gameId', authenticate, gameController.joinGame);

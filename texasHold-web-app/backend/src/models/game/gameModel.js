@@ -1,7 +1,7 @@
 const db = require("../../database/db");
 const { CustomError } = require("../../middleware/customErrorHandler");
 const PokerGame = require("./pokerGame");
-const tableModel = require("../table/tableModel");
+
 const gameModel = {};
 /*
 This function creates a new game by calling the tableModel.createTable 
@@ -12,28 +12,38 @@ creates a new PokerGame instance, stores the game data in the
 games_data table, and creates a chat room associated with the game.
 Finally, it returns the gameId.
 */
-gameModel.createGame = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
-    return tableModel
-        .createTable(tableName, maxPlayers, minBuyIn, maxBuyIn)
-        .then((tableId) => {
-            const query = `INSERT INTO games (table_id, start_time) VALUES ($1, NOW()) RETURNING game_id`;
-            const values = [tableId];
-
-            return db.query(query, values);
-        })
-        .then((result) => {
-            if (result.rowCount > 0) {
-                const gameId = result.rows[0].game_id;
-                const pokerGame = new PokerGame(maxPlayers); // Update the constructor call
-                return Promise.all([gameModel.storeGame(gameId, pokerGame)]).then(() => gameId);
-            } else {
-                throw new CustomError("Failed to create game", 500);
-            }
-        })
-        .catch((err) => {
-            throw err;
-        });
-};
+gameModel.createGame = (chips, num_players, num_rounds, min_bet) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+        
+                const curr_round = 0;
+                const main_pot = 0;
+                const curr_round_pot = 0;
+                const curr_player_turn = 0;
+                const game_inv_code = 'jdhfkjshfj;s';
+                const query = `INSERT INTO game (chips, num_players, num_rounds, min_bet, curr_round, main_pot, curr_round_pot,  curr_player_turn, game_inv_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`;
+                const values = [ chips, num_players, num_rounds,  min_bet,  curr_round, main_pot, curr_round_pot,  curr_player_turn, game_inv_code];
+  
+                db.query(query, values)
+                    .then(async (result) => {
+                        if (result.rowCount > 0) {
+                            const game = result.rows[0];
+                           
+  
+                            resolve(game); // Resolve after storing the token
+                        } else {
+                            reject(new CustomError("No rows affected", 404));
+                        }
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+            
+        } catch (err) {
+            reject(err);
+        }
+    });
+  };
 /*
 this function retrieves all games from the database
 This can be used so the front end can display all current games

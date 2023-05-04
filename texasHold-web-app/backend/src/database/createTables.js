@@ -16,21 +16,19 @@ const createTables = () => {
         .then(() => {
             return client.query(
                 `
-            CREATE TABLE  IF NOT EXISTS tables (
-                table_id SERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
-                max_players INTEGER NOT NULL,
-                min_buy_in NUMERIC(10, 2) NOT NULL,
-                max_buy_in NUMERIC(10, 2) NOT NULL
-            );
-            
-            
-            
-            CREATE TABLE IF NOT EXISTS games_data (
-                game_data_id SERIAL PRIMARY KEY,
-                game_id INTEGER NOT NULL REFERENCES games(game_id),
-                game_data JSON NOT NULL
-            );
+                CREATE TABLE IF NOT EXISTS  game (
+                    game_id SERIAL PRIMARY KEY,
+                    game_inv_code VARCHAR(255),
+                    chips INTEGER NOT NULL,
+                    num_players INTEGER NOT NULL,
+                    num_rounds INTEGER NOT NULL,
+                    min_bet INTEGER NOT NULL,
+                    curr_round INTEGER NOT NULL,
+                    main_pot INTEGER NOT NULL,
+                    curr_round_pot INTEGER NOT NULL,
+                    curr_player_turn INTEGER NOT NULL
+                
+                );
             
             
             CREATE TABLE IF NOT EXISTS users (
@@ -44,7 +42,7 @@ const createTables = () => {
             CREATE TABLE IF NOT EXISTS players (
                 player_id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL REFERENCES users(user_id),
-                game_id INTEGER NOT NULL REFERENCES games(game_id),
+                game_id INTEGER NOT NULL REFERENCES game(game_id),
                 buy_in NUMERIC(10, 2) NOT NULL,
                 cash_out NUMERIC(10, 2) NOT NULL,
                 UNIQUE (user_id, game_id)
