@@ -211,4 +211,49 @@ gameModel.playRound = (gameId) => {
         });
 };
 
+gameModel.joinGame = (gameId, userId, buyIn) => {
+    return gameModel.loadGame(gameId)
+        .then((pokerGame) => {
+            if (pokerGame.players.length < pokerGame.maxPlayers) {
+                const playerId = pokerGame.addPlayer(userId, buyIn);
+                const query = `INSERT INTO players (user_id, game_id, buy_in, cash_out) VALUES ($1, $2, $3, 0) RETURNING player_id`;
+                const values = [userId, gameId, buyIn];
+
+                return db.query(query, values)
+                    .then((result) => {
+                        if (result.rowCount > 0) {
+                            return result.rows[0].player_id;
+                        } else {
+                            throw new CustomError("Failed to add player to game", 500);
+                        }
+                    })
+                    .then((playerId) => {
+                        return gameModel.updateGame(gameId, pokerGame)
+                            .then(() => {
+                                return { playerId, userId };
+                            });
+                    });
+            } else {
+                throw new CustomError("Game is full", 400);
+            }
+        })
+        .then(({ playerId, userId }) => {
+            const query = `SELECT username FROM users WHERE user_id = $1`;
+            const values = [userId];
+
+            return db.query(query, values)
+                .then((result) => {
+                    if (result.rowCount > 0) {
+                        return { playerId, username: result.rows[0].username };
+                    } else {
+                        throw new CustomError("User not found", 404);
+                    }
+                });
+        })
+        .catch((err) => {
+            throw err;
+        });
+};
+
+
 module.exports = gameModel;

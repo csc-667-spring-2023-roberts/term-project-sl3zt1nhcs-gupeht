@@ -29,6 +29,12 @@ async function authMiddleware(req, res, next) {
 
     req.user = decoded;
 
+    // Set res.local.user
+    const user = await userModel.getUserById(decoded.sub);
+    if(user){
+      res.locals.user = user;
+    }
+
     next();
   } catch (error) {
     res.status(401).json({ message: 'Invalid token' });

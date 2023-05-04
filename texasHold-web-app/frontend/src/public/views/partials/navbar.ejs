@@ -1,9 +1,8 @@
-<!-- views/partials/navbar.ejs -->
 
 <nav>
   <% if (user) { %>
     <span>Welcome <%= user.username %>!</span>
     <a href="/" id="logout">Logout</a>
-    <button type="submit" id="join-game">Join Game</button>
+    <button type="button" id="show-create-game-modal">Create Game</button>
   <% } %>
 </nav>

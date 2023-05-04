@@ -1,7 +1,7 @@
 const gameModel = require("../models/game/gameModel");
 const tableModel = require("../models/table/tableModel");
 const gameController = {};
-const chatController = require('../controllers/chatController');
+
 
 gameController.createGame = (req, res, next) => {
     const result = {};
@@ -22,7 +22,7 @@ gameController.createGame = (req, res, next) => {
         })
         .then((gameId) => {
             result.gameId = gameId;
-            return chatController.createChatRoom(gameId);  
+        
         })
         .then((chatId)=>{
             result.chatId= chatId;
@@ -78,7 +78,6 @@ gameController.addPlayersToGame = (req, res, next) => {
     gameModel
         .addPlayersToGame(gameId, playerIds)
         .then( () => {
-            return chatController.addPlayersToChat(gameId,playerIds);
         })
         .then((chat_data)=>{
             result.chat_data = chat_data;
@@ -107,7 +106,7 @@ gameController.removePlayerFromGame = (req, res, next) => {
     gameModel
         .removePlayerFromGame(gameId, playerId)
         .then(() => {
-            return chatController.removePlayerFromChat(gameId, playerId); // Changed line
+        
         }).then((chat_data)=>{
             result.chat_data = chat_data;
             result.success = true;
@@ -150,6 +149,25 @@ gameController.getTable = (req, res, next) => {
             next(err);
         });
 };
+
+gameController.getGameList = (req,res,next)=>{
+    const result={};
+    gameModel.getAllGames().then((games)=>{
+        if(games){
+            result.games = games;
+            res.status(200).json({games});
+        }
+        else{
+            result.message = "There is no games"
+        }
+    }).catch((err)=>{
+        result.err = err.message;
+        res.status(err.status||500).json({result});
+    });
+}
+
+
+
 /*
 This function handles the request for getting the current game state.
 It takes the gameId from the request parameters and calls the loadGame method in the gameModel.
@@ -228,6 +246,20 @@ gameController.playRound = (req, res, next) => {
         .catch((err) => {
             result.error = err.message;
             res.status(err.status || 500).json(result);
+            next(err);
+        });
+};
+
+gameController.joinGame = (req, res, next) => {
+    const gameId = req.params.gameId;
+    const userId = req.user.user_id;
+    const buyIn = req.body.buyIn;
+
+    gameModel.joinGame(gameId, userId, buyIn)
+        .then(({ playerId, username }) => {
+            res.status(200).json({ message: "Successfully joined game", playerId: playerId, username: username });
+        })
+        .catch((err) => {
             next(err);
         });
 };

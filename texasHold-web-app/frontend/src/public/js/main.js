@@ -1,10 +1,7 @@
-// public/js/main.js
-
 import { register } from "./register";
 import { login } from "./login";
 import { logout } from "./logout";
-import connectSocket from "./socket";
-import {createGame,joinGame,getGameList} from "./game";
+import { createGame, joinGame, getGameList } from "./game";
 
 export async function fetchLobby() {
     const token = localStorage.getItem("token");
@@ -29,12 +26,6 @@ export async function fetchLobby() {
             document.querySelector("body").innerHTML = lobbyHtml;
             // Fetch the game list when the lobby is loaded
             getGameList();
-            // Connect the socket and join the game
-            const socket = connectSocket();
-
-            //TODO: const gameId = // Set the gameId from the game you want the user to join
-
-            socket.emit("join_game", gameId);
         } else {
             console.error("Error fetching lobby:", lobbyHtml);
         }
@@ -45,7 +36,10 @@ export async function fetchLobby() {
 
 // Fetch the game list when the lobby is loaded
 if (window.location.pathname === "/user/lobby") {
-  getGameList();
+    // Refresh the game list every 10 seconds
+    setInterval(() => {
+        getGameList();
+    }, 10000);
 }
 
 // prevents from going to login page
@@ -79,8 +73,6 @@ document.addEventListener("DOMContentLoaded", () => {
     checkLoggedIn();
 });
 
-
-
 // Add a separate event listener for the logout button
 document.addEventListener("click", (event) => {
     if (event.target && event.target.id === "logout") {
@@ -89,14 +81,60 @@ document.addEventListener("click", (event) => {
     }
 });
 
-// Add a separate event listener for the create  game
-document.addEventListener("click", async (event) => {
-    if (event.target && event.target.id === "create-game") {
+// Add event listeners for the create game modal
+document.addEventListener("click", (event) => {
+    if (event.target && event.target.id === "show-create-game-modal") {
         event.preventDefault();
-        await createGame();
-    } else if (event.target && event.target.classList.contains("join-game")) {
+        document.getElementById("create-game-modal").removeAttribute("hidden");
+    } else if (event.target && event.target.id === "close-create-game-modal") {
+        event.preventDefault();
+        document.getElementById("create-game-modal").setAttribute("hidden", "true");
+    }
+});
+
+// Add click event listeners for game items in the list
+document.addEventListener("click", async (event) => {
+    if (event.target && event.target.classList.contains("game-item")) {
         event.preventDefault();
         const gameId = event.target.getAttribute("data-game-id");
         await joinGame(gameId);
     }
 });
+
+// Fetch the game list when the lobby is loaded and add click event listeners for game items
+if (window.location.pathname === "/user/lobby") {
+    getGameList().then(() => {
+        document.querySelectorAll(".game-item").forEach((gameItem) => {
+            gameItem.addEventListener("click", async (event) => {
+                event.preventDefault();
+                const gameId = event.currentTarget.getAttribute("data-game-id");
+                await joinGame(gameId);
+            });
+        });
+    });
+}
+
+
+// Game forms event listeners
+document.addEventListener("DOMContentLoaded",()=>{
+    const  createForm = document.getElementById("create-game-form");
+
+    if (createForm){
+        createForm.addEventListener("submit",(event)=>{
+            event.preventDefault();
+            createGame();
+        });
+    }
+});
+
+
+/*
+document.addEventListener("click", async (event) => {
+    if (event.target && event.target.classList.contains("join-game")) {
+        event.preventDefault();
+        const gameId = event.target.getAttribute("data-game-id");
+        await joinGame(gameId);
+    }
+});
+*/
+

@@ -11,15 +11,15 @@ const root = require("./router/root");
 const { customErrorHandler } = require("./middleware/customErrorHandler");
 const app = express();
 const server = http.createServer(app);
-const setupSocket = require("./socket");
-const userController = require("./controllers/userController");
+
 
 // view engine setup
 app.set("views", path.join(__dirname, "../../frontend/src/public/views"));
+
 app.set("view engine", "ejs");
 
 // Serve static files for front end
-app.use(express.static(path.join(__dirname, "../../frontend/src/public/")));
+
 app.use(express.static(path.join(__dirname, "../../frontend/src/public/")));
 
 // middleware
@@ -27,7 +27,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(sessionMiddleware);
 app.use(cookieMiddleware);
-app.use(userController.getCurrentUser);
+
 
 
 
@@ -49,9 +49,7 @@ createTables()
         result.message = resultStatus.message;
         // start server here
         const port = process.env.PORT || 3000;
-        const io = setupSocket(server);
-        result.socketMessage = `Socket is running on port ${port}`;
-
+        
         // 404 error handling
         app.use((req, res, next) => {
             res.status(404).json({ message: "Not Found" });

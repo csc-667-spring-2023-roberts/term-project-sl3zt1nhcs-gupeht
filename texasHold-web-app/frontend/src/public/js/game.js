@@ -1,9 +1,9 @@
-
-async function createGame() {
+//game/js for the front end
+export async function createGame() {
    
-    const maxPlayers = document.querySelector('#create-game-form input[maxPlayers="maxPlayers"]').value;
-    const minBuyin = document.querySelector('#create-game-form input[minBuyIn="minBuyIn"]').value;
-    const maxBuyIn = document.querySelector('#create-game-form input[maxBuyIn="maxBuyIn"]').value;
+    const maxPlayers = document.querySelector('#create-game-form input[name="maxPlayers"]').value;
+    const minBuyin = document.querySelector('#create-game-form input[name="minBuyIn"]').value;
+    const maxBuyIn = document.querySelector('#create-game-form input[name="maxBuyIn"]').value;
 
     const token = localStorage.getItem("token");
 
@@ -35,31 +35,44 @@ async function createGame() {
 }
 
 
-//TODO
-async function joinGame(gameId) {
-   
+export async function joinGame(gameId) {
+    const token = localStorage.getItem("token");
+
+    try {
+        const response = await fetch(`/game/join/${gameId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        });
+
+        const responseData = await response.json();
+
+        if (response.status === 200) {
+            messageDiv.textContent = `${responseData.username} joined the game`;
+        } else {
+            messageDiv.textContent = responseData.message || "An error occurred while joining the game";
+        }
+    } catch (error) {
+        messageDiv.textContent = error.message;
+    }
 }
 
- //TODO CHANGE IMPLEMENTATION
-async function getGameList() {
-   
+
+export async function getGameList() {
     const response = await fetch("/game/list");
     const games = await response.json();
-
     const gameListElement = document.getElementById("game-list");
 
     if (games.length === 0) {
         gameListElement.innerHTML = "<p>No games available. Create one!</p>";
     } else {
         const gameItems = games.map((game) => {
-            return `<div>
-        
-                <p>Players: ${game.players.length}/${game.maxPlayers}</p>
+            const availableSpaces = game.maxPlayers - game.players.length;
+            return `<div class="game-item" data-game-id="${game._id}">
+                <p>Players: ${game.players.length}/${game.maxPlayers} (Available spaces: ${availableSpaces})</p>
                 <p>Buy-In: ${game.minBuyIn} - ${game.maxBuyIn}</p>
-                <button class="join-game" data-game-id="${game._id}">Join</button>
-              </div>`;
-        });
-        gameListElement.innerHTML = gameItems.join("");
+           
+                </div>`;
+            });
+            gameListElement.innerHTML = gameItems.join("");
+        }
     }
-}
-

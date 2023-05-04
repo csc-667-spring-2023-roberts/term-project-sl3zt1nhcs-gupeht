@@ -67,12 +67,10 @@ userController.logout = async (req, res, next) => {
 userController.getCurrentUser = (req, res, next) => {
   userModel.getCurrentUser(req)
     .then((user) => {
-      res.locals.user = user;
-      next();
+      res.status(200).json(user); // Send the response with user data
     })
     .catch((err) => {
-      res.locals.user = null;
-      next();
+      res.status(err.status || 500).json({ message: err.message });
     });
 };
 

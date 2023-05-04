@@ -1,8 +1,5 @@
-<!-- views/lobby.ejs -->
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -10,31 +7,34 @@
     <title>Lobby</title>
     <link rel="stylesheet" href="/css/main.css">
 </head>
-
 <body>
     <div class="container">
         <%- include('partials/navbar', { user: user }) %>
         <h1>Welcome to the Game Lobby</h1>
         <p>Hi <%= user.username %>, this is the game lobby!</p>
-        <h2>Create a Game</h2>
-        
-        <form id="create-game-form">
-            <label for="maxPlayers">Max Players:</label>
-            <input type="number" name="maxPlayers" min="2" max="10" required>
-            <label for="minBuyIn">Min Buy-In:</label>
-            <input type="number" name="minBuyIn" required>
-            <label for="maxBuyIn">Max Buy-In:</label>
-            <input type="number" name="maxBuyIn" required>
-            <button type="submit" id="create-game">Create Game</button>
-        </form>
 
         <h2>Available Games</h2>
         <div id="game-list"></div>
     </div>
     <div id="message" class="message"></div>
-    <script src="/frontend/src/public/js/socket.js"></script>
+
+    <!-- Create Game Modal -->
+    <div id="create-game-modal" class="modal" hidden>
+        <div class="modal-content">
+            <h2>Create a Game</h2>
+            <form id="create-game-form">
+                <label for="maxPlayers">Max Players:</label>
+                <input type="number" name="maxPlayers" min="2" max="10" required>
+                <label for="minBuyIn">Min Buy-In:</label>
+                <input type="number" name="minBuyIn" required>
+                <label for="maxBuyIn">Max Buy-In:</label>
+                <input type="number" name="maxBuyIn" required>
+                <button type="submit" id="create-game">Create Game</button>
+            </form>
+            <button id="close-create-game-modal">Close</button>
+        </div>
+    </div>
     <script src="/frontend/src/public/dist/bundle.js"></script>
     <script src="/frontend/src/public/js/main.js"></script>
 </body>
-
 </html>
