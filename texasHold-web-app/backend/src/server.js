@@ -1,16 +1,16 @@
 const path = require("path");
 require('dotenv').config({path:path.join(__dirname,'config','.env')});
 
-const express = require("express");
+const express    = require("express");
 const bodyParser = require("body-parser");
-const http = require("http");
+const http       = require("http");
 const { sessionMiddleware, cookieMiddleware } = require("./middleware/sessionMiddleWare");
 const userRoutes = require("./router/userRoutes");
 const gameRoutes = require("./router/gamesRoutes");
-const root = require("./router/root");
+const root       = require("./router/root");
 const { customErrorHandler } = require("./middleware/customErrorHandler");
-const app = express();
-const server = http.createServer(app);
+const app        = express();
+const server     = http.createServer(app);
 
 
 // view engine setup

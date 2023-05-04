@@ -1,7 +1,7 @@
-const express = require('express');
-const router = express.Router();
+const express        = require('express');
+const router         = express.Router();
 const gameController = require('../controllers/gameController');
-const authenticate  = require('../middleware/auth');
+const authenticate   = require('../middleware/auth');
 
 // Create a new game
 router.post('/create', authenticate, gameController.createGame);
@@ -10,7 +10,7 @@ router.post('/create', authenticate, gameController.createGame);
 router.post('/join/:gameId', authenticate, gameController.joinGame);
 
 // Get a list of all games
-router.get('/list', gameController.getGameList);
+router.post('/list', gameController.getGameList);
 
 // Add a player to a game
 router.post('/add-player/:gameId', authenticate, gameController.addPlayersToGame);
@@ -23,5 +23,3 @@ router.post('/play-round/:gameId', authenticate, gameController.playRound);
 
 module.exports = router;
 
-
-module.exports = router;

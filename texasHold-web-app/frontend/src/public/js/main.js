@@ -15,10 +15,10 @@ export async function fetchLobby() {
     }
 
     try {
-        const response = await fetch("/lobby", {
+        const response = await fetch("/user/lobby", {
             headers: {
                 Authorization: `Bearer ${token}`,
-            },
+            }
         });
 
         const lobbyHtml = await response.text();
@@ -44,16 +44,17 @@ if (window.location.pathname === "/user/lobby") {
 }
 
 function checkLoggedIn() {
-    const token = localStorage.getItem("token");
-    const currentPath = window.location.pathname;
-    const loginPath = "user/login"; 
+    const token        = localStorage.getItem("token");
+    const currentPath  = window.location.pathname;
+    const loginPath    = "user/login"; 
     const registerPath = "user/register"; 
-    const lobbyPath = "user/lobby"; 
+    const lobbyPath    = "user/lobby"; 
 
     if (token) {
         if (currentPath === loginPath || currentPath === registerPath) {
             window.location.href = lobbyPath;
-        } else if (currentPath === lobbyPath) {
+        } 
+        else if (currentPath === lobbyPath) {
             fetchLobby();
         }
     }

@@ -40,18 +40,15 @@ This can be used so the front end can display all current games
 in the lobby
 */
 gameModel.getAllGames = () =>{
-    const query = `SELECT * FROM games`;
-    return db.query(query).then((result)=>{
-        if (result.rowCount > 0){
-            return result.rows;
-        }
-        else{
-            throw new CustomError("There is no games",400);
-        }
-    })
-    .catch((err)=>{
-        throw new CustomError("Failed to load games from database",500);
+    const query = `SELECT * FROM games;`;
+    return db.query(query).then((result) => {
+        // note that an empty array is a perfectly 
+        // valid in the event that there are no games.
+        return result.rows;
     });
+    // We don't need a catch statment here. 
+    // The function calling this one already 
+    // catches all of the errors.
 };
 /*
 This function stores a PokerGame instance in the games_data table. 
