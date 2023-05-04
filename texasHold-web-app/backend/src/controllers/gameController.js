@@ -151,18 +151,18 @@ gameController.getTable = (req, res, next) => {
 };
 
 gameController.getGameList = (req,res,next)=>{
-    const result={};
-    gameModel.getAllGames().then((games)=>{
-        if(games){
+    const result = {};
+    gameModel.getAllGames().then((games) => {
+        if (games) {
             result.games = games;
             res.status(200).json({games});
         }
-        else{
-            result.message = "There is no games"
+        else {
+            result.message = "There are no games.";
         }
-    }).catch((err)=>{
-        result.err = err.message;
-        res.status(err.status||500).json({result});
+    }).catch( (err) => {
+        result.err = "ERROR: Failed to get games.";
+        res.status(err.status || 500).json({result});
     });
 }
 

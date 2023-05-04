@@ -2,8 +2,8 @@
 export async function createGame() {
    
     const maxPlayers = document.querySelector('#create-game-form input[name="maxPlayers"]').value;
-    const minBuyin = document.querySelector('#create-game-form input[name="minBuyIn"]').value;
-    const maxBuyIn = document.querySelector('#create-game-form input[name="maxBuyIn"]').value;
+    const minBuyin   = document.querySelector('#create-game-form input[name="minBuyIn"]').value;
+    const maxBuyIn   = document.querySelector('#create-game-form input[name="maxBuyIn"]').value;
 
     const token = localStorage.getItem("token");
 
@@ -18,15 +18,11 @@ export async function createGame() {
 
         if (response.status === 200) {
             messageDiv.textContent = "Joined Game";
-
-            /*
-      setTimeout(()=>{
-        loocation.href = '/game/play'
-      })
-      */
-        } else if (response.status === 409) {
+        } 
+        else if (response.status === 409) {
             messageDiv.textContent = responseData.message;
-        } else {
+        } 
+        else {
             messageDiv.textContent = "An error occurred during creating game";
         }
     } catch (error) {
@@ -48,7 +44,8 @@ export async function joinGame(gameId) {
 
         if (response.status === 200) {
             messageDiv.textContent = `${responseData.username} joined the game`;
-        } else {
+        } 
+        else {
             messageDiv.textContent = responseData.message || "An error occurred while joining the game";
         }
     } catch (error) {
@@ -59,20 +56,28 @@ export async function joinGame(gameId) {
 
 export async function getGameList() {
     const gameListElement = document.getElementById("game-list");
-    const response = await fetch("/game/list");
-    const games = await response.json();
+    const tempToken       = localStorage.getItem("token");
+    const response        = await fetch("/game/list", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tempToken}` },
+    });
+    const gamesObj = await response.json();
+    const games    = gamesObj["games"];
   
     if (games.length === 0) {
         gameListElement.innerHTML = "<p>No games available. Create one!</p>";
-    } else {
+    } 
+    else {
+        console.log('hi');
         const gameItems = games.map((game) => {
-            const availableSpaces = game.maxPlayers - game.players.length;
-            return `<div class="game-item" data-game-id="${game._id}">
-                <p>Players: ${game.players.length}/${game.maxPlayers} (Available spaces: ${availableSpaces})</p>
-                <p>Buy-In: ${game.minBuyIn} - ${game.maxBuyIn}</p>
-                <button class="join-game">Join</button>
-                </div>`;
-          });
-            gameListElement.innerHTML = gameItems.join("");
-        }
+        const availableSpaces = game.maxPlayers - game.players.length;
+            
+        return `<div class="game-item" data-game-id="${game._id}">
+            <p>Players: ${game.players.length}/${game.maxPlayers} (Available spaces: ${availableSpaces})</p>
+            <p>Buy-In: ${game.minBuyIn} - ${game.maxBuyIn}</p>
+            <button class="join-game">Join</button>
+            </div>`;
+        });
+        gameListElement.innerHTML = gameItems.join("");
     }
+}
