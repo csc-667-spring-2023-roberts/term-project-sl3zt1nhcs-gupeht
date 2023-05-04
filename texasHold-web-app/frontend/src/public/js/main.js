@@ -3,6 +3,8 @@ import { login } from "./login";
 import { logout } from "./logout";
 import { createGame, joinGame, getGameList } from "./game";
 
+const messageDiv = document.getElementById("message");
+
 export async function fetchLobby() {
     const token = localStorage.getItem("token");
 
@@ -13,7 +15,7 @@ export async function fetchLobby() {
     }
 
     try {
-        const response = await fetch("/user/lobby", {
+        const response = await fetch("/lobby", {
             headers: {
                 Authorization: `Bearer ${token}`,
             },
@@ -34,7 +36,6 @@ export async function fetchLobby() {
     }
 }
 
-// Fetch the game list when the lobby is loaded
 if (window.location.pathname === "/user/lobby") {
     // Refresh the game list every 10 seconds
     setInterval(() => {
@@ -42,15 +43,22 @@ if (window.location.pathname === "/user/lobby") {
     }, 10000);
 }
 
-// prevents from going to login page
 function checkLoggedIn() {
     const token = localStorage.getItem("token");
+    const currentPath = window.location.pathname;
+    const loginPath = "user/login"; 
+    const registerPath = "user/register"; 
+    const lobbyPath = "user/lobby"; 
+
     if (token) {
-        fetchLobby();
+        if (currentPath === loginPath || currentPath === registerPath) {
+            window.location.href = lobbyPath;
+        } else if (currentPath === lobbyPath) {
+            fetchLobby();
+        }
     }
 }
 
-// Event listener  for register and login forms
 document.addEventListener("DOMContentLoaded", () => {
     const registerForm = document.getElementById("register-form");
     const loginForm = document.getElementById("login-form");
@@ -69,72 +77,53 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // stop from going to log in if token exist
     checkLoggedIn();
-});
 
-// Add a separate event listener for the logout button
-document.addEventListener("click", (event) => {
-    if (event.target && event.target.id === "logout") {
-        event.preventDefault();
-        logout();
-    }
-});
-
-// Add event listeners for the create game modal
-document.addEventListener("click", (event) => {
-    if (event.target && event.target.id === "show-create-game-modal") {
-        event.preventDefault();
-        document.getElementById("create-game-modal").removeAttribute("hidden");
-    } else if (event.target && event.target.id === "close-create-game-modal") {
-        event.preventDefault();
-        document.getElementById("create-game-modal").setAttribute("hidden", "true");
-    }
-});
-
-// Add click event listeners for game items in the list
-document.addEventListener("click", async (event) => {
-    if (event.target && event.target.classList.contains("game-item")) {
-        event.preventDefault();
-        const gameId = event.target.getAttribute("data-game-id");
-        await joinGame(gameId);
-    }
-});
-
-// Fetch the game list when the lobby is loaded and add click event listeners for game items
-if (window.location.pathname === "/user/lobby") {
-    getGameList().then(() => {
-        document.querySelectorAll(".game-item").forEach((gameItem) => {
-            gameItem.addEventListener("click", async (event) => {
-                event.preventDefault();
-                const gameId = event.currentTarget.getAttribute("data-game-id");
-                await joinGame(gameId);
-            });
-        });
-    });
-}
-
-
-// Game forms event listeners
-document.addEventListener("DOMContentLoaded",()=>{
-    const  createForm = document.getElementById("create-game-form");
-
-    if (createForm){
-        createForm.addEventListener("submit",(event)=>{
+    const logoutBtn = document.getElementById("logout");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", (event) => {
             event.preventDefault();
-            createGame();
+            logout();
         });
     }
-});
 
+    const showCreateGameModalBtn = document.getElementById("show-create-game-modal");
+    const closeCreateGameModalBtn = document.getElementById("close-create-game-modal");
+    const createGameModal = document.getElementById("create-game-modal");
 
-/*
-document.addEventListener("click", async (event) => {
-    if (event.target && event.target.classList.contains("join-game")) {
-        event.preventDefault();
-        const gameId = event.target.getAttribute("data-game-id");
-        await joinGame(gameId);
+    if (showCreateGameModalBtn) {
+        showCreateGameModalBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            createGameModal.removeAttribute("hidden");
+        });
+    }
+
+    if (closeCreateGameModalBtn) {
+        closeCreateGameModalBtn.addEventListener("click", (event) => {
+            event.preventDefault();
+            createGameModal.setAttribute("hidden", "true");
+        });
+    }
+
+    const createGameForm = document.getElementById("create-game-form");
+    if (createGameForm) {
+        createGameForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            await createGame();
+        });
+    }
+
+    const gameListElement = document.getElementById("game-list");
+    if (gameListElement) {
+        gameListElement.addEventListener("click", (event) => {
+            if (event.target.classList.contains("join-game")) {
+                const gameId = event.target.parentElement.dataset.gameId;
+                joinGame(gameId);
+            }
+        });
+    }
+
+    if (window.location.pathname === "/user/lobby") {
+        getGameList();
     }
 });
-*/
-

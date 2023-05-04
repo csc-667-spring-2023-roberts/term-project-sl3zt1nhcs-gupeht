@@ -58,10 +58,10 @@ export async function joinGame(gameId) {
 
 
 export async function getGameList() {
+    const gameListElement = document.getElementById("game-list");
     const response = await fetch("/game/list");
     const games = await response.json();
-    const gameListElement = document.getElementById("game-list");
-
+  
     if (games.length === 0) {
         gameListElement.innerHTML = "<p>No games available. Create one!</p>";
     } else {
@@ -70,9 +70,9 @@ export async function getGameList() {
             return `<div class="game-item" data-game-id="${game._id}">
                 <p>Players: ${game.players.length}/${game.maxPlayers} (Available spaces: ${availableSpaces})</p>
                 <p>Buy-In: ${game.minBuyIn} - ${game.maxBuyIn}</p>
-           
+                <button class="join-game">Join</button>
                 </div>`;
-            });
+          });
             gameListElement.innerHTML = gameItems.join("");
         }
     }
