@@ -3,9 +3,9 @@ module.exports ={
         host:"localhost",
         port: "5432" ,
         user:`${process.env.DB_USERNAME}`,
-        password:`${process.env.DB_PASSWORD}`, // default
+        password:`${process.env.DB_PASSWORD}`,
        database:"postgres",
     },
 
-    PORT: 3000,
+    PORT: process.env.PORT,
 };
