@@ -7,18 +7,26 @@ const router = express.Router();
 router.post('/register', userController.createUser);
 router.post('/login', userController.login);
 router.post('/logout', authMiddleware, userController.logout); // Add authMiddleware to protect the logout route
-router.get('/me', authMiddleware, userController.getCurrentUser);
+
+
+
+// Check if the user is authenticated
+router.get('/is-authenticated', authMiddleware, (req, res) => {
+  res.status(200).json({ authenticated: true });
+});
+
+
 
 // Front-end routes
 router.get('/register', (req, res) => {
   res.render('register');
 });
 
-router.get('/login', (req, res) => {
+router.get('/login', (req,res) => {
   res.render('login');
 });
 
-router.get('/lobby', authMiddleware, (req, res) => {
+router.get('/lobby', authMiddleware, ( req, res) => {
   res.render('lobby', { user:res.locals.user });
 });
 

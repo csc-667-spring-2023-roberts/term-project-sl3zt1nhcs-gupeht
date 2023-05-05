@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-    <div class="container">
+    <div id = "content" class="container">
         <%- include('partials/navbar', { user: user }) %>
         <h1>Welcome to the Game Lobby</h1>
         <p>Hi <%= user.username %>, this is the game lobby!</p>
@@ -17,9 +17,8 @@
         <div id="game-list"></div>
     </div>
     <div id="message" class="message"></div>
-
     <!-- Create Game Modal -->
-    <div id="create-game-modal" class="modal" hidden>
+    <div id="create-game-modal" class="game-modal" hidden>
         <div class="modal-content">
             <h2>Create a Game</h2>
             <form id="create-game-form">
@@ -29,12 +28,13 @@
                 <input type="number" name="minBuyIn" required>
                 <label for="maxBuyIn">Max Buy-In:</label>
                 <input type="number" name="maxBuyIn" required>
-                <button id="show-create-game-modal">Create Game</button>
+                <button id="submit-create-game">Create Game</button> <!-- Change the id here -->
             </form>
-            <button id="close-create-game-modal">Close</button>
+            <button id="close-create-game-modal" onclick="window.closeCreateGameModal()">Close</button>
         </div>
     </div>
-    <script src="/frontend/src/public/dist/bundle.js"></script>
-    <script src="/frontend/src/public/js/main.js"></script>
+    <script defer src="/frontend/src/public/dist/bundle.js"></script>
+  <script defer src="/frontend/src/public/js/main.js"></script>
+
 </body>
 </html>

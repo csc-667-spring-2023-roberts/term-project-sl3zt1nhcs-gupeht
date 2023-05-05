@@ -1,5 +1,3 @@
-
-
 export async function logout() {
 
   const messageDiv = document.getElementById('message');

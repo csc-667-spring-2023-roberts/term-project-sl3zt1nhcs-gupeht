@@ -1,5 +1,4 @@
-
-import{fetchLobby} from './main'
+import { fetchLobby } from "./main";
 
 export async function login(event) {
   const username = document.querySelector('#login-form input[name="username"]').value;
@@ -22,14 +21,11 @@ export async function login(event) {
       localStorage.setItem('token', responseData.token);
 
       messageDiv.textContent = 'User logged in successfully';
-
-    
-
-       // Redirect to the desired page after successful login
+      
       setTimeout(()=>{
         fetchLobby();
       },1000);
-    
+
     } else {
       messageDiv.textContent = 'Incorrect username or password';
     }

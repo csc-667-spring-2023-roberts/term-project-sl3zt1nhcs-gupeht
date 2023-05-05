@@ -1,8 +1,7 @@
-
 <nav>
   <% if (user) { %>
     <span>Welcome <%= user.username %>!</span>
     <a href="/" id="logout">Logout</a>
-    <button type="button" id="show-create-game-modal">Create Game</button>
+    <a  id="show-create-game-btn" onclick="window.showCreateGameModal()">Create Game</a>
   <% } %>
 </nav>

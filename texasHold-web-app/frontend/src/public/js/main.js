@@ -3,109 +3,96 @@ import { login } from "./login";
 import { logout } from "./logout";
 import { createGame, joinGame, getGameList } from "./game";
 
-const messageDiv = document.getElementById("message");
 
 export async function fetchLobby() {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-        // If the token is not found, redirect to the login page
-        location.href = "/user/login";
-        return;
-    }
+    const token = localStorage.getItem('token');
+  
 
     try {
-        const response = await fetch("/lobby", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-
-        const lobbyHtml = await response.text();
-
-        if (response.status === 200) {
-            // Render the lobby HTML
-            document.querySelector("body").innerHTML = lobbyHtml;
-            // Fetch the game list when the lobby is loaded
-            getGameList();
-        } else {
-            console.error("Error fetching lobby:", lobbyHtml);
-        }
+      const response = await fetch('/user/lobby', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+  
+      const lobbyHtml = await response.text();
+     
+  
+      if (response.status === 200) {
+        // Render the lobby HTML
+        document.querySelector('body').innerHTML = lobbyHtml;
+      } else {
+        console.error('Error fetching lobby:', lobbyHtml);
+      }
     } catch (error) {
-        console.error("Error fetching lobby:", error);
+      console.error('Error fetching lobby:', error);
     }
-}
+  }
 
-if (window.location.pathname === "/user/lobby") {
-    // Refresh the game list every 10 seconds
-    setInterval(() => {
-        getGameList();
-    }, 10000);
-}
 
-function checkLoggedIn() {
-    const token = localStorage.getItem("token");
-    const currentPath = window.location.pathname;
-    const loginPath = "user/login"; 
-    const registerPath = "user/register"; 
-    const lobbyPath = "user/lobby"; 
 
-    if (token) {
-        if (currentPath === loginPath || currentPath === registerPath) {
-            window.location.href = lobbyPath;
-        } else if (currentPath === lobbyPath) {
-            fetchLobby();
-        }
-    }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
+  function handleRegisterAndLoginForm() {
     const registerForm = document.getElementById("register-form");
     const loginForm = document.getElementById("login-form");
-
+   
+  
     if (registerForm) {
-        registerForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            register(event);
-        });
+      registerForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        register(event);
+      });
     }
-
+  
     if (loginForm) {
-        loginForm.addEventListener("submit", (event) => {
-            event.preventDefault();
-            login(event);
-        });
+      loginForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        login(event);
+      });
     }
+  }
+  
 
-    checkLoggedIn();
 
-    const logoutBtn = document.getElementById("logout");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", (event) => {
-            event.preventDefault();
-            logout();
-        });
-    }
+  
 
-    const showCreateGameModalBtn = document.getElementById("show-create-game-modal");
-    const closeCreateGameModalBtn = document.getElementById("close-create-game-modal");
+  function handleLogout(){
+
+    document.addEventListener('click', (event) => {
+        if (event.target && event.target.id === 'logout') {
+          event.preventDefault();
+          logout();
+        }
+      });
+
+  }
+  
+
+export function showCreateGameModal() {
     const createGameModal = document.getElementById("create-game-modal");
 
-    if (showCreateGameModalBtn) {
-        showCreateGameModalBtn.addEventListener("click", (event) => {
-            event.preventDefault();
-            createGameModal.removeAttribute("hidden");
-        });
+    if (createGameModal) {
+        createGameModal.removeAttribute("hidden");
+        console.log("Show create game modal button clicked");
+    } else {
+        console.error("Open Create game modal not found");
     }
+}
 
-    if (closeCreateGameModalBtn) {
-        closeCreateGameModalBtn.addEventListener("click", (event) => {
-            event.preventDefault();
-            createGameModal.setAttribute("hidden", "true");
-        });
+export function closeCreateGameModal() {
+    const createGameModal = document.getElementById("create-game-modal");
+
+    if (createGameModal) {
+        createGameModal.setAttribute("hidden", "true");
+        console.log("close create game modal button clicked");
+    } else {
+        console.error("Close create game modal not found");
     }
+}
 
+function handleCreateGame() {
     const createGameForm = document.getElementById("create-game-form");
+    const gameListElement = document.getElementById("game-list");
+
     if (createGameForm) {
         createGameForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -113,7 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    const gameListElement = document.getElementById("game-list");
     if (gameListElement) {
         gameListElement.addEventListener("click", (event) => {
             if (event.target.classList.contains("join-game")) {
@@ -122,8 +108,28 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+}
 
-    if (window.location.pathname === "/user/lobby") {
-        getGameList();
-    }
+
+function attachEventListeners() {
+
+    handleLogout();
+    handleCreateGame();
+    handleRegisterAndLoginForm();
+     // Add this line to expose the showCreateGameModal function globally
+     window.showCreateGameModal = showCreateGameModal;
+     window.closeCreateGameModal = closeCreateGameModal;
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    
+    console.log("DOMContentLoaded event fired");
+    attachEventListeners();
+   
+   
+   
 });
+
+
+

@@ -3,15 +3,7 @@ const { CustomError } = require("../../middleware/customErrorHandler");
 const PokerGame = require("./pokerGame");
 const tableModel = require("../table/tableModel");
 const gameModel = {};
-/*
-This function creates a new game by calling the tableModel.createTable 
-method with the provided parameters (tableName, maxPlayers, minBuyIn, maxBuyIn).
-It then inserts a new game record into the games table with 
-the created table_id and current start time. If successful, it 
-creates a new PokerGame instance, stores the game data in the
-games_data table, and creates a chat room associated with the game.
-Finally, it returns the gameId.
-*/
+
 gameModel.createGame = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
     return tableModel
         .createTable(tableName, maxPlayers, minBuyIn, maxBuyIn)
@@ -34,31 +26,26 @@ gameModel.createGame = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
             throw err;
         });
 };
-/*
-this function retrieves all games from the database
-This can be used so the front end can display all current games
-in the lobby
-*/
-gameModel.getAllGames = () =>{
-    const query = `SELECT * FROM games`;
-    return db.query(query).then((result)=>{
-        if (result.rowCount > 0){
-            return result.rows;
-        }
-        else{
-            throw new CustomError("There is no games",400);
-        }
-    })
-    .catch((err)=>{
-        throw new CustomError("Failed to load games from database",500);
-    });
+
+gameModel.getAllGames = () => {
+    const query = `
+        SELECT games.*, tables.table_name, tables.max_players, tables.min_buy_in, tables.max_buy_in 
+        FROM games
+        JOIN tables ON games.table_id = tables.table_id`;
+    return db.query(query)
+        .then((result) => {
+            if (result.rowCount > 0) {
+                return result.rows;
+            } else {
+                return []; // Return an empty array instead of throwing an error
+            }
+        })
+        .catch((err) => {
+            throw new CustomError("Failed to load games from database", 500);
+        });
 };
-/*
-This function stores a PokerGame instance in the games_data table. 
-It takes the gameId and the pokerGame object, serializes the game object 
-using the toJson method, and inserts the data into the table. 
-If the operation is unsuccessful, it throws a custom error.
-*/
+
+
 gameModel.storeGame = (gameId, pokerGame) => {
     const query = `INSERT INTO games_data (game_id, game_data) VALUES ($1, $2)`;
     const values = [gameId, pokerGame.toJson()];
@@ -74,12 +61,7 @@ gameModel.storeGame = (gameId, pokerGame) => {
             throw err;
         });
 };
-/*
-This function loads a PokerGame instance from the games_data 
-table by its gameId. It fetches the game data and, if found,
-deserializes it using the PokerGame.fromJson method.
-If the game data is not found, it throws a custom error.
-*/
+
 gameModel.loadGame = (gameId) => {
     const query = `SELECT game_data FROM games_data WHERE game_id = $1`;
     const values = [gameId];
@@ -98,12 +80,7 @@ gameModel.loadGame = (gameId) => {
             throw err;
         });
 };
-/*
-This function updates an existing PokerGame instance in the games_data table. 
-It takes the gameId and the pokerGame object, serializes the game object 
-using JSON.stringify, and updates the table entry.
-If the update is unsuccessful, it throws a custom error.
-*/
+
 gameModel.updateGame = (gameId, pokerGame) => {
     return new Promise((resolve, reject) => {
       const query = `UPDATE games_data SET game_data = $2 WHERE game_id = $1`;
@@ -123,11 +100,7 @@ gameModel.updateGame = (gameId, pokerGame) => {
     });
   };
   
-/*
-This function retrieves the game associated with a given tableId
-from the games table. If the game is not found, 
-it throws a custom error.
-*/
+
 gameModel.getGameByTableId = (tableId)=>{
     const query = `Select * FROM games WHERE table_id = $1`;
     const values = [tableId];
@@ -142,12 +115,7 @@ gameModel.getGameByTableId = (tableId)=>{
         throw err;
     });
 };
-/*
-This function adds players to a game. It first loads the PokerGame instance
-associated with the given gameId, then calls the addPlayers method 
-on the PokerGame instance with the playerIds parameter. 
-Finally, it updates the game data in the games_data table.
-*/
+
 gameModel.addPlayerToGame = (gameId, playerId) => {
     return gameModel
         .loadGame(gameId)
@@ -178,11 +146,7 @@ gameModel.isPlayerInGame = (playerId, gameId) => {
     });
 };
 
-/*
-This function removes a player from a game. It first loads the PokerGame instance 
-associated with the given gameId, then calls the removePlayer method on the PokerGame 
-instance with the playerId parameter. Finally, it updates the game data in the games_data table.
-*/
+
 gameModel.removePlayerFromGame = (gameId, playerId) => {
     return gameModel
         .loadGame(gameId)
@@ -194,11 +158,7 @@ gameModel.removePlayerFromGame = (gameId, playerId) => {
             throw err;
         });
 };
-/*
-This function plays a round of poker for the game with the given gameId.
-It first loads the PokerGame instance, then calls the playRound method on
-the instance. Finally, it updates the game data in the games_data tab
-*/
+
 gameModel.playRound = (gameId) => {
     return gameModel
         .loadGame(gameId)

@@ -1,5 +1,5 @@
 const userModel = require('../models/users/userModel');
-
+const jwt = require('jsonwebtoken');
 const userController = {};
 
 userController.createUser = (req, res) => {
@@ -53,7 +53,6 @@ userController.logout = async (req, res, next) => {
   if (req.method === 'POST' || req.method === 'GET') {
     try {
       await userModel.clearAuthToken(req.user.sub);
-
       userModel.logout(req);
       res.status(200).json({ message: 'User logged out successfully' });
     } catch (err) {

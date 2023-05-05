@@ -21,7 +21,6 @@ router.post('/remove-player/:gameId', authenticate, gameController.removePlayerF
 // Play a round of poker
 router.post('/play-round/:gameId', authenticate, gameController.playRound);
 
-module.exports = router;
 
 
 module.exports = router;

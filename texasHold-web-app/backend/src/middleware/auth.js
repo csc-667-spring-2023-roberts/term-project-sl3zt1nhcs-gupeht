@@ -24,6 +24,7 @@ async function authMiddleware(req, res, next) {
 
     // Compare the token from the header with the stored token
     if (token !== storedToken) {
+    
       return res.status(401).json({ message: 'Invalid token' });
     }
 

@@ -59,7 +59,11 @@ export async function joinGame(gameId) {
 
 export async function getGameList() {
     const gameListElement = document.getElementById("game-list");
-    const response = await fetch("/game/list");
+
+    const token = localStorage.getItem("token");
+    const response = await fetch("/game/list", {
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    });
     const games = await response.json();
   
     if (games.length === 0) {

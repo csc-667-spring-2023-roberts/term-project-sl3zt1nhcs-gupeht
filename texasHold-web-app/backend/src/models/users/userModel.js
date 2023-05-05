@@ -183,8 +183,24 @@ userModel.storeAuthToken = (user_id, auth_token) => {
 };
 
 userModel.clearAuthToken = (user_id) => {
-    return userModel.storeAuthToken(user_id, null);
+    return new Promise((resolve, reject) => {
+        const query = `UPDATE users SET auth_token = null WHERE user_id = $1`;
+        const values = [user_id];
+
+        db.query(query, values)
+            .then((result) => {
+                if (result.rowCount > 0) {
+                    resolve();
+                } else {
+                    reject(new CustomError("No rows affected", 404));
+                }
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
 };
+
 
 userModel.getAuthTokenByUserId = (user_id) => {
     return new Promise((resolve, reject) => {

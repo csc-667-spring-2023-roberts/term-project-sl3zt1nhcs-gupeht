@@ -18,16 +18,13 @@ gameController.createGame = (req, res, next) => {
                 minBuyIn,
                 maxBuyIn,
             };
-            return gameModel.createGame(tableId);
+            return gameModel.createGame(tableName, maxPlayers, minBuyIn, maxBuyIn);
+
         })
-        .then((gameId) => {
-            result.gameId = gameId;
-        
+        .then((gameData) => {
+            result.gameData = gameData;
         })
-        .then((chatId)=>{
-            result.chatId= chatId;
-            res.status(201).json(result);
-        })
+
         .catch((err) => {
             result.error = err.message;
             res.status(err.status || 500).json(result);
@@ -100,13 +97,12 @@ removePlayerFromGame method in the gameModel. If the operation is successful,
 it sends a JSON response with the gameId and playerId; otherwise, 
 it sends an error response and calls the next middleware with the error object.
 */
-gameController.removePlayerFromGame = (req, res, next) => {
+gameController.removePlayerFromGame = (req, res) => {
     const { gameId, playerId } = req.body;
     const result = {};
     gameModel
         .removePlayerFromGame(gameId, playerId)
         .then(() => {
-        
         }).then((chat_data)=>{
             result.chat_data = chat_data;
             result.success = true;
@@ -118,7 +114,6 @@ gameController.removePlayerFromGame = (req, res, next) => {
         .catch((err) => {
             result.error = err.message;
             res.status(err.status || 500).json(result);
-            next(err);
         });
 };
 
@@ -130,7 +125,7 @@ If successful, it sends a JSON response with the table and game data;
 otherwise, it sends an error response and calls the next middleware
 with the error object.
 */
-gameController.getTable = (req, res, next) => {
+gameController.getTable = (req, res) => {
     const { tableId } = req.params;
     const result = {};
     tableModel
@@ -146,25 +141,21 @@ gameController.getTable = (req, res, next) => {
         .catch((err) => {
             result.error = err.message;
             res.status(err.status || 500).json(result);
-            next(err);
         });
 };
 
-gameController.getGameList = (req,res,next)=>{
-    const result={};
-    gameModel.getAllGames().then((games)=>{
-        if(games){
-            result.games = games;
-            res.status(200).json({games});
-        }
-        else{
-            result.message = "There is no games"
-        }
-    }).catch((err)=>{
-        result.err = err.message;
-        res.status(err.status||500).json({result});
-    });
-}
+gameController.getGameList = ( res ) => {
+    gameModel
+        .getAllGames()
+        .then((games) => {
+            res.status(200).json(games);
+        })
+        .catch((err) => {
+            res.status(err.status || 500).json({ error: err.message });
+        
+        });
+};
+
 
 
 
@@ -174,7 +165,7 @@ It takes the gameId from the request parameters and calls the loadGame method in
 If successful, it sends a JSON response with the game state;
 otherwise, it sends an error response and calls the next middleware with the error object.
 */
-gameController.getGameState = (req, res, next) => {
+gameController.getGameState = (req, res, ) => {
     const { gameId } = req.params;
     const result = {};
     gameModel
@@ -188,7 +179,6 @@ gameController.getGameState = (req, res, next) => {
         .catch((err) => {
             result.error = err.message;
             res.status(err.status || 500).json(result);
-            next(err);
         });
 };
 /*
@@ -199,7 +189,7 @@ methods in the gameModel. If successful, it sends a JSON response
 with the action details; otherwise, it sends an error response and 
 calls the next middleware with the error object.
 */
-gameController.handlePlayerAction = (req, res, next) => {
+gameController.handlePlayerAction = (req, res) => {
     const { gameId } = req.params;
     const { playerId, action, amount } = req.body;
     const result = {};
@@ -221,7 +211,6 @@ gameController.handlePlayerAction = (req, res, next) => {
         .catch((err) => {
             result.error = err.message;
             res.status(err.status || 500).json(result);
-            next(err);
         });
 };
 /*
@@ -229,7 +218,7 @@ This function handles the request for playing a round in a game.
 It takes the gameId from the request parameters and calls the loadGame 
 and updateGame methods in the gameModel. If successful, it sends a JSON response indicating that the round has been played; otherwise, it sends an error response and calls the next middleware with the error object.
 */
-gameController.playRound = (req, res, next) => {
+gameController.playRound = (req, res) => {
     const { gameId } = req.params;
     const result = {};
     gameModel
@@ -246,21 +235,26 @@ gameController.playRound = (req, res, next) => {
         .catch((err) => {
             result.error = err.message;
             res.status(err.status || 500).json(result);
-            next(err);
         });
 };
 
-gameController.joinGame = (req, res, next) => {
+gameController.joinGame = (req, res) => {
     const gameId = req.params.gameId;
     const userId = req.user.user_id;
     const buyIn = req.body.buyIn;
 
+    const result ={}
+
     gameModel.joinGame(gameId, userId, buyIn)
         .then(({ playerId, username }) => {
-            res.status(200).json({ message: "Successfully joined game", playerId: playerId, username: username });
+            result.gameId= gameId;
+            result.userId = userId;
+            result.buyIn = buyIn;
+            res.status(200).json(result)
         })
         .catch((err) => {
-            next(err);
+            result.error = err.message;
+            res.status(err.status || 500).json(result); 
         });
 };
 
