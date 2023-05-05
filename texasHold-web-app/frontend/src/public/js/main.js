@@ -43,6 +43,8 @@ export async function fetchLobby() {
       if (response.status === 200) {
         // Render the lobby HTML
         document.querySelector('body').innerHTML = lobbyHtml;
+        // Update the URL to user/lobby
+         window.history.pushState({}, '', '/user/lobby');
       } else {
         console.error('Error fetching lobby:', lobbyHtml);
       }
