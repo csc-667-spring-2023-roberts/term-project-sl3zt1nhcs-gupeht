@@ -1,6 +1,6 @@
 const express = require('express');
 const userController = require('../controllers/userController');
-const authMiddleware = require('../middleware/auth');
+const { authMiddleware, redirectToLobbyIfAuthenticated } = require('../middleware/auth');
 const router = express.Router();
 
 // User routes
@@ -18,11 +18,11 @@ router.get('/is-authenticated', authMiddleware, (req, res) => {
 
 
 // Front-end routes
-router.get('/register', (req, res) => {
+router.get('/register', redirectToLobbyIfAuthenticated,(req, res) => {
   res.render('register');
 });
 
-router.get('/login', (req,res) => {
+router.get('/login',redirectToLobbyIfAuthenticated, (req,res) => {
   res.render('login');
 });
 

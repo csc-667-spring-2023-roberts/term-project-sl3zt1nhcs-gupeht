@@ -42,4 +42,34 @@ async function authMiddleware(req, res, next) {
   }
 }
 
-module.exports = authMiddleware;
+async function redirectToLobbyIfAuthenticated(req, res, next) {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader) {
+    const token = authHeader.split(' ')[1];
+
+    if (token) {
+      try {
+        // Verify the token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Get the stored token from the database
+        const storedToken = await userModel.getAuthTokenByUserId(decoded.sub);
+
+        // Compare the token from the header with the stored token
+        if (token === storedToken) {
+          return res.redirect('/lobby');
+        }
+      } catch (error) {
+        console.error('Invalid token:', error);
+      }
+    }
+  }
+
+  next();
+}
+
+
+module.exports ={
+  authMiddleware,redirectToLobbyIfAuthenticated
+} ;

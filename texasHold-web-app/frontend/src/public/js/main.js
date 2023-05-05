@@ -4,6 +4,28 @@ import { logout } from "./logout";
 import { createGame, joinGame, getGameList } from "./game";
 
 
+async function redirectToLobbyIfAuthenticated(){
+
+  const token = localStorage.getItem('token');
+
+  if (token){
+    try{
+
+      const response = await fetch('/user/is-authenticated',{
+        headers:{
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if ( response.status === 200){
+        await fetchLobby();
+      }
+    }catch(error){
+      console.error('Error checking authentication status:',error);
+    }
+  }
+}
+
 export async function fetchLobby() {
     const token = localStorage.getItem('token');
   
@@ -125,6 +147,7 @@ function attachEventListeners() {
 document.addEventListener("DOMContentLoaded", () => {
     
     console.log("DOMContentLoaded event fired");
+    redirectToLobbyIfAuthenticated();
     attachEventListeners();
    
    
