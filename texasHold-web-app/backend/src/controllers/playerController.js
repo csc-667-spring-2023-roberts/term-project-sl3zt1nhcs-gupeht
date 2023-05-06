@@ -1,6 +1,10 @@
 const playerModel = require('../models/players/playerModel');
 const playerController = {};
 
+
+/* 
+toDo
+
 playerController.joinGame = (req, res, next) => {
   const { userId, gameId, nickname } = req.body;
   const result = {};
@@ -37,5 +41,7 @@ playerController.leaveGame = (req, res, next) => {
       next(err);
     });
 };
+
+*/
 
 module.exports = playerController;

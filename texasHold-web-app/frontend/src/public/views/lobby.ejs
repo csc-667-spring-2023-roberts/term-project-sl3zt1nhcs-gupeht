@@ -27,9 +27,9 @@
                 <label for="maxPlayers">Max Players:</label>
                 <input type="number" name="maxPlayers" min="2" max="10" required>
                 <label for="minBuyIn">Min Buy-In:</label>
-                <input type="number" name="minBuyIn" required>
+                <input type="number" name="minBuyIn" min="1" required>
                 <label for="maxBuyIn">Max Buy-In:</label>
-                <input type="number" name="maxBuyIn" required>
+                <input type="number" name="maxBuyIn" min="1" required>
                 <button id="submit-create-game">Create Game</button> <!-- Change the id here -->
             </form>
             <button id="close-create-game-modal" onclick="window.closeCreateGameModal()">Close</button>

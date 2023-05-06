@@ -18,7 +18,7 @@ async function redirectToLobbyIfAuthenticated(){
       });
 
       if ( response.status === 200){
-        await fetchLobby();
+         fetchLobby();
       }
     }catch(error){
       console.error('Error checking authentication status:',error);
@@ -42,6 +42,7 @@ export async function fetchLobby() {
     document.querySelector('body').innerHTML = lobbyHtml;
     // Update the URL to user/lobby
     window.history.pushState({}, '', '/user/lobby');
+      getGameList();
 
     if (response.status !== 200) {
       console.error('Error fetching lobby:', lobbyHtml);
@@ -50,8 +51,6 @@ export async function fetchLobby() {
     console.error('Error fetching lobby:', error);
   }
 }
-
-
 
 
   function handleRegisterAndLoginForm() {
@@ -73,9 +72,6 @@ export async function fetchLobby() {
       });
     }
   }
-  
-
-
   
 
   function handleLogout(){
@@ -120,7 +116,6 @@ function handleCreateGame() {
         createGameForm.addEventListener("submit", async (event) => {
             event.preventDefault();
             await createGame();
-            await getGameList();
       
         });
     }
@@ -153,8 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     redirectToLobbyIfAuthenticated();
     attachEventListeners();
 
-  
-   
+
 });
 
 

@@ -2,29 +2,37 @@ const gameModel = require("../models/game/gameModel");
 const tableModel = require("../models/table/tableModel");
 const gameController = {};
 
-
 gameController.createGame = (req, res, next) => {
     const result = {};
 
-    const { tableName, maxPlayers, minBuyIn, maxBuyIn } = req.body;
+    const { name, maxPlayers, minBuyIn, maxBuyIn } = req.body;
 
-    tableModel
-        .createTable(tableName, maxPlayers, minBuyIn, maxBuyIn)
-        .then((tableId) => {
-            result.tableId = tableId;
-            result.tabeData = {
-                tableName,
-                maxPlayers,
-                minBuyIn,
-                maxBuyIn,
-            };
-            return gameModel.createGame(tableName, maxPlayers, minBuyIn, maxBuyIn);
-
+    gameModel.createGame(name, maxPlayers, minBuyIn, maxBuyIn)
+        .then((game) => {
+            result.name = game.name;
+            result.id = game.game_id;
+            result.startime = game.start_time;
+            result.maxPlayers = maxPlayers;
+            result.minBuyIn = minBuyIn;
+            result.maxBuyIn = maxBuyIn;
+            res.status(200).json(result);
         })
-        .then((gameData) => {
-            result.gameData = gameData;
-        })
+        .catch((err) => {
+            result.error = err.message;
+            res.status(err.status || 500).json(result);
+            next(err);
+        });
+};
 
+
+gameController.getGameList = (req, res, next) => {
+    const result = {};
+
+    gameModel.getAllGames()
+        .then((games) => {
+            result.games = games;
+            res.status(200).json({result});
+        })
         .catch((err) => {
             result.error = err.message;
             res.status(err.status || 500).json(result);
@@ -33,14 +41,8 @@ gameController.createGame = (req, res, next) => {
 };
 
 /*
-This function handles the request for updating a game. 
-It extracts the gameId from the request parameters and 
-the pokerGame object from the request body. 
-It then calls the updateGame method in the gameModel.
-If the operation is successful, it sends a JSON response with the
-updated game data; otherwise, it sends an error response and calls 
-the next middleware with the error object.
-*/
+TODO
+
 gameController.updateGame = (req, res, next) => {
     const result = {};
     const { gameId } = req.params;
@@ -62,13 +64,9 @@ gameController.updateGame = (req, res, next) => {
         });
 };
 
-/*
-This function handles the request for adding players to a game. 
-It takes the gameId and playerIds from the request body and calls the 
-addPlayersToGame method in the gameModel. If the operation is successful,
-it sends a JSON response with the gameId and playerIds; otherwise, 
-it sends an error response and calls the next middleware with the error object.
-*/
+
+
+
 gameController.addPlayersToGame = (req, res, next) => {
     const { gameId, playerIds } = req.body;
     const result = {};
@@ -90,13 +88,8 @@ gameController.addPlayersToGame = (req, res, next) => {
             next(err);
         });
 };
-/*
-This function handles the request for removing a player from a game.
-It takes the gameId and playerId from the request body and calls the 
-removePlayerFromGame method in the gameModel. If the operation is successful, 
-it sends a JSON response with the gameId and playerId; otherwise, 
-it sends an error response and calls the next middleware with the error object.
-*/
+
+
 gameController.removePlayerFromGame = (req, res) => {
     const { gameId, playerId } = req.body;
     const result = {};
@@ -117,14 +110,7 @@ gameController.removePlayerFromGame = (req, res) => {
         });
 };
 
-/*
-This function handles the request for getting a table and its associated game.
-It takes the tableId from the request parameters and calls the getTableById
-method in the tableModel and the getGameByTableId method in the gameModel. 
-If successful, it sends a JSON response with the table and game data;
-otherwise, it sends an error response and calls the next middleware
-with the error object.
-*/
+
 gameController.getTable = (req, res) => {
     const { tableId } = req.params;
     const result = {};
@@ -144,27 +130,9 @@ gameController.getTable = (req, res) => {
         });
 };
 
-gameController.getGameList = ( res ) => {
-    gameModel
-        .getAllGames()
-        .then((games) => {
-            res.status(200).json(games);
-        })
-        .catch((err) => {
-            res.status(err.status || 500).json({ error: err.message });
-        
-        });
-};
 
 
 
-
-/*
-This function handles the request for getting the current game state.
-It takes the gameId from the request parameters and calls the loadGame method in the gameModel.
-If successful, it sends a JSON response with the game state;
-otherwise, it sends an error response and calls the next middleware with the error object.
-*/
 gameController.getGameState = (req, res, ) => {
     const { gameId } = req.params;
     const result = {};
@@ -181,14 +149,7 @@ gameController.getGameState = (req, res, ) => {
             res.status(err.status || 500).json(result);
         });
 };
-/*
-This function handles the request for handling a player's action in a game. 
-It takes the gameId from the request parameters and the playerId, action,
-and amount from the request body. It then calls the loadGame and updateGame 
-methods in the gameModel. If successful, it sends a JSON response
-with the action details; otherwise, it sends an error response and 
-calls the next middleware with the error object.
-*/
+
 gameController.handlePlayerAction = (req, res) => {
     const { gameId } = req.params;
     const { playerId, action, amount } = req.body;
@@ -213,11 +174,8 @@ gameController.handlePlayerAction = (req, res) => {
             res.status(err.status || 500).json(result);
         });
 };
-/*
-This function handles the request for playing a round in a game. 
-It takes the gameId from the request parameters and calls the loadGame 
-and updateGame methods in the gameModel. If successful, it sends a JSON response indicating that the round has been played; otherwise, it sends an error response and calls the next middleware with the error object.
-*/
+
+
 gameController.playRound = (req, res) => {
     const { gameId } = req.params;
     const result = {};
@@ -257,5 +215,6 @@ gameController.joinGame = (req, res) => {
             res.status(err.status || 500).json(result); 
         });
 };
+*/
 
 module.exports = gameController;

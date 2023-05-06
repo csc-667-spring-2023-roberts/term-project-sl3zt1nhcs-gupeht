@@ -3,15 +3,16 @@ const router = express.Router();
 const gameController = require('../controllers/gameController');
 const {authMiddleware}  = require('../middleware/auth');
 
-/*
-// Create a new game
+router.get('/list', authMiddleware,gameController.getGameList);
+
 router.post('/create', authMiddleware, gameController.createGame);
+
+/*
+Todo
 
 // Join a game
 router.post('/join/:gameId', authMiddleware, gameController.joinGame);
 
-// Get a list of all games
-router.get('/list', gameController.getGameList);
 
 // Add a player to a game
 router.post('/add-player/:gameId', authMiddleware, gameController.addPlayersToGame);

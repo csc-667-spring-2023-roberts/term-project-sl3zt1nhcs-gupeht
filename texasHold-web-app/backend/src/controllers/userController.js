@@ -31,7 +31,7 @@ userController.getUserById = (req, res) => {
     });
 };
 
-// Update the login function in userController
+
 
 userController.login = (req, res, next) => {
   const { username, password } = req.body;

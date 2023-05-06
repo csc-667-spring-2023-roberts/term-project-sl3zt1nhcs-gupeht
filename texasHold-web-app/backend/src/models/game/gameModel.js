@@ -4,41 +4,56 @@ const PokerGame = require("./pokerGame");
 const tableModel = require("../table/tableModel");
 const gameModel = {};
 
-gameModel.createGame = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
-    return tableModel
-        .createTable(tableName, maxPlayers, minBuyIn, maxBuyIn)
-        .then((tableId) => {
-            const query = `INSERT INTO games (table_id, start_time) VALUES ($1, NOW()) RETURNING game_id`;
-            const values = [tableId];
 
-            return db.query(query, values);
+gameModel.createGame =  (gameName, maxPlayers, minBuyIn, maxBuyIn) => {
+
+    const createGameQuery = `INSERT INTO games (name, start_time) VALUES ($1, NOW()) RETURNING game_id`;
+    const gameValues = [gameName];
+
+    return  db.query(createGameQuery, gameValues)
+        .then(  (gameResult) => {
+            if (gameResult.rowCount > 0) {
+                const gameId = gameResult.rows[0].game_id;
+                const createTableQuery = `INSERT INTO tables (game_id, max_players, min_buy_in, max_buy_in) VALUES ($1, $2, $3, $4)`;
+                const tableValues = [gameId, maxPlayers, minBuyIn, maxBuyIn];
+                return  tableModel.createTable(createTableQuery, tableValues)      
+             }
+             else{
+                throw new CustomError ("Failed to create game",500);
+             }
         })
-        .then((result) => {
-            if (result.rowCount > 0) {
-                const gameId = result.rows[0].game_id;
-                const pokerGame = new PokerGame(maxPlayers); // Update the constructor call
-                return Promise.all([gameModel.storeGame(gameId, pokerGame)]).then(() => gameId);
-            } else {
-                throw new CustomError("Failed to create game", 500);
+        .then(  (tableResult) => {
+            if (tableResult.rowCount > 0) {
+                const pokerGame = new PokerGame(maxPlayers); 
+                return  gameModel.storeGame(gameId, pokerGame);
+            } 
+            else {
+                throw new CustomError("Failed to create table", 500);
             }
         })
         .catch((err) => {
             throw err;
         });
-};
+    };
 
-gameModel.getAllGames = () => {
+    
+
+gameModel.getAllGames = async () => {
     const query = `
-        SELECT games.*, tables.table_name, tables.max_players, tables.min_buy_in, tables.max_buy_in 
+        SELECT games.game_id, games.name, games.start_time, tables.max_players, tables.min_buy_in, tables.max_buy_in,
+        COUNT(players.player) AS num_players
         FROM games
-        JOIN tables ON games.table_id = tables.table_id`;
-    return db.query(query)
+        JOIN tables ON games.game_id = tables.game_id
+        LEFT JOIN players ON games.game_id = tables.game_id
+        GROUP BY games.game_id, tables.max_players, tables.min_buy_in, tables.max_buy_in
+        
+        `;
+    return await db.query(query)
         .then((result) => {
-            if (result.rowCount > 0) {
-                return result.rows;
-            } else {
-                return []; // Return an empty array instead of throwing an error
+            if (result.rowCount === 0){
+                return [];
             }
+            return result.rows;
         })
         .catch((err) => {
             throw new CustomError("Failed to load games from database", 500);
@@ -46,10 +61,10 @@ gameModel.getAllGames = () => {
 };
 
 
+
 gameModel.storeGame = (gameId, pokerGame) => {
     const query = `INSERT INTO games_data (game_id, game_data) VALUES ($1, $2)`;
     const values = [gameId, pokerGame.toJson()];
-
     return db
         .query(query, values)
         .then((result) => {
@@ -61,6 +76,10 @@ gameModel.storeGame = (gameId, pokerGame) => {
             throw err;
         });
 };
+
+
+//TODO
+/*
 
 gameModel.loadGame = (gameId) => {
     const query = `SELECT game_data FROM games_data WHERE game_id = $1`;
@@ -214,6 +233,7 @@ gameModel.joinGame = (gameId, userId, buyIn) => {
             throw err;
         });
 };
+*/
 
 
 module.exports = gameModel;

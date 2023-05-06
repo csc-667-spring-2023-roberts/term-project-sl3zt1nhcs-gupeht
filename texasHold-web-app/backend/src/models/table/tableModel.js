@@ -3,15 +3,14 @@ const { CustomError } = require("../../middleware/customErrorHandler");
 
 const tableModel = {};
 
-tableModel.createTable = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
+tableModel.createTable = ( maxPlayers, minBuyIn, maxBuyIn) => {
     return new Promise((resolve, reject) => {
-        const query = `INSERT INTO tables (name, max_players, min_buy_in, max_buy_in) VALUES ($1, $2, $3, $4) RETURNING table_id`;
-        const values = [tableName, maxPlayers, minBuyIn, maxBuyIn];
-
+        const query = `INSERT INTO tables ( max_players, min_buy_in, max_buy_in) VALUES ($1, $2, $3)`;
+        const values = [ maxPlayers, minBuyIn, maxBuyIn];
         db.query(query, values)
             .then((result) => {
                 if (result.rowCount > 0) {
-                    resolve(result.rows[0].table_id);
+                    resolve();
                 } else {
                     reject(new CustomError("Failed to create table", 500));
                 }
@@ -22,6 +21,7 @@ tableModel.createTable = (tableName, maxPlayers, minBuyIn, maxBuyIn) => {
     });
 };
 
+/*
 tableModel.getTableById = (tableId) => {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM tables WHERE table_id = $1`;
@@ -40,5 +40,8 @@ tableModel.getTableById = (tableId) => {
             });
     });
 };
+
+*/
+
 
 module.exports = tableModel;

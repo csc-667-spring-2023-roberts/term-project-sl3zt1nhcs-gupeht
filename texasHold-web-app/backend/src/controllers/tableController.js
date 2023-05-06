@@ -13,6 +13,10 @@ tableController.createTable = (req, res, next) => {
     });
 };
 
+/*
+
+todo
+
 tableController.addPlayersToTable = (req, res, next) => {
   const { tableId, playerIds } = req.body;
   tableModel.addPlayersToTable(tableId, playerIds)
@@ -24,7 +28,7 @@ tableController.addPlayersToTable = (req, res, next) => {
     });
 };
 
-
+*/
 
 
 
