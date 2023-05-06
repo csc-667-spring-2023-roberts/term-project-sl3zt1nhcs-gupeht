@@ -35,7 +35,8 @@ const createTables = () => {
                     game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
                     max_players INTEGER NOT NULL,
                     min_buy_in NUMERIC(10, 2) NOT NULL,
-                    max_buy_in NUMERIC(10, 2) NOT NULL
+                    max_buy_in NUMERIC(10, 2) NOT NULL,
+                    num_players INTEGER NOT NULL DEFAULT 0
                 );
                 
                 CREATE TABLE IF NOT EXISTS users (

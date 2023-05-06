@@ -3,8 +3,9 @@ export async function createGame() {
    
     const name = document.querySelector('#create-game-form input[name="gameName"]').value;
     const maxPlayers = document.querySelector('#create-game-form input[name="maxPlayers"]').value;
-    const minBuyin = document.querySelector('#create-game-form input[name="minBuyIn"]').value;
+    const minBuyIn = document.querySelector('#create-game-form input[name="minBuyIn"]').value;
     const maxBuyIn = document.querySelector('#create-game-form input[name="maxBuyIn"]').value;
+    const messageDiv = document.getElementById("message");
 
     const token = localStorage.getItem("token");
 
@@ -12,47 +13,27 @@ export async function createGame() {
         const response = await fetch("/game/create", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ name, maxPlayers, minBuyin, maxBuyIn }),
+            body: JSON.stringify({ name, maxPlayers, minBuyIn, maxBuyIn }),
         });
 
         const responseData = await response.json();
 
         if (response.status === 200) {
+            console.log("Game created");// debugging
             messageDiv.textContent = `Game : ${name} created successfully`;
+            return true;
 
         } else if (response.status === 409) {
             messageDiv.textContent = responseData.message;
         } else {
+            console.error("Error creating a game",await response.json());
             messageDiv.textContent = "An error occurred during creating game";
+            return false;
         }
     } catch (error) {
         messageDiv.textContent = message.error;
     }
 }
-
-/*
-export async function joinGame(gameId) {
-    const token = localStorage.getItem("token");
-
-    try {
-        const response = await fetch(`/game/join/${gameId}`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        });
-
-        const responseData = await response.json();
-
-        if (response.status === 200) {
-            messageDiv.textContent = `${responseData.username} joined the game`;
-        } else {
-            messageDiv.textContent = responseData.message || "An error occurred while joining the game";
-        }
-    } catch (error) {
-        messageDiv.textContent = error.message;
-    }
-}
-*/
-
 
 export async function getGameList() {
     const gameListElement = document.getElementById("game-list");
@@ -77,7 +58,7 @@ export async function getGameList() {
         for (const game of gamesArray) {
             const gameId = game.game_id;
             const availableSpaces = game.max_players - game.num_players
-            const startTime =  new Date(game.start_time).tolocaleString();
+            const startTime = new Date(game.start_time).toLocaleString();
             const gameHtml = `
             <div class="game-item" data-game-id="${gameId}">
                 <h3>${game.name}</h3>
@@ -101,4 +82,8 @@ export async function getGameList() {
     }
 
   }
+
+
+
+  //Todo Join game
   

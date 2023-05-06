@@ -1,7 +1,7 @@
 import { register } from "./register";
 import { login } from "./login";
 import { logout } from "./logout";
-import { createGame, getGameList } from "./game";
+import { createGame, getGameList } from "./game"; // todo impot join game
 
 
 async function redirectToLobbyIfAuthenticated(){
@@ -20,12 +20,20 @@ async function redirectToLobbyIfAuthenticated(){
       if ( response.status === 200){
          fetchLobby();
       }
+
+      
+
     }catch(error){
       console.error('Error checking authentication status:',error);
     }
   }
 }
 
+/*
+when we fetch lobby we are inserting the lobbyHtml which included
+the geGamelist() , createGame() into the DOM. This ensure is already 
+called with fetch lobby
+*/
 export async function fetchLobby() {
   const token = localStorage.getItem('token');
 
@@ -42,11 +50,15 @@ export async function fetchLobby() {
     document.querySelector('body').innerHTML = lobbyHtml;
     // Update the URL to user/lobby
     window.history.pushState({}, '', '/user/lobby');
+
       getGameList();
 
     if (response.status !== 200) {
       console.error('Error fetching lobby:', lobbyHtml);
     }
+    
+    handleCreateGame();
+
   } catch (error) {
     console.error('Error fetching lobby:', error);
   }
@@ -112,12 +124,22 @@ export function closeCreateGameModal() {
 }
 
 function handleCreateGame() {
+  
     const createGameForm = document.getElementById("create-game-form");
    
     if (createGameForm) {
+      
         createGameForm.addEventListener("submit", async (event) => {
-            event.preventDefault();
-            await createGame();
+          event.preventDefault();
+            const created = await createGame();
+            // it will return true of false
+            // if returns true it will clsoeCreateGameModal and update the game lise
+            if (created){
+              closeCreateGameModal();
+              setTimeout(()=>{
+                getGameList();
+              },1000)
+            }
       
         });
     }
@@ -125,19 +147,7 @@ function handleCreateGame() {
  
 }
 
-function handleJoinGame(){
-  const gameListElement = document.getElementById("game-list");
-  if (gameListElement) {
-    gameListElement.addEventListener("click", (event) => {
-        if (event.target.classList.contains("join-game")) {
-            const gameId = event.target.parentElement.dataset.gameId;
-            joinGame(gameId);
-        }
-    });
-}
-
-
-}
+// todo handle JoinGame
 
 
 function attachEventListeners() {
@@ -147,8 +157,7 @@ function attachEventListeners() {
     handleLogout();
     window.showCreateGameModal = showCreateGameModal;// expose the showCreateGameModal function globally
     window.closeCreateGameModal = closeCreateGameModal;//expose the showCreateGameModal function globally
-    handleCreateGame();
-    handleJoinGame();
+    //handleJoinGame();
     
 }
 
@@ -158,8 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired");
     redirectToLobbyIfAuthenticated();
     attachEventListeners();
-
-
 });
 
 

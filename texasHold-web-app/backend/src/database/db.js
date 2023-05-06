@@ -1,6 +1,6 @@
 const {Pool} = require('pg');
-const config = require(`../config/${process.env.NODE_ENV || 'development'}`);
-const pool = new Pool(config.database);
+const dbConfig = require('../config/development');
+const pool = new Pool(dbConfig.database);
 
 const db = {
     query: (text,params) =>{

@@ -15,17 +15,9 @@ tableController.createTable = (req, res, next) => {
 
 /*
 
-todo
+todo can join table to check for    return num_players < max_players;
 
-tableController.addPlayersToTable = (req, res, next) => {
-  const { tableId, playerIds } = req.body;
-  tableModel.addPlayersToTable(tableId, playerIds)
-    .then(() => {
-      res.status(200).json({ success: true });
-    })
-    .catch((err) => {
-      next(err);
-    });
+
 };
 
 */
