@@ -27,31 +27,30 @@ async function redirectToLobbyIfAuthenticated(){
 }
 
 export async function fetchLobby() {
-    const token = localStorage.getItem('token');
-  
+  const token = localStorage.getItem('token');
 
-    try {
-      const response = await fetch('/user/lobby', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-  
-      const lobbyHtml = await response.text();
-     
-  
-      if (response.status === 200) {
-        // Render the lobby HTML
-        document.querySelector('body').innerHTML = lobbyHtml;
-        // Update the URL to user/lobby
-         window.history.pushState({}, '', '/user/lobby');
-      } else {
-        console.error('Error fetching lobby:', lobbyHtml);
-      }
-    } catch (error) {
-      console.error('Error fetching lobby:', error);
+  try {
+    const response = await fetch('/user/lobby', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    const lobbyHtml = await response.text();
+   
+    // Always update the lobby HTML
+    document.querySelector('body').innerHTML = lobbyHtml;
+    // Update the URL to user/lobby
+    window.history.pushState({}, '', '/user/lobby');
+
+    if (response.status !== 200) {
+      console.error('Error fetching lobby:', lobbyHtml);
     }
+  } catch (error) {
+    console.error('Error fetching lobby:', error);
   }
+}
+
 
 
 
@@ -121,6 +120,8 @@ function handleCreateGame() {
         createGameForm.addEventListener("submit", async (event) => {
             event.preventDefault();
             await createGame();
+            await getGameList();
+      
         });
     }
 
@@ -151,8 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired");
     redirectToLobbyIfAuthenticated();
     attachEventListeners();
-   
-   
+
+  
    
 });
 
