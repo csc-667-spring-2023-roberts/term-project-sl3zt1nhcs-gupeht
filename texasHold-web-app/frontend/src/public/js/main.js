@@ -1,7 +1,7 @@
 import { register } from "./register";
 import { login } from "./login";
 import { logout } from "./logout";
-import { createGame, joinGame, getGameList } from "./game";
+import { createGame, getGameList } from "./game";
 
 
 async function redirectToLobbyIfAuthenticated(){
@@ -53,18 +53,21 @@ export async function fetchLobby() {
 }
 
 
-  function handleRegisterAndLoginForm() {
-    const registerForm = document.getElementById("register-form");
+function handleRegistrationForm(){
+  const registerForm = document.getElementById("register-form");
+
+  if (registerForm) {
+    registerForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      register(event);
+    });
+  }
+}
+
+  function handleLoginForm() {
+   
     const loginForm = document.getElementById("login-form");
    
-  
-    if (registerForm) {
-      registerForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        register(event);
-      });
-    }
-  
     if (loginForm) {
       loginForm.addEventListener("submit", (event) => {
         event.preventDefault();
@@ -110,8 +113,7 @@ export function closeCreateGameModal() {
 
 function handleCreateGame() {
     const createGameForm = document.getElementById("create-game-form");
-    const gameListElement = document.getElementById("game-list");
-
+   
     if (createGameForm) {
         createGameForm.addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -120,25 +122,34 @@ function handleCreateGame() {
         });
     }
 
-    if (gameListElement) {
-        gameListElement.addEventListener("click", (event) => {
-            if (event.target.classList.contains("join-game")) {
-                const gameId = event.target.parentElement.dataset.gameId;
-                joinGame(gameId);
-            }
-        });
-    }
+ 
+}
+
+function handleJoinGame(){
+  const gameListElement = document.getElementById("game-list");
+  if (gameListElement) {
+    gameListElement.addEventListener("click", (event) => {
+        if (event.target.classList.contains("join-game")) {
+            const gameId = event.target.parentElement.dataset.gameId;
+            joinGame(gameId);
+        }
+    });
+}
+
+
 }
 
 
 function attachEventListeners() {
 
+    handleRegistrationForm();
+    handleLoginForm();
     handleLogout();
+    window.showCreateGameModal = showCreateGameModal;// expose the showCreateGameModal function globally
+    window.closeCreateGameModal = closeCreateGameModal;//expose the showCreateGameModal function globally
     handleCreateGame();
-    handleRegisterAndLoginForm();
-     // Add this line to expose the showCreateGameModal function globally
-     window.showCreateGameModal = showCreateGameModal;
-     window.closeCreateGameModal = closeCreateGameModal;
+    handleJoinGame();
+    
 }
 
 

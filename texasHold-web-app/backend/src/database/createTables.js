@@ -54,12 +54,6 @@ const createTables = () => {
                     cash_out NUMERIC(10, 2) NOT NULL,
                     UNIQUE (user_id, game_id)
                 );
-                
-            
-            
-            
-            
-            
             
             `
             );

@@ -2,7 +2,7 @@ const gameModel = require("../models/game/gameModel");
 const tableModel = require("../models/table/tableModel");
 const gameController = {};
 
-gameController.createGame = (req, res, next) => {
+gameController.createGame = (req, res) => {
     const result = {};
 
     const { name, maxPlayers, minBuyIn, maxBuyIn } = req.body;
@@ -19,13 +19,12 @@ gameController.createGame = (req, res, next) => {
         })
         .catch((err) => {
             result.error = err.message;
-            res.status(err.status || 500).json(result);
-            next(err);
+            res.status(500).json(result);
         });
 };
 
 
-gameController.getGameList = (req, res, next) => {
+gameController.getGameList = (req, res) => {
     const result = {};
 
     gameModel.getAllGames()
@@ -35,8 +34,8 @@ gameController.getGameList = (req, res, next) => {
         })
         .catch((err) => {
             result.error = err.message;
-            res.status(err.status || 500).json(result);
-            next(err);
+            res.status(500).json(result);
+        
         });
 };
 

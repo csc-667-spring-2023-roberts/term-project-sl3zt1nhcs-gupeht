@@ -18,18 +18,13 @@ gameModel.createGame =  (gameName, maxPlayers, minBuyIn, maxBuyIn) => {
                 const tableValues = [gameId, maxPlayers, minBuyIn, maxBuyIn];
                 return  tableModel.createTable(createTableQuery, tableValues)      
              }
-             else{
-                throw new CustomError ("Failed to create game",500);
-             }
         })
         .then(  (tableResult) => {
             if (tableResult.rowCount > 0) {
                 const pokerGame = new PokerGame(maxPlayers); 
                 return  gameModel.storeGame(gameId, pokerGame);
             } 
-            else {
-                throw new CustomError("Failed to create table", 500);
-            }
+         
         })
         .catch((err) => {
             throw err;
@@ -41,7 +36,7 @@ gameModel.createGame =  (gameName, maxPlayers, minBuyIn, maxBuyIn) => {
 gameModel.getAllGames = async () => {
     const query = `
         SELECT games.game_id, games.name, games.start_time, tables.max_players, tables.min_buy_in, tables.max_buy_in,
-        COUNT(players.player) AS num_players
+        COUNT(players.player_id) AS num_players
         FROM games
         JOIN tables ON games.game_id = tables.game_id
         LEFT JOIN players ON games.game_id = tables.game_id
@@ -56,7 +51,7 @@ gameModel.getAllGames = async () => {
             return result.rows;
         })
         .catch((err) => {
-            throw new CustomError("Failed to load games from database", 500);
+            throw err;
         });
 };
 

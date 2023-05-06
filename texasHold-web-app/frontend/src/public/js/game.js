@@ -12,7 +12,7 @@ export async function createGame() {
         const response = await fetch("/game/create", {
             method: "POST",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify({ name,maxPlayers, minBuyin, maxBuyIn }),
+            body: JSON.stringify({ name, maxPlayers, minBuyin, maxBuyIn }),
         });
 
         const responseData = await response.json();
@@ -59,6 +59,7 @@ export async function getGameList() {
   
     const token = localStorage.getItem("token");
     const response = await fetch("/game/list", {
+
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     });
 
