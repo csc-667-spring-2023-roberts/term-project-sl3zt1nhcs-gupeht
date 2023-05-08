@@ -7,10 +7,9 @@ router.get('/list', authMiddleware,gameController.getGameList);
 
 router.post('/create', authMiddleware, gameController.createGame);
 
-/*
-Todo  join game router
+router.post("/join", authenticateToken, gameController.joinGame); 
 
+router.get("/game/:gameId", authenticateToken, gameController.getGamePage);
 
-*/
 
 module.exports = router;

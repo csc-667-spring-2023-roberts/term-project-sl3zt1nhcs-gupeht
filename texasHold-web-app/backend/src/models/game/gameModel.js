@@ -66,10 +66,31 @@ gameModel.storeGame = (gameId, pokerGame) => {
         });
 };
 
-/*
-TODO  join game
 
-*/
+gameModel.getGameData = (gameId)=>{
 
+    const query = `SELECT game_data FROM games_data WHERE game_id =$1`;
+
+    return db.query(query,[gameId]).then((result)=>{
+        if ( result.rowCount ===0){
+            throw new CustomError("Game not found",404);
+        }
+        const pokerGame = PokerGame.fromJson(result.rows[0].game_data);
+
+        return {
+            gameId:gameId,
+            maxPlayers: pokerGame.maxPlayers,
+            players: pokerGame.players,
+            activePlayerIndex:pokerGame.activePlayerIndex,
+            communityCards: pokerGame.communityCards,
+            pot: pokerGame.pot,
+            currentBet: pokerGame.currentBet,
+            gameState:pokerGame.gameState,
+
+        };
+    }).catch((err)=>{
+        throw err;
+    })
+}
 
 module.exports = gameModel;

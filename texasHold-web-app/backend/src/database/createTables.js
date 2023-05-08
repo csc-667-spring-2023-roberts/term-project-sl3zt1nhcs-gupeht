@@ -51,9 +51,15 @@ const createTables = () => {
                     player_id SERIAL PRIMARY KEY,
                     user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
                     game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
-                    buy_in NUMERIC(10, 2) NOT NULL,
-                    cash_out NUMERIC(10, 2) NOT NULL,
                     UNIQUE (user_id, game_id)
+                );
+
+                CREATE TABLE IF NOT EXISTS players_game_save (
+                    id SERIAL PRIMARY KEY,
+                    player_id INTEGER NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
+                    game_id INTEGER NOT NULL REFERENCES games(game_id) ON DELETE CASCADE,
+                    metadata JSON NOT NULL,
+                    UNIQUE (player_id, game_id)
                 );
             
             `

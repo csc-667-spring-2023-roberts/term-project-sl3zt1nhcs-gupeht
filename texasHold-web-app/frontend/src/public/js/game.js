@@ -83,7 +83,41 @@ export async function getGameList() {
 
   }
 
-
-
-  //Todo Join game
+  function redirectToGamePage(gameId) {
+    window.location.href = `/game/${gameId}`;
+  }
   
+  export async function handleJoinGame(gameId) {
+    const token = localStorage.getItem("token");
+    const messageDiv = document.getElementById("message");
+    
+    try {
+        const response = await fetch("/game/join", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ gameId }),
+        });
+
+        const responseData = await response.json();
+
+        if (response.status === 200) {
+            console.log("Game joined");
+            messageDiv.textContent = `Joining game.....`
+            //redirects user to the game page
+
+            setTimeout(()=>{
+                redirectToGamePage(gameId); 
+            },1000)
+          
+        } else {
+            console.error("Error joining game:", responseData);
+        }
+    } catch (error) {
+        console.error("Error joining game:", error);
+    }
+}
+
+
+
+
+

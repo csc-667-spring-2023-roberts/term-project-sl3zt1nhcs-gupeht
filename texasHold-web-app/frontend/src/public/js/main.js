@@ -1,7 +1,7 @@
 import { register } from "./register";
 import { login } from "./login";
 import { logout } from "./logout";
-import { createGame, getGameList } from "./game"; // todo impot join game
+import { createGame, getGameList,handleJoinGame } from "./game"; // todo impot join game
 
 
 async function redirectToLobbyIfAuthenticated(){
@@ -52,6 +52,7 @@ export async function fetchLobby() {
     window.history.pushState({}, '', '/user/lobby');
 
       getGameList();
+      handleJoinGameClick();
 
     if (response.status !== 200) {
       console.error('Error fetching lobby:', lobbyHtml);
@@ -147,7 +148,18 @@ function handleCreateGame() {
  
 }
 
-// todo handle JoinGame
+
+function handleJoinGameClick() {
+  document.addEventListener("click", (event) => {
+      if (event.target && event.target.classList.contains("join-game")) {
+          event.preventDefault();
+          const gameId = event.target.closest(".game-item").getAttribute("data-game-id");
+          handleJoinGame(gameId);
+      }
+  });
+}
+
+
 
 
 function attachEventListeners() {
@@ -157,7 +169,7 @@ function attachEventListeners() {
     handleLogout();
     window.showCreateGameModal = showCreateGameModal;// expose the showCreateGameModal function globally
     window.closeCreateGameModal = closeCreateGameModal;//expose the showCreateGameModal function globally
-    //handleJoinGame();
+   
     
 }
 

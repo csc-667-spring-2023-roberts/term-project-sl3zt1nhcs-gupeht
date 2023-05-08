@@ -1,12 +1,7 @@
 const pokerLogic = require("./pokerLogic");
 
 class PokerGame {
-    /*
-     Initializes a new PokerGame object with the specified number of players, 
-     a deck of cards, community cards, pot,
-     currentPlayer, small blind,
-     and big blind values.
-    */
+   
     constructor(numPlayers) {
         this.players = this.createPlayers(numPlayers);
         this.deck = pokerLogic.createDeck();
@@ -16,61 +11,68 @@ class PokerGame {
         this.smallBlind = 1;
         this.bigBlind = 2;
     }
-    /*
-    Creates an array of players with specified number of players, 
-    each having an id, name, chips, currentBet, status, 
-    and hand properties.
-    */
-    createPlayers(numPlayers) {
-        const players = [];
+   
 
-        for (let i = 0; i < numPlayers; i++) {
+    createEmptySeats(numPlayers){
+
+        const players =[];
+
+        for ( let i = 0; i < numPlayers; i++){
+
             players.push({
-                id: i,
-                name: `Player ${i + 1}`,
-                chips: 100,
-                currentBet: 0,
-                status: "active",
-                hand: [],
+                id:null,
+                name: null,
+                chips:0,
+                currentBet:0,
+                status:"empty",
+                hand:[],
             });
         }
 
         return players;
     }
 
-    /*
-    Adds players to the game based on an array of playerIds.
-    */
-    addPlayers(playerIds) {
-        playerIds.forEach((playerId) => {
-            this.players.push({
-                id: playerId,
-                name: `Player ${playerId + 1}`,
-                chips: 100,
-                currentBet: 0,
-                status: "active",
-                hand: [],
-            });
-        });
+
+    assignEmptySeat ( user_id, username){
+
+        const emptySeat = this.players.find((player)=> player.status==="empty");
+
+        if ( emptySeat){
+            emptySeat.id = user_id;
+            emptySeat.name = username;
+            emptySeat.status ="active";
+            emptySeat.chips = 100;
+        }
+        return emptySeat;
     }
 
-    /*
-    Removes a player with the specified playerId from the game.
-    */
-    removePlayer(playerId) {
-        const index = this.players.findIndex((player) => player.id === playerId);
-        if (index !== -1) {
-            this.players.splice(index, 1);
+    assignPlayerToEmptySeat(user_id, username) {
+        const emptySeat = this.players.find((player) => player.status === "empty");
+    
+        if (emptySeat) {
+            emptySeat.id = user_id;
+            emptySeat.name = username;
+            emptySeat.chips = 100;
+            emptySeat.status = "active";
+        }
+    
+        return emptySeat;
+    }
+ 
+    removePlayer(user_id) {
+        const playerIndex = this.players.findIndex((player) => player.id === user_id);
+        if (playerIndex !== -1) {
+            this.players[playerIndex] = {
+                id: null,
+                name: null,
+                chips: 0,
+                currentBet: 0,
+                status: "empty",
+                hand: [],
+            };
         }
     }
-
-    /*
-    Handles one complete round of poker. It shuffles and deals the cards, 
-    handles blind bets, betting rounds, deals community cards, 
-    evaluates hands, determines the winner, distributes the pot, 
-    removes broke players, rotates the dealer, and resets the game state 
-    for the next round.
-    */
+   
     playRound() {
         this.deck = pokerLogic.shuffleDeck(this.deck);
         pokerLogic.dealCards(this.players, this.deck);
@@ -101,10 +103,7 @@ class PokerGame {
         this.resetGameState();
     }
 
-    /*
-    Deducts small blind and big blind bets from the respective players' chips 
-    and updates their current bets.
-    */
+ 
     handleBlindBets() {
         const smallBlindPlayer = this.getNextActivePlayer(this.currentPlayer);
         const bigBlindPlayer = this.getNextActivePlayer(smallBlindPlayer);
@@ -118,10 +117,7 @@ class PokerGame {
         this.currentPlayer = this.getNextActivePlayer(bigBlindPlayer);
     }
 
-    /*
-    Returns the next active player in the game, 
-    starting from the given currentPlayer.
-    */
+    
     getNextActivePlayer(currentPlayer) {
         const startIndex = this.players.indexOf(currentPlayer);
         let index = startIndex;
@@ -131,11 +127,7 @@ class PokerGame {
         return this.players[index];
     }
 
-    /*
-   Handles a player's action (fold, call, raise, check, or all-in) 
-   based on their playerId,
-   action type, and amount (if applicable).
-   */
+   
     handlePlayerAction(playerId, action, amount) {
         const player = this.players.find((p) => p.id === playerId);
 
@@ -173,34 +165,23 @@ class PokerGame {
         }
     }
 
-    /*
-    Handles a betting round with the specified minimum bet, updates the pot value, 
-    and rotates the currentPlayer to the next active player.
-    */
+   
     handleBettingRound(minBet = 1) {
         pokerLogic.handleBettingRound(this.players, this.currentPlayer, minBet);
 
         this.pot = this.players.reduce((acc, player) => acc + player.currentBet, 0);
     }
 
-    /*
-    Removes players with zero chips from the game.
-    */
     removeBrokePlayers() {
         this.players = this.players.filter((player) => player.chips > 0);
     }
 
-    /*
-    Rotates the dealer by setting the currentPlayer to the next active player.
-    */
+    
     rotateDealer() {
         this.currentPlayer = this.getNextActivePlayer(this.currentPlayer);
     }
 
-    /*
-    Distributes the pot among the winner(s) by dividing the pot equally 
-    and giving any remaining chips due to rounding.
-    */
+   
     distributePot(winners) {
         const totalPot = this.pot;
         const potShare = Math.floor(totalPot / winners.length);
@@ -218,10 +199,7 @@ class PokerGame {
         }
     }
 
-    /*
-    Resets the game state for the next round by resetting the current bets, 
-    hands, statuses, deck, community cards, and pot.
-    */
+   
     resetGameState() {
         this.players.forEach((player) => {
             player.currentBet = 0;
@@ -234,10 +212,7 @@ class PokerGame {
         this.pot = 0;
     }
 
-    /*
-    Returns the current game state as an object with players, 
-    communityCards, pot, and currentPlayer properties.
-    */
+   
     getState() {
         return {
             players: this.players,
@@ -247,14 +222,6 @@ class PokerGame {
         };
     }
 
-    /*
-    the toJson() and fromJson() methods allow for serialization and deserialization 
-    of the game state, making it possible to store or load game state data
-     as needed.
-    */
-    /*
-    Converts the PokerGame object into a JSON string representation.
-    */
     toJson() {
         return JSON.stringify({
             players: this.players,
@@ -265,9 +232,7 @@ class PokerGame {
         });
     }
 
-    /*
-    Creates a new PokerGame object from the given JSON string.
-    */
+   
     static fromJson(json) {
         const data = JSON.parse(json);
         const pokerGame = new PokerGame(data.players.length);
