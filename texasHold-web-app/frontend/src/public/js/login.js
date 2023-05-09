@@ -1,4 +1,5 @@
 import { fetchLobby } from "./main";
+import io from 'socket.io-client';
 
 export async function login(event) {
   const username = document.querySelector('#login-form input[name="username"]').value;
@@ -16,9 +17,21 @@ export async function login(event) {
 
     const responseData = await response.json();
 
+   
+
     if (response.status === 200) {
+
+      console.log(responseData);
+
+      const userName = responseData.user.username;
       // Store the JWT token in the localStorage or sessionStorage
       localStorage.setItem('token', responseData.token);
+      localStorage.setItem('user',userName);
+
+      const socket = io();
+
+      socket.emit('user connected', { userName: userName });
+
 
       messageDiv.textContent = 'User logged in successfully';
       

@@ -1,7 +1,22 @@
 import { register } from "./register";
 import { login } from "./login";
 import { logout } from "./logout";
-import { createGame, getGameList,handleJoinGame } from "./game"; // todo impot join game
+
+import io from "socket.io-client";
+
+const socket = io();
+
+
+
+// Listen for chat messages
+socket.on('chat message', function(msg){
+  // Append the message to the chat box
+  const chatBox = document.getElementById('chat-box');
+  if (chatBox) {
+    chatBox.innerHTML += '<p>' + msg + '</p>';
+  }
+});
+
 
 
 async function redirectToLobbyIfAuthenticated(){
@@ -21,7 +36,14 @@ async function redirectToLobbyIfAuthenticated(){
          fetchLobby();
       }
 
+      document.addEventListener("DOMContentLoaded", () => {
+ 
+        socket.emit('join', { username: 'TestUser' }); // Replace 'TestUser' with your logged in user's name
+       
+      });
       
+
+          
 
     }catch(error){
       console.error('Error checking authentication status:',error);
@@ -29,11 +51,7 @@ async function redirectToLobbyIfAuthenticated(){
   }
 }
 
-/*
-when we fetch lobby we are inserting the lobbyHtml which included
-the geGamelist() , createGame() into the DOM. This ensure is already 
-called with fetch lobby
-*/
+
 export async function fetchLobby() {
   const token = localStorage.getItem('token');
 
@@ -51,19 +69,20 @@ export async function fetchLobby() {
     // Update the URL to user/lobby
     window.history.pushState({}, '', '/user/lobby');
 
-      getGameList();
-      handleJoinGameClick();
+     
 
     if (response.status !== 200) {
       console.error('Error fetching lobby:', lobbyHtml);
     }
     
-    handleCreateGame();
+   
 
   } catch (error) {
     console.error('Error fetching lobby:', error);
   }
 }
+
+
 
 
 function handleRegistrationForm(){
@@ -102,62 +121,20 @@ function handleRegistrationForm(){
   }
   
 
-export function showCreateGameModal() {
-    const createGameModal = document.getElementById("create-game-modal");
+  function chatForm(){
 
-    if (createGameModal) {
-        createGameModal.removeAttribute("hidden");
-        console.log("Show create game modal button clicked");
-    } else {
-        console.error("Open Create game modal not found");
+    const chatForm = document.getElementById('chat-form');
+    if (chatForm) {
+      chatForm.addEventListener('submit', function(e){
+        e.preventDefault();
+        const input = e.target.querySelector('input');
+        socket.emit('chat message', input.value);
+        input.value = '';
+      });
     }
-}
-
-export function closeCreateGameModal() {
-    const createGameModal = document.getElementById("create-game-modal");
-
-    if (createGameModal) {
-        createGameModal.setAttribute("hidden", "true");
-        console.log("close create game modal button clicked");
-    } else {
-        console.error("Close create game modal not found");
-    }
-}
-
-function handleCreateGame() {
-  
-    const createGameForm = document.getElementById("create-game-form");
-   
-    if (createGameForm) {
-      
-        createGameForm.addEventListener("submit", async (event) => {
-          event.preventDefault();
-            const created = await createGame();
-            // it will return true of false
-            // if returns true it will clsoeCreateGameModal and update the game lise
-            if (created){
-              closeCreateGameModal();
-              setTimeout(()=>{
-                getGameList();
-              },1000)
-            }
-      
-        });
-    }
+  }
 
  
-}
-
-
-function handleJoinGameClick() {
-  document.addEventListener("click", (event) => {
-      if (event.target && event.target.classList.contains("join-game")) {
-          event.preventDefault();
-          const gameId = event.target.closest(".game-item").getAttribute("data-game-id");
-          handleJoinGame(gameId);
-      }
-  });
-}
 
 
 
@@ -167,11 +144,9 @@ function attachEventListeners() {
     handleRegistrationForm();
     handleLoginForm();
     handleLogout();
-    window.showCreateGameModal = showCreateGameModal;// expose the showCreateGameModal function globally
-    window.closeCreateGameModal = closeCreateGameModal;//expose the showCreateGameModal function globally
-   
-    
+    chatForm();
 }
+
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -180,6 +155,8 @@ document.addEventListener("DOMContentLoaded", () => {
     redirectToLobbyIfAuthenticated();
     attachEventListeners();
 });
+
+
 
 
 

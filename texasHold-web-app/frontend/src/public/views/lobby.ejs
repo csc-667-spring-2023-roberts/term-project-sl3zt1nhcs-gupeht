@@ -12,29 +12,16 @@
         <%- include('partials/navbar', { user: user }) %>
         <h1>Welcome to the Game Lobby</h1>
         <p>Hi <%= user.username %>, this is the game lobby!</p>
-
-        <h2>Available Games</h2>
-        <div id="game-list"></div>
-    </div>
-    <div id="message" class="message"></div>
-    <!-- Create Game Modal -->
-    <div id="create-game-modal" class="game-modal" hidden>
-        <div class="modal-content">
-           
-            <form id="create-game-form">
-                <label for ="gameName">Game Name</label>
-                <input type="text" name="gameName" minlength="4" maxlength="20" required>
-                <label for="maxPlayers">Max Players:</label>
-                <input type="number" name="maxPlayers" min="2" max="10" required>
-                <label for="minBuyIn">Min Buy-In:</label>
-                <input type="number" name="minBuyIn" min="1" required>
-                <label for="maxBuyIn">Max Buy-In:</label>
-                <input type="number" name="maxBuyIn" min="1" required>
-                <button id="submit-create-game">Create Game</button> <!-- Change the id here -->
+        <div id="chat">
+            <div id="messages">
+            </div>
+            <form id="message-form">
+                <input id="message-input" type="text" placeholder="Type a message" />
+                <button type="submit">Send</button>
             </form>
-            <button id="close-create-game-modal" onclick="window.closeCreateGameModal()">Close</button>
         </div>
-    </div>
+    <div id="message" class="message"></div>
+
     <script defer src="/frontend/src/public/dist/bundle.js"></script>
 
 </body>
