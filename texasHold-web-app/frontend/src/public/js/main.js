@@ -2,13 +2,15 @@ import { register } from "./register";
 import { login } from "./login";
 import { logout } from "./logout";
 
+
+// Import socket.io-client
 import io from "socket.io-client";
 
+
+// Connect to the server
 const socket = io();
 
 
-
-// Listen for chat messages
 socket.on('chat message', function(msg){
   // Append the message to the chat box
   const chatBox = document.getElementById('chat-box');
@@ -16,6 +18,22 @@ socket.on('chat message', function(msg){
     chatBox.innerHTML += '<p>' + msg + '</p>';
   }
 });
+
+
+function chatEvent(){
+
+  const chatForm = document.getElementById('chat-form');
+  if (chatForm) {
+    chatForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      const input = e.target.querySelector('input');
+      socket.emit('chat message', input.value);
+      input.value = '';
+    });
+  }
+}
+
+
 
 
 
@@ -34,6 +52,8 @@ async function redirectToLobbyIfAuthenticated(){
 
       if ( response.status === 200){
          fetchLobby();
+
+         chatEvent();
       }
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -121,30 +141,11 @@ function handleRegistrationForm(){
   }
   
 
-  function chatForm(){
-
-    const chatForm = document.getElementById('chat-form');
-    if (chatForm) {
-      chatForm.addEventListener('submit', function(e){
-        e.preventDefault();
-        const input = e.target.querySelector('input');
-        socket.emit('chat message', input.value);
-        input.value = '';
-      });
-    }
-  }
-
- 
-
-
-
-
 function attachEventListeners() {
 
     handleRegistrationForm();
     handleLoginForm();
     handleLogout();
-    chatForm();
 }
 
 

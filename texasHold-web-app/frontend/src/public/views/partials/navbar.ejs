@@ -1,7 +1,6 @@
 <nav>
   <% if (user) { %>
-    <span>Welcome <%= user.username %>!</span>
+    <span>Welcome <%= user.username %>! to game lobby</span>
     <a href="/" id="logout">Logout</a>
-    <a  id="show-create-game-btn" onclick="window.showCreateGameModal()">Create Game</a>
   <% } %>
 </nav>
