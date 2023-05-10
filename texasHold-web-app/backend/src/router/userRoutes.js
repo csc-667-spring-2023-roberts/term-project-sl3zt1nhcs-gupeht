@@ -3,6 +3,7 @@ const userController = require('../controllers/userController');
 const { authMiddleware, redirectToLobbyIfAuthenticated } = require('../middleware/auth');
 const router = express.Router();
 
+
 // User routes
 router.post('/register', userController.createUser);
 router.post('/login', userController.login);
@@ -17,7 +18,12 @@ router.get('/is-authenticated', authMiddleware, (req, res) => {
 
 
 
-// Front-end routes
+router.get('/lobby', authMiddleware, ( req, res) => {
+
+  // Render lobby view
+  res.render('lobby', { user:res.locals.user });
+});
+
 router.get('/register', redirectToLobbyIfAuthenticated,(req, res) => {
   res.render('register');
 });
@@ -26,8 +32,6 @@ router.get('/login',redirectToLobbyIfAuthenticated, (req,res) => {
   res.render('login');
 });
 
-router.get('/lobby', authMiddleware, ( req, res) => {
-  res.render('lobby', { user:res.locals.user });
-});
+
 
 module.exports = router;

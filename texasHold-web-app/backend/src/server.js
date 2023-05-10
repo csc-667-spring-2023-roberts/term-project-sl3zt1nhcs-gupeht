@@ -6,11 +6,43 @@ const bodyParser = require("body-parser");
 const http = require("http");
 const { sessionMiddleware, cookieMiddleware } = require("./middleware/sessionMiddleWare");
 const userRoutes = require("./router/userRoutes");
-const gameRoutes = require("./router/gamesRoutes");
 const root = require("./router/root");
 const { customErrorHandler } = require("./middleware/customErrorHandler");
 const app = express();
 const server = http.createServer(app);
+
+
+
+
+
+
+const io = require('socket.io')(server, {
+  cors: {
+    origin: "*", // replace * with your frontend domain in production
+    methods: ["GET", "POST"]
+  }
+});
+
+
+io.on("connection", (socket) => {
+  console.log("New client connected");
+  
+  socket.on('join_lobby', (data) => {
+    socket.join('lobby'); // assuming 'lobby' is the room for your lobby
+    console.log(`User ${data.userId} joined the lobby`);
+  });
+
+  socket.on("send_message", (data) => {
+    io.to('lobby').emit("receive_message", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("Client disconnected");
+  });
+});
+
+
+
 
 
 // view engine setup
@@ -33,7 +65,7 @@ app.use(cookieMiddleware);
 
 app.use("/", root);
 app.use("/user", userRoutes);
-app.use("/game", gameRoutes);
+
 
 // Move customErrorHandler here, after the routes
 app.use(customErrorHandler);

@@ -1,5 +1,5 @@
 import { fetchLobby } from "./main";
-import io from 'socket.io-client';
+
 
 export async function login(event) {
   const username = document.querySelector('#login-form input[name="username"]').value;
@@ -23,16 +23,12 @@ export async function login(event) {
 
       console.log(responseData);
 
-      const userName = responseData.user.username;
+      const userId = responseData.user.user_id;
       // Store the JWT token in the localStorage or sessionStorage
       localStorage.setItem('token', responseData.token);
-      localStorage.setItem('user',userName);
+      localStorage.setItem('user_id',userId);
 
-      const socket = io();
-
-      socket.emit('user connected', { userName: userName });
-
-
+    
       messageDiv.textContent = 'User logged in successfully';
       
       setTimeout(()=>{
@@ -47,4 +43,3 @@ export async function login(event) {
     messageDiv.textContent = 'An error occurred during login';
   }
 }
-

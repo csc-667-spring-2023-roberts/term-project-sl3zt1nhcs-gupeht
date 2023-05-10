@@ -1,11 +1,11 @@
 //todo set your .env
 module.exports ={
     database:{
-        host: process.env.HOST,
-        port: process.env.DATA_BASE_PORT,
-        user: process.env.DB_USERNAME,
-        password: process.env.PASSWORD,
-        database: process.env.DATA_BASE,
+        host:"localhost",
+        port: "5432" ,
+        user:"",
+        password:"", // default
+       database:"postgres",
     },
 
     PORT: process.env.PORT,
