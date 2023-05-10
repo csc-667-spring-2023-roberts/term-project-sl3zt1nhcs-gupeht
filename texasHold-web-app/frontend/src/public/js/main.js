@@ -4,6 +4,8 @@ import { logout } from "./logout";
 import { io } from "socket.io-client";
 let socket;
 
+
+// this function will redirect to lobby when user is authenticated and render dynamically all functionality
 async function redirectToLobbyIfAuthenticated() {
     const token = localStorage.getItem("token");
     if (token) {
@@ -96,6 +98,9 @@ export async function fetchLobby() {
                 event.preventDefault();
                 const message = document.getElementById("message-input").value;
                 socket.emit("send_message", { message: message, userName: userName });
+                //TODO needs testing 
+                // clear the input field
+                message.value = ' ';
             });
         }
     } catch (error) {

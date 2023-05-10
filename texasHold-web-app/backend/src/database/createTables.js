@@ -24,6 +24,14 @@ const createTables = () => {
                     email VARCHAR(255) NOT NULL UNIQUE,
                     auth_token VARCHAR(255)
                 );
+
+                CREATE TABLE IF NOT EXISTS messages (
+                    message_id SERIAL PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    message_content TEXT NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id)
+                );
+                
                 
            
             `

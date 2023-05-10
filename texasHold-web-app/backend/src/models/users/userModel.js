@@ -221,4 +221,45 @@ userModel.getAuthTokenByUserId = (user_id) => {
     });
 };
 
+
+userModel.storeMessage = ( user_id, message_content)=>{
+
+    return new Promise((resolve,reject)=>{
+
+        const query = ` INSERT INTO messages (user_id, message_content) VALUES ($1, $2) RETURNING *`;
+
+        const values = [user_id, message_content];
+
+        db.query (query,values).then((result)=>{
+            if ( result.rowCount > 0){
+                resolve(result.rows[0]);
+            }
+            else{
+                reject(new CustomError("No rows affected",404))
+            }
+        });
+    }).catch((err)=>{
+        reject(err);
+    });
+};
+
+
+userModel.getMessages = () =>{
+    return new Promise ((resolve,reject)=>{
+        const query = `SELECT users.username, messages.message_content FROM messages JOIN users
+        ON messages.user_id = users.user_id ORDER BY messages.message_id ASC`;
+
+        db.query(query).then((result)=>{
+            if ( result.rowCount > 0){
+                resolve(result.rows);
+            }else{
+                resolve([]);
+            }
+        }).catch((err)=>{
+            reject(err);
+        });
+
+    });
+};
+
 module.exports = userModel;

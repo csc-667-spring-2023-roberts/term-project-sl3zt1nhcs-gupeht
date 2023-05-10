@@ -10,9 +10,9 @@ const root = require("./router/root");
 const { customErrorHandler } = require("./middleware/customErrorHandler");
 const app = express();
 const server = http.createServer(app);
+const userModel = require("./models/users/userModel");
 
 // Socket server code 
-
 let onlineUsers = [];
 
 const io = require('socket.io')(server, {
@@ -22,6 +22,8 @@ const io = require('socket.io')(server, {
   }
 });
 
+
+// Io connection here
 io.on("connection", (socket) => {
 
   console.log("New client connected");
