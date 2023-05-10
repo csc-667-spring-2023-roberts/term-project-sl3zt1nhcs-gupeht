@@ -4,8 +4,8 @@ export async function logout() {
   
   try {
     // Get the JWT token from localStorage or sessionStorage
-    const token = localStorage.getItem('token');
-
+    const token =localStorage.getItem('token');
+    
     const response = await fetch('/user/logout', {
       method: 'POST',
       headers: {
@@ -15,8 +15,12 @@ export async function logout() {
     });
 
     if (response.status === 200) {
+
+
       // Remove the JWT token from the localStorage or sessionStorage
       localStorage.removeItem('token');
+      localStorage.removeItem('userName');
+      localStorage.removeItem('user_id');
 
       messageDiv.textContent = 'User logged in successfully';
 
