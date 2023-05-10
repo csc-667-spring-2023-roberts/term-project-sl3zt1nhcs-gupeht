@@ -1,33 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lobby</title>
-    <link rel="stylesheet" href="/css/main.css">
+  <title>Lobby</title>
+  <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
-    <div id = "content" class="container">
-        <%- include('partials/navbar', { user: user }) %>
-        <h1>Welcome to the Game Lobby</h1>
-        <p>Hi <%= user.username %>, this is the game lobby!</p>
-        <h>Users connected </h>
-        <ul id="user-list"></ul>
+  <div id="content" class="container">
+    <%- include('partials/navbar', { user: user }) %>
+    <h1>Welcome to the Game Lobby</h1>
+    <p>Hi <%= user.username %>, this is the game lobby!</p>
+    <h2>Users connected </h2>
+    <ul id="user-list"></ul>
 
-        <div id="chat">
-            <div id="messages">
-            </div>
-            <form id="message-form">
-              <input id="message-input" type="text" placeholder="Type a message" />
-              <button type="submit">Send</button>
-            </form>
-          </div>
-          
-      
+    <div id="chat">
+      <div id="messages"></div>
+      <form id="message-form">
+        <input id="message-input" type="text" placeholder="Type a message" />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+
     <div id="message" class="message"></div>
-
-    <script defer src="/frontend/src/public/dist/bundle.js"></script>
-
+  </div>
+  
+  <script defer src="/frontend/src/public/dist/bundle.js"></script>
 </body>
 </html>

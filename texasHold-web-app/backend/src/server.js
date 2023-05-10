@@ -11,7 +11,7 @@ const { customErrorHandler } = require("./middleware/customErrorHandler");
 const app = express();
 const server = http.createServer(app);
 
-
+// Socket server code 
 
 let onlineUsers = [];
 
@@ -23,19 +23,27 @@ const io = require('socket.io')(server, {
 });
 
 io.on("connection", (socket) => {
+
   console.log("New client connected");
 
   socket.on('join_lobby', (data) => {
+
     onlineUsers.push(data.userName);
+
     // Store the userName in the socket object
     socket.userName = data.userName;
+
     io.emit('update_user_list', onlineUsers);
+
     socket.join('lobby');
+
     console.log(`User ${data.userName} joined the lobby`);
   });
 
   socket.on("send_message", (data) => {
-    io.to('lobby').emit("receive_message", data);
+
+    io.to('lobby').emit("receive_message", { userName: socket.userName, message: data.message });
+    //io.to('lobby').emit("receive_message", data);
   });
 
   socket.on('disconnect', () => {
@@ -47,9 +55,6 @@ io.on("connection", (socket) => {
     console.log(`User ${socket.userName} disconnected`);
   });
 });
-
-
-
 
 
 

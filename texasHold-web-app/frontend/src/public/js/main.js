@@ -25,6 +25,7 @@ async function redirectToLobbyIfAuthenticated() {
 
 export async function fetchLobby() {
 
+
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("user_id");
     const userName = localStorage.getItem("userName");
@@ -48,43 +49,56 @@ export async function fetchLobby() {
 
         } else {
 
-            
-
+            // Start of the socket transmission
             socket = io("http://localhost:3000");
 
-            socket.emit("join_lobby", { userId: userId , userName:userName, });
+            socket.emit("join_lobby", { userId: userId, userName: userName });
 
+            // socket to receive messages
             socket.on("receive_message", (data) => {
+                // Access the message Div
+                const messagesElement = document.getElementById("messages");
+                //Message element
+                const messageElement = document.createElement("p");
+
+                // If the message is from the current user, it is not an incoming message
+                if (data.userName !== userName) {
+                    messageElement.classList.add("message","incoming");
+                }
+                else{
+                    messageElement.classList.add("message","outgoing")
+                }
+
+                messageElement.textContent = `${data.userName}: ${data.message}`;
+
+                //Appending the new message to the message div
+                messagesElement.appendChild(messageElement);
 
                 console.log("Received a message:", data);
             });
 
-
-
-
-            socket.on('update_user_list', (users) => {
+            // Socket to update the list of users
+            socket.on("update_user_list", (users) => {
                 // Clear the user list
-                const userListElement = document.getElementById('user-list');
-                userListElement.innerHTML = '';
-            
+                const userListElement = document.getElementById("user-list");
+                userListElement.innerHTML = "";
+
                 // Add each user to the user list
                 users.forEach((user) => {
-                    const userElement = document.createElement('li');
+                    const userElement = document.createElement("li");
                     userElement.textContent = user;
                     userListElement.appendChild(userElement);
                 });
             });
 
-
+            // Event handler for sending messages
             document.getElementById("message-form").addEventListener("submit", (event) => {
                 event.preventDefault();
                 const message = document.getElementById("message-input").value;
-                socket.emit("send_message", { message: message, userName:userName });
+                socket.emit("send_message", { message: message, userName: userName });
             });
         }
-
     } catch (error) {
-
         console.error("Error fetching lobby:", error);
     }
 }
