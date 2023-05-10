@@ -13,8 +13,7 @@ const server = http.createServer(app);
 
 
 
-
-
+let onlineUsers = [];
 
 const io = require('socket.io')(server, {
   cors: {
@@ -23,23 +22,32 @@ const io = require('socket.io')(server, {
   }
 });
 
-
 io.on("connection", (socket) => {
   console.log("New client connected");
-  
+
   socket.on('join_lobby', (data) => {
-    socket.join('lobby'); // assuming 'lobby' is the room for your lobby
-    console.log(`User ${data.userId} joined the lobby`);
+    onlineUsers.push(data.userName);
+    // Store the userName in the socket object
+    socket.userName = data.userName;
+    io.emit('update_user_list', onlineUsers);
+    socket.join('lobby');
+    console.log(`User ${data.userName} joined the lobby`);
   });
 
   socket.on("send_message", (data) => {
     io.to('lobby').emit("receive_message", data);
   });
 
-  socket.on("disconnect", () => {
-    console.log("Client disconnected");
+  socket.on('disconnect', () => {
+    const index = onlineUsers.indexOf(socket.userName);
+    if (index !== -1) {
+        onlineUsers.splice(index, 1);
+        io.emit('update_user_list', onlineUsers);
+    }
+    console.log(`User ${socket.userName} disconnected`);
   });
 });
+
 
 
 

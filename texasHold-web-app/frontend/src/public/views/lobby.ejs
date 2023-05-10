@@ -12,6 +12,8 @@
         <%- include('partials/navbar', { user: user }) %>
         <h1>Welcome to the Game Lobby</h1>
         <p>Hi <%= user.username %>, this is the game lobby!</p>
+        <h>Users connected </h>
+        <ul id="user-list"></ul>
 
         <div id="chat">
             <div id="messages">

@@ -24,9 +24,13 @@ export async function login(event) {
       console.log(responseData);
 
       const userId = responseData.user.user_id;
-      // Store the JWT token in the localStorage or sessionStorage
+      const userName = responseData.user.username;
+
+
+      // Store the localStorage or sessionStorage
       localStorage.setItem('token', responseData.token);
       localStorage.setItem('user_id',userId);
+      localStorage.setItem('userName',userName);
 
     
       messageDiv.textContent = 'User logged in successfully';
