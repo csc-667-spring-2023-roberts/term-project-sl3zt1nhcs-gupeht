@@ -60,6 +60,7 @@ const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
 
  function startGame() {
+    
     // Create and shuffle the deck
     let deck = createDeck();
     shuffle(deck);
@@ -122,6 +123,15 @@ const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
     // Return the id of the next player
     return playerIds[nextPlayerIndex];
+}
+
+function showCards(user_id) {
+    let player = gameState.players[user_id];
+    if (player) {
+        return player.cards;
+    } else {
+        return `${user_id} is not in the game`;
+    }
 }
 
  function calculateHandValue(hand) {
@@ -238,5 +248,6 @@ module.exports = {
     gameState,
     determineWinner,
     endRound,
+    showCards
 
   };

@@ -17,8 +17,6 @@ const gameModel = require("./models/game/gameModel");
 // keep list of online users
 let onlineUsers = [];
 
-// initialize game state to null so it will inherit the values on game initialization
-let gameState = null;
 
 const io = require("socket.io")(server, {
     cors: {
@@ -29,16 +27,18 @@ const io = require("socket.io")(server, {
 
 // Io connection here
 io.on("connection", (socket) => {
-    console.log("New client connected");
+
+    console.log(`Connection established on socket Id: ${socket.id}`);
 
     socket.on("join_lobby", (data) => {
-
         // Adding the new user's name to the onlineUsers array
         onlineUsers.push(data.userName);
 
         // Storing the user id  and userName in the socket object
         socket.userId = data.userId;
         socket.userName = data.userName;
+
+        gameLogic.playerJoinGame(socket.userId, socket.userName);
 
         // Emitting the updated user list to all connected sockets
         io.emit("update_user_list", onlineUsers);
@@ -51,36 +51,6 @@ io.on("connection", (socket) => {
 
         //Broadcast that the user has connected on lobby
         io.to("lobby").emit("receive_message", { userName: "System", message: `${data.userName} has joined the lobby` });
-
-        // Initiating the game here
-
-        //Immediately Invoked Function Expression  to have player joinGame
-        (async () => {
-
-            try {
-
-                // Join the game
-                gameLogic.playerJoinGame(socket.userId, socket.userName);
-
-                 // Prepare data for saving game state to database
-                    gameState = gameLogic.gameState;
-                                         
-                    // assigning the user_id in the gameState using socket.userId
-                    let currentPlayerData = gameState.players[socket.userId];
-
-    
-                    let newGameData = {
-                        userId: socket.userId,
-                        cards: currentPlayerData.cards,
-                        betAmount: currentPlayerData.bet_amount,
-                        gameState: gameState,
-                };
-                // Save game state to database
-                await gameModel.createGame(newGameData.userId,newGameData.cards,newGameData.betAmount,newGameData.gameState);
-            } catch (err) {
-                console.error("An error occurred while trying to join the game or save the game state:", err);
-            }
-        })();
 
         // Fetching all messages from the database
         userModel
@@ -103,7 +73,29 @@ io.on("connection", (socket) => {
                 // If an error occurs while fetching messages, log it
                 console.error(err);
             });
+
+        if (onlineUsers.length === 2) {
+            gameLogic.startGame();
+
+            // Create the game in the database
+            gameModel
+                .createGame(
+                    socket.userId,
+                    gameLogic.gameState.players[socket.userId].cards,
+                    gameLogic.gameState.current_bet,
+                    gameLogic.gameState
+                )
+                .then((gameId) => {
+                    // Notify front end a game has started
+                    io.to("lobby").emit("game_start", { gameId });
+                    console.log(`Game ${gameId} started`);
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
+        }
     });
+
 
     socket.on("send_message", (data) => {
         const message = { userName: data.userName, message: data.message };
@@ -127,24 +119,22 @@ io.on("connection", (socket) => {
             });
     });
 
-
-    // TODO Add the rest of the game functions for socket here
-
     socket.on("disconnect", () => {
-        const index = onlineUsers.indexOf(socket.userName);
+        // Remove user from onlineUsers array
+        onlineUsers = onlineUsers
+        .filter(userName => userName !== socket.userName);
 
-        if (index !== -1) {
-            onlineUsers.splice(index, 1);
+        // Remove user from game state
+        delete gameLogic.gameState.players[socket.userId];
 
-            io.emit("update_user_list", onlineUsers);
-        }
+        // Notify other users that this user has disconnected
+        io.emit("update_user_list", onlineUsers);
 
         console.log(`User ${socket.userName} disconnected`);
-
-        //Broadcast that a user has left the lobby
-        io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has left the lobby` });
     });
 });
+
+
 
 // view engine setup
 app.set("views", path.join(__dirname, "../../frontend/src/public/views"));

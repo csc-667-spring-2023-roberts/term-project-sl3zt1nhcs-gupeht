@@ -230,23 +230,18 @@ a:hover {
   }
   
   #messages .outgoing {
-    background-color: #28e821;
+    background-color: #2145e8;
+   
     align-self: flex-end;
   }
   
-  #messages .outgoing .message {
-    background-color: #28e821;
-  }
+ 
   
   #messages .incoming {
-    background-color: #00ffd966;
-    color: #000;
+    background-color: #23202057;
     align-self: flex-start;
   }
   
-  #messages .incoming .message {
-    background-color: #00ffd966;
-  }
   
  /* Message form */
 #message-form {

@@ -45,7 +45,6 @@ export async function fetchLobby() {
         if (response.status !== 200) {
             console.error("Error fetching lobby:", lobbyHtml);
         } else {
-
             // Start of the socket transmission
             socket = io("http://localhost:3000");
 
@@ -88,11 +87,11 @@ export async function fetchLobby() {
                 });
             });
 
-
-            //TODO add the code here for the front end socket game
-            // start the render as text to test the game before using graphics
-
-
+            // Listen for game_start io.to.(lobby).emit event from back end
+            socket.on("game_start", (data) => {
+                console.log("Game started with ID:", data.gameId);
+                // TODO: Update UI to reflect that game has started
+            });
 
             // Event handler for sending messages
             document.getElementById("message-form").addEventListener("submit", (event) => {
