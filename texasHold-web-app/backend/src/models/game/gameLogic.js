@@ -1,4 +1,7 @@
-const suits = ['S', 'H', 'D', 'C'];
+
+
+const suits = ['♠', '♥', '♦', '♣'];
+
 const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
 
  function createDeck() {
@@ -13,7 +16,7 @@ const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
  function shuffle(deck) {
     for(let i = deck.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * i);
+        const j = Math.floor(Math.random() * (i+1));
         const temp = deck[i];
         deck[i] = deck[j];
         deck[j] = temp;
@@ -218,6 +221,7 @@ const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
     for (let user_id in gameState.players) {
         gameState.players[user_id].cards = [];
         gameState.players[user_id].bet_amount = 0;
+        gameState.players[user_id].isActive = true;
     }
 }
 

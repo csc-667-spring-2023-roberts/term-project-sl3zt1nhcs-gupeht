@@ -52,6 +52,7 @@ io.on("connection", (socket) => {
         //Broadcast that the user has connected on lobby
         io.to("lobby").emit("receive_message", { userName: "System", message: `${data.userName} has joined the lobby` });
 
+        // Initiating the game here
 
         //Immediately Invoked Function Expression  to have player joinGame
         (async () => {
@@ -63,7 +64,8 @@ io.on("connection", (socket) => {
 
                  // Prepare data for saving game state to database
                     gameState = gameLogic.gameState;
-                                           
+                                         
+                    // assigning the user_id in the gameState using socket.userId
                     let currentPlayerData = gameState.players[socket.userId];
 
     
@@ -106,7 +108,7 @@ io.on("connection", (socket) => {
     socket.on("send_message", (data) => {
         const message = { userName: data.userName, message: data.message };
         // Emit the message to all users in the lobby
-        io.to("lobby").emit("receive_message", { userName: data.userName, message: data.message });
+        io.to("lobby").emit("receive_message", message);
         // Store the message in the database
         userModel
             .storeMessage(socket.userId, data.message)
@@ -124,6 +126,9 @@ io.on("connection", (socket) => {
                 socket.emit("message_error", { error: "An error occurred while storing the message." });
             });
     });
+
+
+    // TODO Add the rest of the game functions for socket here
 
     socket.on("disconnect", () => {
         const index = onlineUsers.indexOf(socket.userName);

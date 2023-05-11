@@ -69,7 +69,6 @@ export async function fetchLobby() {
 
                 //Appending the new message to the message div
                 // sroll down messages
-
                 messagesElement.appendChild(messageElement);
                 messagesElement.scrollTop = messagesElement.scrollHeight;
                 console.log("Received a message:", data);
@@ -89,6 +88,12 @@ export async function fetchLobby() {
                 });
             });
 
+
+            //TODO add the code here for the front end socket game
+            // start the render as text to test the game before using graphics
+
+
+
             // Event handler for sending messages
             document.getElementById("message-form").addEventListener("submit", (event) => {
                 event.preventDefault();
@@ -97,6 +102,8 @@ export async function fetchLobby() {
 
                 document.getElementById("message-input").value = " ";
             });
+
+            // TODO add event listeners to the user interface
 
             // event listener for error related to messages
             socket.on("message_error", (data) => {
