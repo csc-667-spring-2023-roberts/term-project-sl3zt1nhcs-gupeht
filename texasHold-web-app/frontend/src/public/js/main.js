@@ -4,7 +4,6 @@ import { logout } from "./logout";
 import { io } from "socket.io-client";
 let socket;
 
-
 // this function will redirect to lobby when user is authenticated and render dynamically all functionality
 async function redirectToLobbyIfAuthenticated() {
     const token = localStorage.getItem("token");
@@ -26,8 +25,6 @@ async function redirectToLobbyIfAuthenticated() {
 }
 
 export async function fetchLobby() {
-
-
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("user_id");
     const userName = localStorage.getItem("userName");
@@ -46,9 +43,7 @@ export async function fetchLobby() {
         window.history.pushState({}, "", "/user/lobby");
 
         if (response.status !== 200) {
-
             console.error("Error fetching lobby:", lobbyHtml);
-
         } else {
 
             // Start of the socket transmission
@@ -65,17 +60,18 @@ export async function fetchLobby() {
 
                 // If the message is from the current user, it is not an incoming message
                 if (data.userName !== userName) {
-                    messageElement.classList.add("message","incoming");
-                }
-                else{
-                    messageElement.classList.add("message","outgoing")
+                    messageElement.classList.add("message", "incoming");
+                } else {
+                    messageElement.classList.add("message", "outgoing");
                 }
 
                 messageElement.textContent = `${data.userName}: ${data.message}`;
 
                 //Appending the new message to the message div
-                messagesElement.appendChild(messageElement);
+                // sroll down messages
 
+                messagesElement.appendChild(messageElement);
+                messagesElement.scrollTop = messagesElement.scrollHeight;
                 console.log("Received a message:", data);
             });
 
@@ -88,7 +84,7 @@ export async function fetchLobby() {
                 // Add each user to the user list
                 users.forEach((user) => {
                     const userElement = document.createElement("li");
-                    userElement.textContent = user;
+                    userElement.textContent = `${user} is online`;
                     userListElement.appendChild(userElement);
                 });
             });
@@ -98,9 +94,13 @@ export async function fetchLobby() {
                 event.preventDefault();
                 const message = document.getElementById("message-input").value;
                 socket.emit("send_message", { message: message, userName: userName });
-                //TODO needs testing 
-                // clear the input field
-                message.value = ' ';
+
+                document.getElementById("message-input").value = " ";
+            });
+
+            // event listener for error related to messages
+            socket.on("message_error", (data) => {
+                console.error("Message error:", data.error);
             });
         }
     } catch (error) {

@@ -24,14 +24,18 @@ const io = require("socket.io")(server, {
 
 // Io connection here
 io.on("connection", (socket) => {
+
     console.log("New client connected");
 
     socket.on("join_lobby", (data) => {
+
+
         // Adding the new user's name to the onlineUsers array
         onlineUsers.push(data.userName);
 
-        // Storing the user id in the socket object
+        // Storing the user id  and userName in the socket object
         socket.userId = data.userId;
+        socket.userName = data.userName;
        
 
         // Emitting the updated user list to all connected sockets
@@ -42,6 +46,11 @@ io.on("connection", (socket) => {
 
         // Logging the join event
         console.log(`User ${data.userName} joined the lobby`);
+
+
+        //Broadcast that the user has connected on lobby
+        io.to("lobby").emit("receive_message",{userName: 'System', message: `${data.userName} has joined the lobby`});
+
 
         // Fetching all messages from the database
         userModel
@@ -93,12 +102,21 @@ io.on("connection", (socket) => {
 
 
     socket.on("disconnect", () => {
+
       const index = onlineUsers.indexOf(socket.userName);
+
       if (index !== -1) {
+
           onlineUsers.splice(index, 1);
+
           io.emit("update_user_list", onlineUsers);
+
       }
+
       console.log(`User ${socket.userName} disconnected`);
+
+      //Broadcast that a user has left the lobby
+      io.to("lobby").emit("receive_message",{userName: 'System', message: `${socket.userName} has left the lobby`});
   });
 });
 
