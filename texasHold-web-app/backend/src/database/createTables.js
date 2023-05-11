@@ -25,6 +25,18 @@ const createTables = () => {
                     auth_token VARCHAR(255)
                 );
 
+
+                CREATE TABLE IF NOT EXISTS game_states (
+                    id  SERIAL PRIMARY KEY,
+                    user_id INT,
+                    game_id SERIAL,
+                    cards JSON,
+                    bet_amount INT,
+                    game_state JSON,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id)
+                );
+
+
                 CREATE TABLE IF NOT EXISTS messages (
                     message_id SERIAL PRIMARY KEY,
                     user_id INT NOT NULL,

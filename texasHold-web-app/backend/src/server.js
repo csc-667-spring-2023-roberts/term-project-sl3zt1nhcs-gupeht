@@ -11,9 +11,14 @@ const { customErrorHandler } = require("./middleware/customErrorHandler");
 const app = express();
 const server = http.createServer(app);
 const userModel = require("./models/users/userModel");
+const gameLogic = require("./models/game/gameLogic");
+const gameModel = require("./models/game/gameModel");
 
-// Socket server code
+// keep list of online users
 let onlineUsers = [];
+
+// initialize game state to null so it will inherit the values on game initialization
+let gameState = null;
 
 const io = require("socket.io")(server, {
     cors: {
@@ -24,11 +29,9 @@ const io = require("socket.io")(server, {
 
 // Io connection here
 io.on("connection", (socket) => {
-
     console.log("New client connected");
 
     socket.on("join_lobby", (data) => {
-
 
         // Adding the new user's name to the onlineUsers array
         onlineUsers.push(data.userName);
@@ -36,7 +39,6 @@ io.on("connection", (socket) => {
         // Storing the user id  and userName in the socket object
         socket.userId = data.userId;
         socket.userName = data.userName;
-       
 
         // Emitting the updated user list to all connected sockets
         io.emit("update_user_list", onlineUsers);
@@ -47,25 +49,49 @@ io.on("connection", (socket) => {
         // Logging the join event
         console.log(`User ${data.userName} joined the lobby`);
 
-
         //Broadcast that the user has connected on lobby
-        io.to("lobby").emit("receive_message",{userName: 'System', message: `${data.userName} has joined the lobby`});
+        io.to("lobby").emit("receive_message", { userName: "System", message: `${data.userName} has joined the lobby` });
 
+
+        //Immediately Invoked Function Expression  to have player joinGame
+        (async () => {
+
+            try {
+
+                // Join the game
+                gameLogic.playerJoinGame(socket.userId, socket.userName);
+
+                 // Prepare data for saving game state to database
+                    gameState = gameLogic.gameState;
+                                           
+                    let currentPlayerData = gameState.players[socket.userId];
+
+    
+                    let newGameData = {
+                        userId: socket.userId,
+                        cards: currentPlayerData.cards,
+                        betAmount: currentPlayerData.bet_amount,
+                        gameState: gameState,
+                };
+                // Save game state to database
+                await gameModel.createGame(newGameData.userId,newGameData.cards,newGameData.betAmount,newGameData.gameState);
+            } catch (err) {
+                console.error("An error occurred while trying to join the game or save the game state:", err);
+            }
+        })();
 
         // Fetching all messages from the database
         userModel
             .getMessages()
             .then((messages) => {
-
                 // If there are messages, emit each message to the newly joined user
                 if (messages && messages.length > 0) {
-
                     messages.forEach((message) => {
-                    // Break into username and message_content since is being requested by client
-                      const messageToEmit ={
-                        userName: message.username,
-                        message: message.message_content
-                      };
+                        // Break into username and message_content since is being requested by client
+                        const messageToEmit = {
+                            userName: message.username,
+                            message: message.message_content,
+                        };
 
                         socket.emit("receive_message", messageToEmit);
                     });
@@ -77,7 +103,6 @@ io.on("connection", (socket) => {
             });
     });
 
-  
     socket.on("send_message", (data) => {
         const message = { userName: data.userName, message: data.message };
         // Emit the message to all users in the lobby
@@ -100,24 +125,20 @@ io.on("connection", (socket) => {
             });
     });
 
-
     socket.on("disconnect", () => {
+        const index = onlineUsers.indexOf(socket.userName);
 
-      const index = onlineUsers.indexOf(socket.userName);
+        if (index !== -1) {
+            onlineUsers.splice(index, 1);
 
-      if (index !== -1) {
+            io.emit("update_user_list", onlineUsers);
+        }
 
-          onlineUsers.splice(index, 1);
+        console.log(`User ${socket.userName} disconnected`);
 
-          io.emit("update_user_list", onlineUsers);
-
-      }
-
-      console.log(`User ${socket.userName} disconnected`);
-
-      //Broadcast that a user has left the lobby
-      io.to("lobby").emit("receive_message",{userName: 'System', message: `${socket.userName} has left the lobby`});
-  });
+        //Broadcast that a user has left the lobby
+        io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has left the lobby` });
+    });
 });
 
 // view engine setup
