@@ -12,7 +12,7 @@ gameModel.createGame = (user_id, cards, bet_amount, game_state) => {
         db.query(query, values)
             .then((result) => {
                 if (result.rowCount > 0) {
-                    resolve(result.rows[0]);
+                    resolve(result.rows[0].id);
                 } else {
                     reject(new CustomError("No rows affected", 404));
                 }
@@ -31,7 +31,7 @@ gameModel.getGameState = (game_id, user_id) => {
         db.query(query, values)
             .then((result) => {
                 if (result.rowCount > 0) {
-                    resolve(result.rows[0]);
+                    resolve(result.rows[0].game_state);
                 } else {
                     reject(new CustomError("Game state not found", 404));
                 }
@@ -72,7 +72,7 @@ gameModel.getGameIdByUserId=(user_id)=>{
 
         db.query(query,values).then((result)=>{
             if (result.rowCount >0){
-                resolve(result.rows[0]);
+                resolve(result.rows[0].id);
             }
             else{
                 reject ( new CustomError("Game Id not found",404));

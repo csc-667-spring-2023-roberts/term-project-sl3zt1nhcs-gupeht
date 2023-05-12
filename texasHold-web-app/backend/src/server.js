@@ -16,7 +16,7 @@ const gameModel = require("./models/game/gameModel");
 
 // keep list of online users
 let onlineUsers = [];
-
+//let gameState = gameLogic.gameState;
 
 const io = require("socket.io")(server, {
     cors: {
@@ -27,7 +27,6 @@ const io = require("socket.io")(server, {
 
 // Io connection here
 io.on("connection", (socket) => {
-
     console.log(`Connection established on socket Id: ${socket.id}`);
 
     socket.on("join_lobby", (data) => {
@@ -86,16 +85,18 @@ io.on("connection", (socket) => {
                     gameLogic.gameState
                 )
                 .then((gameId) => {
+
+    
+                    
                     // Notify front end a game has started
                     io.to("lobby").emit("game_start", { gameId });
-                    console.log(`Game ${gameId} started`);
+                    console.log(`Game ID:${gameId} started on socket ${socket.id}...`);
                 })
                 .catch((err) => {
                     console.error(err);
                 });
         }
     });
-
 
     socket.on("send_message", (data) => {
         const message = { userName: data.userName, message: data.message };
@@ -121,20 +122,27 @@ io.on("connection", (socket) => {
 
     socket.on("disconnect", () => {
         // Remove user from onlineUsers array
-        onlineUsers = onlineUsers
-        .filter(userName => userName !== socket.userName);
 
+        const index = onlineUsers.indexOf(socket.userName);
+
+        if (index !== -1) {
+            onlineUsers.splice(index, 1);
+
+            io.emit("update_user_list", onlineUsers);
+        }
+
+        
         // Remove user from game state
         delete gameLogic.gameState.players[socket.userId];
 
         // Notify other users that this user has disconnected
         io.emit("update_user_list", onlineUsers);
+        //Broadcast that the user has connected on lobby
+        io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has left the lobby` });
 
         console.log(`User ${socket.userName} disconnected`);
     });
 });
-
-
 
 // view engine setup
 app.set("views", path.join(__dirname, "../../frontend/src/public/views"));
