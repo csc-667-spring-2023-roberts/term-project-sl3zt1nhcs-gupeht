@@ -80,9 +80,7 @@ export async function fetchLobby() {
             // Socket to update the list of users
             socket.on("update_user_list", (users) => {
                 const userListElement = document.getElementById("user-list");
-                const startGameButton = document.getElementById("start-game-button");
-                const waitingMessage = document.getElementById("waiting-message");
-
+               
                 // Clear the user list
                 userListElement.innerHTML = "";
 
@@ -94,25 +92,7 @@ export async function fetchLobby() {
                     userListElement.appendChild(userElement);
                 });
 
-                // Show or hide the start button and waiting message based on number of users
-                if (users.length >= 2) {
-                    startGameButton.style.display = "block";
-                    waitingMessage.style.display = "none";
-                } else {
-                    startGameButton.style.display = "none";
-                    waitingMessage.style.display = "block";
-                }
-            });
-
-            socket.on("game_start", async (data) => {
-                console.log("Game started with ID:", data.gameId);
-                // Fetch the game content
-                const response = await fetch(`/user/game/${data.gameId}`, {
-                    credentials: "include",
-                });
-                const gameHtml = await response.text();
-                // Load the game content into the game div
-                document.getElementById("game").innerHTML = gameHtml;
+               
             });
 
             // Event handler for sending messages
@@ -124,11 +104,12 @@ export async function fetchLobby() {
                 document.getElementById("message-input").value = " ";
             });
 
-            document.getElementById("start-game-button").addEventListener("click", () => {
+            document.getElementById("start-game-button").addEventListener("click", (event) => {
+                event.preventDefault();
                 socket.emit("start_game");
+                document.getElementById("start-game-button").style.display = "none"; 
             });
-
-            // TODO add event listeners to the user interface
+        
 
             // event listener for error related to messages
             socket.on("message_error", (data) => {
@@ -141,6 +122,9 @@ export async function fetchLobby() {
         console.error("Error fetching lobby:", error);
     }
 }
+
+
+
 
 function handleRegistrationForm() {
     const registerForm = document.getElementById("register-form");

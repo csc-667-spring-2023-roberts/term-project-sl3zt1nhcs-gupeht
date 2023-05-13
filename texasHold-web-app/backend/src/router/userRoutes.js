@@ -30,14 +30,4 @@ router.get('/login',  (req,res) => {
 });
 
 
-router.get("/game/:gameId", (req, res) => {
-  const gameId = req.params.gameId;
-
-  // TODO: Fetch any other data you need for the game
-
-  res.render("game", { gameId });
-});
-
-
-
 module.exports = router;

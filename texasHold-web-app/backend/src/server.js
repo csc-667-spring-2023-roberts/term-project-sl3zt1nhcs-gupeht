@@ -18,7 +18,8 @@ const gameModel = require("./models/game/gameModel");
 
 // keep list of online users
 let onlineUsers = [];
-//let gameState = gameLogic.gameState;
+
+
 
 const io = require("socket.io")(server, {
     cors: {
@@ -32,14 +33,13 @@ io.on("connection", (socket) => {
     console.log(`Connection established on socket Id: ${socket.id}`);
 
     socket.on("join_lobby", (data) => {
+        
         // Adding the new user's name to the onlineUsers array
         onlineUsers.push(data.userName);
 
         // Storing the user id  and userName in the socket object
         socket.userId = data.userId;
         socket.userName = data.userName;
-
-     
 
         // Emitting the updated user list to all connected sockets
         io.emit("update_user_list", onlineUsers);
@@ -51,7 +51,7 @@ io.on("connection", (socket) => {
         console.log(`User ${data.userName} joined the lobby`);
 
         //Broadcast that the user has connected on lobby
-        io.to("lobby").emit("receive_message", { userName: "System", message: ` Game started` });
+        io.to("lobby").emit("receive_message", { userName: "System", message: ` User ${socket.userName} joined lobby` });
 
         // Fetching all messages from the database
         userModel
@@ -74,37 +74,6 @@ io.on("connection", (socket) => {
                 // If an error occurs while fetching messages, log it
                 console.error(err);
             });
-
-    });
-
-    socket.on("start_game", () => {
-
-      
-
-        if (onlineUsers.length === 2) {
-
-            gameLogic.playerJoinGame(socket.userId, socket.userName);
-
-            gameLogic.startGame();
-
-            // Create the game in the database
-            gameModel
-                .createGame(
-                    socket.userId,
-                    gameLogic.gameState.players[socket.userId].cards,
-                    gameLogic.gameState.current_bet,
-                    gameLogic.gameState
-                )
-                .then((gameId) => {
-                    // Notify front end a game has started
-                    io.to("lobby").emit("game_start", { gameId });
-                    io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has joined the game` });
-                    console.log(`Game ID:${gameId} started on socket ${socket.id}...`);
-                })
-                .catch((err) => {
-                    console.error(err);
-                });
-        }
     });
 
     socket.on("send_message", (data) => {
@@ -136,13 +105,10 @@ io.on("connection", (socket) => {
 
         if (index !== -1) {
             onlineUsers.splice(index, 1);
-
             io.emit("update_user_list", onlineUsers);
         }
 
-        // Remove user from game state
-        delete gameLogic.gameState.players[socket.userId];
-
+    
         // Notify other users that this user has disconnected
         io.emit("update_user_list", onlineUsers);
         //Broadcast that the user has connected on lobby

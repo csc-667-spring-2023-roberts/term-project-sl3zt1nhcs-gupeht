@@ -23,18 +23,22 @@ const createTables = () => {
                     password VARCHAR(255) NOT NULL,
                     email VARCHAR(255) NOT NULL UNIQUE
                 );
-
-
-                CREATE TABLE IF NOT EXISTS game_states (
-                    id  SERIAL PRIMARY KEY,
-                    user_id INT,
-                    game_id SERIAL,
-                    cards JSON,
-                    bet_amount INT,
-                    game_state JSON,
-                    FOREIGN KEY (user_id) REFERENCES users(user_id)
+                
+                CREATE TABLE IF NOT EXISTS games (
+                    game_id SERIAL PRIMARY KEY,
+                    game_name VARCHAR(255) NOT NULL,
+                    game_state_json JSON  
                 );
-
+                
+                CREATE TABLE IF NOT EXISTS players (
+                    player_id SERIAL PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    game_id INT NOT NULL,
+                    player_state_json JSON NOT NULL,
+                    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+                    FOREIGN KEY (game_id) REFERENCES games(game_id) ON DELETE CASCADE
+                );
+                
 
                 CREATE TABLE IF NOT EXISTS messages (
                     message_id SERIAL PRIMARY KEY,
