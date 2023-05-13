@@ -1,22 +1,20 @@
+const suits = ["♠", "♥", "♦", "♣"];
 
+const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
 
-const suits = ['♠', '♥', '♦', '♣'];
-
-const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-
- function createDeck() {
+function createDeck() {
     let deck = [];
-    suits.forEach(suit => {
-        ranks.forEach(rank => {
+    suits.forEach((suit) => {
+        ranks.forEach((rank) => {
             deck.push(`${rank}${suit}`);
         });
     });
     return deck;
 }
 
- function shuffle(deck) {
-    for(let i = deck.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * (i+1));
+function shuffle(deck) {
+    for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
         const temp = deck[i];
         deck[i] = deck[j];
         deck[j] = temp;
@@ -24,48 +22,53 @@ const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
     return deck;
 }
 
-  let gameState = {
+let gameState = {
     pot: 0,
     current_bet: 0,
     dealer: null,
     current_player: null,
-    players: {} // We will store the player's data using their user_id as the key
+    players: {}, // We will store the player's data using their user_id as the key
 };
 
 function getGameState() {
     return gameState;
 }
 
-
- function playerJoinGame(user_id, userName) {
+function playerJoinGame(user_id, userName) {
     gameState.players[user_id] = {
         userName: userName,
         cards: [],
         bet_amount: 0,
         money: 1000, // Let's give each player 1000 units of money to start
-        isActive: true // New property indicating if the player is active in the current round
+        isActive: true, // New property indicating if the player is active in the current round
     };
 
     // If this is the first player to join, they become the dealer
     if (!gameState.dealer) {
         gameState.dealer = user_id;
+    } else if (!gameState.current_player) {
+        // If this is the second player to join, they become the current player
+        gameState.current_player = user_id;
     }
 }
 
- function playerFold(user_id) {
+function playerFold(user_id) {
     // If the player folds, mark them as inactive
     gameState.players[user_id].isActive = false;
 
     // If there's only one active player left, they win the game
-    const activePlayers = Object.values(gameState.players).filter(player => player.isActive);
+    const activePlayers = Object.values(gameState.players).filter((player) => player.isActive);
     if (activePlayers.length === 1) {
         endRound();
     }
 }
 
+function startGame() {
+    // Only start the game if there are at least two players
+    if (Object.keys(gameState.players).length < 2) {
+        return;
+    }
 
- function startGame() {
-    
     // Create and shuffle the deck
     let deck = createDeck();
     shuffle(deck);
@@ -75,12 +78,14 @@ function getGameState() {
         gameState.players[user_id].cards = [deck.pop(), deck.pop()];
         gameState.players[user_id].isActive = true;
     }
-    // The player after the dealer goes first
-    gameState.current_player = getNextPlayer(gameState.dealer);
+
+    // The player after the dealer goes first if there's no current player
+    if (!gameState.current_player) {
+        gameState.current_player = getNextPlayer(gameState.dealer);
+    }
 }
 
- function playerBet(user_id, amount) {
-
+function playerBet(user_id, amount) {
     let player = gameState.players[user_id];
 
     // Make sure the player has enough money to make the bet
@@ -93,8 +98,8 @@ function getGameState() {
         return `It's not ${player.userName}'s turn to bet`;
     }
 
-     // Make sure the player is active
-     if (!player.isActive) {
+    // Make sure the player is active
+    if (!player.isActive) {
         return `${player.userName} can't bet because they have folded`;
     }
 
@@ -111,7 +116,7 @@ function getGameState() {
     gameState.current_player = getNextPlayer(user_id);
 }
 
- function getNextPlayer(currentPlayerId) {
+function getNextPlayer(currentPlayerId) {
     // Get all player ids
     const playerIds = Object.keys(gameState.players);
 
@@ -148,15 +153,14 @@ function playerLeaveGame(user_id) {
 
     // Remove the player from the game
     delete gameState.players[user_id];
-    console.log("deleted player from game")
+    console.log("deleted player from game");
 
     // Check if there's only one player left. If so, end the round.
     if (Object.keys(gameState.players).length === 1) {
         endRound();
     }
-    console.log("ended round")
+    console.log("ended round");
 }
-
 
 function showCards(user_id) {
     let player = gameState.players[user_id];
@@ -167,15 +171,15 @@ function showCards(user_id) {
     }
 }
 
- function calculateHandValue(hand) {
+function calculateHandValue(hand) {
     // Convert card ranks to numbers for easier comparison
-    let values = hand.map(card => {
+    let values = hand.map((card) => {
         let value = card.slice(0, -1); // Remove the last character (suit)
 
-        if (value === 'J') return 11;
-        if (value === 'Q') return 12;
-        if (value === 'K') return 13;
-        if (value === 'A') return 14;
+        if (value === "J") return 11;
+        if (value === "Q") return 12;
+        if (value === "K") return 13;
+        if (value === "A") return 14;
 
         return parseInt(value);
     });
@@ -187,8 +191,8 @@ function showCards(user_id) {
         counts[value]++;
     }
 
-    let pairs = Object.values(counts).filter(count => count === 2).length;
-    let threes = Object.values(counts).filter(count => count === 3).length;
+    let pairs = Object.values(counts).filter((count) => count === 2).length;
+    let threes = Object.values(counts).filter((count) => count === 3).length;
 
     // Pair: Add 1000 to make it worth more than high card
     // Three of a kind: Add 2000 to make it worth more than pair
@@ -201,8 +205,7 @@ function showCards(user_id) {
     return Math.max(pairValue, threeValue, highCardValue);
 }
 
-
- function determineWinner() {
+function determineWinner() {
     let handValues = {};
     let highestHandValue = -1;
 
@@ -234,8 +237,7 @@ function showCards(user_id) {
     }
 }
 
-
- function endRound() {
+function endRound() {
     // Reveal each player's hand
     for (let user_id in gameState.players) {
         console.log(`${gameState.players[user_id].userName}'s hand: ${gameState.players[user_id].cards}`);
@@ -245,9 +247,9 @@ function showCards(user_id) {
     let winners = determineWinner();
 
     if (Array.isArray(winners)) {
-        console.log('It\'s a tie!');
+        console.log("It's a tie!");
         // Split the pot between the winners
-        winners.forEach(winner => {
+        winners.forEach((winner) => {
             gameState.players[winner].money += gameState.pot / winners.length;
         });
     } else {
@@ -268,9 +270,6 @@ function showCards(user_id) {
     }
 }
 
-
-
-
 module.exports = {
     createDeck,
     shuffle,
@@ -282,6 +281,5 @@ module.exports = {
     determineWinner,
     endRound,
     showCards,
-    playerLeaveGame
-
-  };
+    playerLeaveGame,
+};

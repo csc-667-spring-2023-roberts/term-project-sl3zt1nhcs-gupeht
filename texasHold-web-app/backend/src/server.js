@@ -70,6 +70,18 @@ io.on("connection", (socket) => {
                 // If an error occurs while fetching messages, log it
                 console.error(err);
             });
+
+        // If there are enough users to start a game
+        if (Object.keys(onlineUsers).length >= 2) {
+            // Add all online users to the game
+            for (let userId in onlineUsers) {
+                gameLogic.playerJoinGame(userId, onlineUsers[userId]);
+            }
+
+            console.log(gameLogic.getGameState());
+            // Start the game
+           // gameLogic.startGame();
+        }
     });
 
     socket.on("send_message", (data) => {
