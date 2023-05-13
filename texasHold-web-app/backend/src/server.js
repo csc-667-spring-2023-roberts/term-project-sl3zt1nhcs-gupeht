@@ -15,6 +15,7 @@ const server = http.createServer(app);
 const userModel = require("./models/users/userModel");
 const gameLogic = require("./models/game/gameLogic");
 const gameModel = require("./models/game/gameModel");
+const playerModel = require ("./models/game/playerModels");
 
 // keep list of online users
 let onlineUsers = {};
@@ -77,10 +78,29 @@ io.on("connection", (socket) => {
             for (let userId in onlineUsers) {
                 gameLogic.playerJoinGame(userId, onlineUsers[userId]);
             }
-
-            console.log(gameLogic.getGameState());
-            // Start the game
-           // gameLogic.startGame();
+            // Then start the game
+            gameLogic.startGame();
+            //Create a new game in the database
+            const gameState = gameLogic.getGameState();
+            gameModel
+                .createGame("Default", gameState)
+                .then((createdGame) => {
+                    console.log(`Created new game with ID: ${createdGame.game_id}`);
+                    // Add all players to the game in the database
+                    for (let userId in gameState.players) {
+                        playerModel
+                            .joinGame(userId, createdGame.game_id, gameState.players[userId])
+                            .then((createdPlayer) => {
+                                console.log(`Added player with ID: ${userId} to game with ID: ${createdGame.game_id}`);
+                            })
+                            .catch((err) => {
+                                console.error(err);
+                            });
+                    }
+                })
+                .catch((err) => {
+                    console.error(err);
+                });
         }
     });
 
@@ -143,6 +163,7 @@ app.use(customErrorHandler);
 
 //Creates database
 const { CreateTableError, createTables } = require("./database/createTables");
+
 
 const result = {};
 

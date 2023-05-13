@@ -30,6 +30,7 @@ let gameState = {
     players: {}, // We will store the player's data using their user_id as the key
 };
 
+// Getter function
 function getGameState() {
     return gameState;
 }
@@ -63,6 +64,7 @@ function playerFold(user_id) {
     }
 }
 
+// Setter function
 function startGame() {
     // Only start the game if there are at least two players
     if (Object.keys(gameState.players).length < 2) {
