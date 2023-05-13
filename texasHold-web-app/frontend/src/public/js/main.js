@@ -4,49 +4,53 @@ import { logout } from "./logout";
 import { io } from "socket.io-client";
 let socket;
 
-// this function will redirect to lobby when user is authenticated and render dynamically all functionality
-async function redirectToLobbyIfAuthenticated() {
-    const token = localStorage.getItem("token");
-    if (token) {
-        try {
-            const response = await fetch("/user/is-authenticated", {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+async function isUserLoggedin() {
+    const user_id = localStorage.getItem("user_id");
 
-            if (response.status === 200) {
-                fetchLobby();
-            }
-        } catch (error) {
-            console.error("Error checking authentication status:", error);
+    if (!user_id) {
+        console.log("User is not logged in");
+        return;
+    }
+
+    redirectToLobbyIfAuthenticated();
+}
+
+async function redirectToLobbyIfAuthenticated() {
+    try {
+        const response = await fetch("/user/is-authenticated", {
+            credentials: "include", // Include the session cookie in the request
+        });
+
+        const data = await response.json();
+
+        //SPA model
+        if (data.authenticated) {
+            fetchLobby();
         }
+    } catch (error) {
+        console.error("Error checking authentication status:", error);
     }
 }
 
 export async function fetchLobby() {
-    const token = localStorage.getItem("token");
     const userId = localStorage.getItem("user_id");
+
     const userName = localStorage.getItem("userName");
 
     try {
         const response = await fetch("/user/lobby", {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
+            credentials: "include", // Include the credentials (cookies) in the request
         });
 
         const lobbyHtml = await response.text();
 
-        document.querySelector("body").innerHTML = lobbyHtml;
+        if (response.status === 200) {
+            document.querySelector("body").innerHTML = lobbyHtml;
+            window.history.pushState({}, "", "/user/lobby");
 
-        window.history.pushState({}, "", "/user/lobby");
-
-        if (response.status !== 200) {
-            console.error("Error fetching lobby:", lobbyHtml);
-        } else {
-            // Start of the socket transmission
-            socket = io("http://localhost:3000");
+            if (!socket) {
+                socket = io("http://localhost:3000");
+            }
 
             socket.emit("join_lobby", { userId: userId, userName: userName });
 
@@ -75,22 +79,40 @@ export async function fetchLobby() {
 
             // Socket to update the list of users
             socket.on("update_user_list", (users) => {
-                // Clear the user list
                 const userListElement = document.getElementById("user-list");
+                const startGameButton = document.getElementById("start-game-button");
+                const waitingMessage = document.getElementById("waiting-message");
+
+                // Clear the user list
                 userListElement.innerHTML = "";
 
                 // Add each user to the user list
-                users.forEach((user) => {
+                users.forEach((username, index) => {
                     const userElement = document.createElement("li");
-                    userElement.textContent = `${user} is online`;
+                    userElement.id = `user-${index}`; // assign an id to the user element
+                    userElement.textContent = `${username} is online`;
                     userListElement.appendChild(userElement);
                 });
+
+                // Show or hide the start button and waiting message based on number of users
+                if (users.length >= 2) {
+                    startGameButton.style.display = "block";
+                    waitingMessage.style.display = "none";
+                } else {
+                    startGameButton.style.display = "none";
+                    waitingMessage.style.display = "block";
+                }
             });
 
-            // Listen for game_start io.to.(lobby).emit event from back end
-            socket.on("game_start", (data) => {
+            socket.on("game_start", async (data) => {
                 console.log("Game started with ID:", data.gameId);
-                // TODO: Update UI to reflect that game has started
+                // Fetch the game content
+                const response = await fetch(`/user/game/${data.gameId}`, {
+                    credentials: "include",
+                });
+                const gameHtml = await response.text();
+                // Load the game content into the game div
+                document.getElementById("game").innerHTML = gameHtml;
             });
 
             // Event handler for sending messages
@@ -102,12 +124,18 @@ export async function fetchLobby() {
                 document.getElementById("message-input").value = " ";
             });
 
+            document.getElementById("start-game-button").addEventListener("click", () => {
+                socket.emit("start_game");
+            });
+
             // TODO add event listeners to the user interface
 
             // event listener for error related to messages
             socket.on("message_error", (data) => {
                 console.error("Message error:", data.error);
             });
+        } else {
+            console.error("Error fetching lobby:", lobbyHtml);
         }
     } catch (error) {
         console.error("Error fetching lobby:", error);
@@ -153,6 +181,6 @@ function attachEventListeners() {
 
 document.addEventListener("DOMContentLoaded", () => {
     console.log("DOMContentLoaded event fired");
-    redirectToLobbyIfAuthenticated();
+    isUserLoggedin();
     attachEventListeners();
 });

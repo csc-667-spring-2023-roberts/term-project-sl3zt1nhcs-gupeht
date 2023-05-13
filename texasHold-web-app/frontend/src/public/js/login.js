@@ -1,7 +1,7 @@
 import { fetchLobby } from "./main";
 
 
-export async function login(event) {
+export async function login() {
   const username = document.querySelector('#login-form input[name="username"]').value;
   const password = document.querySelector('#login-form input[name="password"]').value;
   const messageDiv = document.getElementById('message');
@@ -13,6 +13,8 @@ export async function login(event) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ username, password }),
+
+      credentials: 'include', // include cookies in the request
     });
 
     const responseData = await response.json();
@@ -20,19 +22,18 @@ export async function login(event) {
    
 
     if (response.status === 200) {
-
-      console.log(responseData);
+     
+      console.log(responseData);//TODO for debugging
 
       const userId = responseData.user.user_id;
       const userName = responseData.user.username;
 
 
-      // Store the localStorage or sessionStorage
-      localStorage.setItem('token', responseData.token);
+      // Store the localStorage 
       localStorage.setItem('user_id',userId);
       localStorage.setItem('userName',userName);
 
-    
+  
       messageDiv.textContent = 'User logged in successfully';
       
       setTimeout(()=>{

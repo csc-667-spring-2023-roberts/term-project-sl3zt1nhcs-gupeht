@@ -4,7 +4,9 @@ require("dotenv").config({ path: path.join(__dirname, "config", ".env") });
 const express = require("express");
 const bodyParser = require("body-parser");
 const http = require("http");
-const { sessionMiddleware, cookieMiddleware } = require("./middleware/sessionMiddleWare");
+const cookieParser = require("cookie-parser");
+const { sessionMiddleware } = require("./middleware/sessionMiddleWare");
+const cors = require("cors");
 const userRoutes = require("./router/userRoutes");
 const root = require("./router/root");
 const { customErrorHandler } = require("./middleware/customErrorHandler");
@@ -37,7 +39,7 @@ io.on("connection", (socket) => {
         socket.userId = data.userId;
         socket.userName = data.userName;
 
-        gameLogic.playerJoinGame(socket.userId, socket.userName);
+     
 
         // Emitting the updated user list to all connected sockets
         io.emit("update_user_list", onlineUsers);
@@ -49,7 +51,7 @@ io.on("connection", (socket) => {
         console.log(`User ${data.userName} joined the lobby`);
 
         //Broadcast that the user has connected on lobby
-        io.to("lobby").emit("receive_message", { userName: "System", message: `${data.userName} has joined the lobby` });
+        io.to("lobby").emit("receive_message", { userName: "System", message: ` Game started` });
 
         // Fetching all messages from the database
         userModel
@@ -73,7 +75,16 @@ io.on("connection", (socket) => {
                 console.error(err);
             });
 
+    });
+
+    socket.on("start_game", () => {
+
+      
+
         if (onlineUsers.length === 2) {
+
+            gameLogic.playerJoinGame(socket.userId, socket.userName);
+
             gameLogic.startGame();
 
             // Create the game in the database
@@ -85,11 +96,9 @@ io.on("connection", (socket) => {
                     gameLogic.gameState
                 )
                 .then((gameId) => {
-
-    
-                    
                     // Notify front end a game has started
                     io.to("lobby").emit("game_start", { gameId });
+                    io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has joined the game` });
                     console.log(`Game ID:${gameId} started on socket ${socket.id}...`);
                 })
                 .catch((err) => {
@@ -131,7 +140,6 @@ io.on("connection", (socket) => {
             io.emit("update_user_list", onlineUsers);
         }
 
-        
         // Remove user from game state
         delete gameLogic.gameState.players[socket.userId];
 
@@ -154,10 +162,11 @@ app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "../../frontend/src/public/")));
 
 // middleware
+app.use(cors());
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(sessionMiddleware);
-app.use(cookieMiddleware);
 
 app.use("/", root);
 app.use("/user", userRoutes);

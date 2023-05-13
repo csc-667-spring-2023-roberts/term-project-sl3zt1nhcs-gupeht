@@ -3,33 +3,39 @@ const userController = require('../controllers/userController');
 const { authMiddleware, redirectToLobbyIfAuthenticated } = require('../middleware/auth');
 const router = express.Router();
 
-
 // User routes
 router.post('/register', userController.createUser);
 router.post('/login', userController.login);
-router.post('/logout', authMiddleware, userController.logout); // Add authMiddleware to protect the logout route
+router.post('/logout',  authMiddleware, userController.logout); // using cookieMiddleware
 
-
-
-// Check if the user is authenticated
+/*
+  This api will fetch lobby every time the page is refreshed using SPA model
+*/
 router.get('/is-authenticated', authMiddleware, (req, res) => {
-  res.status(200).json({ authenticated: true });
+  res.status(200).json({authenticated:true});
 });
 
-
-
-router.get('/lobby', authMiddleware, ( req, res) => {
-
+router.get('/lobby',authMiddleware, (req, res) => {
   // Render lobby view
   res.render('lobby', { user:res.locals.user });
 });
 
-router.get('/register', redirectToLobbyIfAuthenticated,(req, res) => {
+router.get('/register',  (req, res) => {
   res.render('register');
 });
 
-router.get('/login',redirectToLobbyIfAuthenticated, (req,res) => {
+router.get('/login',  (req,res) => {
+
   res.render('login');
+});
+
+
+router.get("/game/:gameId", (req, res) => {
+  const gameId = req.params.gameId;
+
+  // TODO: Fetch any other data you need for the game
+
+  res.render("game", { gameId });
 });
 
 
