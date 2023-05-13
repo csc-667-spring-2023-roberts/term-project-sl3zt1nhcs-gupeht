@@ -32,6 +32,11 @@ const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
     players: {} // We will store the player's data using their user_id as the key
 };
 
+function getGameState() {
+    return gameState;
+}
+
+
  function playerJoinGame(user_id, userName) {
     gameState.players[user_id] = {
         userName: userName,
@@ -124,6 +129,34 @@ const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
     // Return the id of the next player
     return playerIds[nextPlayerIndex];
 }
+
+function playerLeaveGame(user_id) {
+    // Check if the player exists in the game
+    if (!gameState.players[user_id]) {
+        return `Player ${user_id} does not exist in the game`;
+    }
+
+    // If the player is the dealer, assign a new dealer
+    if (gameState.dealer === user_id) {
+        gameState.dealer = getNextPlayer(user_id);
+    }
+
+    // If the player is the current player, move to the next player
+    if (gameState.current_player === user_id) {
+        gameState.current_player = getNextPlayer(user_id);
+    }
+
+    // Remove the player from the game
+    delete gameState.players[user_id];
+    console.log("deleted player from game")
+
+    // Check if there's only one player left. If so, end the round.
+    if (Object.keys(gameState.players).length === 1) {
+        endRound();
+    }
+    console.log("ended round")
+}
+
 
 function showCards(user_id) {
     let player = gameState.players[user_id];
@@ -245,9 +278,10 @@ module.exports = {
     playerFold,
     startGame,
     playerBet,
-    gameState,
+    getGameState,
     determineWinner,
     endRound,
-    showCards
+    showCards,
+    playerLeaveGame
 
   };

@@ -17,9 +17,8 @@ const gameLogic = require("./models/game/gameLogic");
 const gameModel = require("./models/game/gameModel");
 
 // keep list of online users
-let onlineUsers = [];
-
-
+let onlineUsers = {};
+//let gameState = gameLogic.gameState;
 
 const io = require("socket.io")(server, {
     cors: {
@@ -33,11 +32,8 @@ io.on("connection", (socket) => {
     console.log(`Connection established on socket Id: ${socket.id}`);
 
     socket.on("join_lobby", (data) => {
-        
-        // Adding the new user's name to the onlineUsers array
-        onlineUsers.push(data.userName);
+        onlineUsers[data.userId] = data.userName;
 
-        // Storing the user id  and userName in the socket object
         socket.userId = data.userId;
         socket.userName = data.userName;
 
@@ -51,7 +47,7 @@ io.on("connection", (socket) => {
         console.log(`User ${data.userName} joined the lobby`);
 
         //Broadcast that the user has connected on lobby
-        io.to("lobby").emit("receive_message", { userName: "System", message: ` User ${socket.userName} joined lobby` });
+        io.to("lobby").emit("receive_message", { userName: "System", message: ` ${data.userName} joined lobby` });
 
         // Fetching all messages from the database
         userModel
@@ -99,16 +95,9 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        // Remove user from onlineUsers array
+        // Remove user from onlineUsers object
+        delete onlineUsers[socket.userId];
 
-        const index = onlineUsers.indexOf(socket.userName);
-
-        if (index !== -1) {
-            onlineUsers.splice(index, 1);
-            io.emit("update_user_list", onlineUsers);
-        }
-
-    
         // Notify other users that this user has disconnected
         io.emit("update_user_list", onlineUsers);
         //Broadcast that the user has connected on lobby

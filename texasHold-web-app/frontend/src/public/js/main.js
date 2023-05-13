@@ -79,26 +79,25 @@ export async function fetchLobby() {
             // Socket to update the list of users
             socket.on("update_user_list", (users) => {
                 const userListElement = document.getElementById("user-list");
-                const startGameButton = document.getElementById("start-game-button");
                 const waitingMessage = document.getElementById("waiting-message");
 
                 // Clear the user list
                 userListElement.innerHTML = "";
 
                 // Add each user to the user list
-                users.forEach((username, index) => {
+                for (let userId in users) {
+                    // use a for...in loop to iterate through an object
                     const userElement = document.createElement("li");
-                    userElement.id = `user-${index}`; // assign an id to the user element
-                    userElement.textContent = `${username} is online`;
+                    userElement.id = `user-${userId}`; // use userId as the id
+                    userElement.textContent = `${users[userId]} is online`; // use users[userId] to access the userName
                     userListElement.appendChild(userElement);
-                });
+                }
 
                 // Show or hide the start button and waiting message based on number of users
-                if (users.length >= 2) {
-                    startGameButton.style.display = "block";
+                const numUsers = Object.keys(users).length; // use Object.keys() to get the number of users
+                if (numUsers >= 2) {
                     waitingMessage.style.display = "none";
                 } else {
-                    startGameButton.style.display = "none";
                     waitingMessage.style.display = "block";
                 }
             });
@@ -121,10 +120,6 @@ export async function fetchLobby() {
                 socket.emit("send_message", { message: message, userName: userName });
 
                 document.getElementById("message-input").value = " ";
-            });
-
-            document.getElementById("start-game-button").addEventListener("click", (event) => {
-                socket.emit("start_game");
             });
 
             // event listener for error related to messages

@@ -41,7 +41,7 @@ gamesModel.getGame = (game_id) => {
     });
 };
 
-gamesModel.updateGame = (game_id, game_state_json) => {
+gamesModel.updateGame = ( game_state_json, game_id) => {
     return new Promise((resolve, reject) => {
         const query = `UPDATE games SET game_state_json = $1 WHERE game_id = $2 RETURNING *`;
         const values = [JSON.stringify(game_state_json), game_id];

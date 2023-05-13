@@ -1,9 +1,9 @@
 const db = require("../../database/db");
 const { CustomError } = require("../../middleware/customErrorHandler");
 
-const playersModel = {};
+const playerModel = {};
 
-playersModel.joinGame = (user_id, game_id, player_state_json) => {
+playerModel.joinGame = (user_id, game_id, player_state_json) => {
     return new Promise((resolve, reject) => {
         const query = `INSERT INTO players (user_id, game_id, player_state_json) VALUES ($1, $2, $3) RETURNING *`;
         const values = [user_id, game_id, JSON.stringify(player_state_json)];
@@ -22,7 +22,7 @@ playersModel.joinGame = (user_id, game_id, player_state_json) => {
     });
 };
 
-playersModel.getPlayerState = (player_id) => {
+playerModel.getPlayerState = (player_id) => {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM players WHERE player_id = $1`;
         const values = [player_id];
@@ -41,7 +41,7 @@ playersModel.getPlayerState = (player_id) => {
     });
 };
 
-playersModel.updatePlayerState = (player_id, player_state_json) => {
+playerModel.updatePlayerState = (player_id, player_state_json) => {
     return new Promise((resolve, reject) => {
         const query = `UPDATE players SET player_state_json = $1 WHERE player_id = $2 RETURNING *`;
         const values = [JSON.stringify(player_state_json), player_id];
@@ -60,7 +60,7 @@ playersModel.updatePlayerState = (player_id, player_state_json) => {
     });
 };
 
-playersModel.getPlayersByGame = (game_id) => {
+playerModel.getPlayersByGame = (game_id) => {
     return new Promise((resolve, reject) => {
         const query = `SELECT * FROM players WHERE game_id = $1`;
         const values = [game_id];
@@ -79,7 +79,7 @@ playersModel.getPlayersByGame = (game_id) => {
     });
 };
 
-playersModel.removePlayer = (player_id) => {
+playerModel.removePlayer = (player_id) => {
     return new Promise((resolve, reject) => {
         const query = `DELETE FROM players WHERE player_id = $1 RETURNING *`;
         const values = [player_id];
@@ -99,4 +99,4 @@ playersModel.removePlayer = (player_id) => {
 };
 
 
-module.exports = playersModel;
+module.exports = playerModel;
