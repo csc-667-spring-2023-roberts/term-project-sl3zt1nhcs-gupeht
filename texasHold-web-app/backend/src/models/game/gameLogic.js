@@ -35,11 +35,15 @@ function getGameState() {
     return gameState;
 }
 
-function isUserInGame(user_id){
+function isUserInGame(user_id) {
+    let result = !!gameState.players[user_id] ? "user is  in game" : "user is not  in game";
+
+    console.log(result);
     return !!gameState.players[user_id];
 }
 
 function removeUserFromGame(user_id) {
+    let gameResult = {};
     // Check if the player exists in the game
     if (!gameState.players[user_id]) {
         return `Player ${user_id} does not exist in the game`;
@@ -47,30 +51,31 @@ function removeUserFromGame(user_id) {
 
     // If the player is the dealer, assign a new dealer
     if (gameState.dealer === user_id) {
+        console.log("user leaving the game was a dealer");
         gameState.dealer = getNextPlayer(user_id);
     }
 
     // If the player is the current player, move to the next player
     if (gameState.current_player === user_id) {
+        console.log("user leaving the game was a current player");
         gameState.current_player = getNextPlayer(user_id);
     }
 
+    console.log("user State before leaving game", gameState.players[user_id]);
     // Remove the player from the game
     delete gameState.players[user_id];
+    console.log("user State after leaving the game", gameState.players[user_id]);
 
-    // Check if there's only one player left. If so, end the round.
-    if (Object.keys(gameState.players).length === 1) {
-        endRound();
+    const remainingPlayers = Object.keys(gameState.players);
+
+    if (remainingPlayers.length <= 1) {
+        console.log("only one player left in round.  end round is being called");
+        gameResult.roundResult = endRound();
+        console.log("game state before end game", gameState);
+        gameResult.endGameResult =endGame();
     }
 
-    // If no players left, end the game
-    if (Object.keys(gameState.players).length === 0) {
-        endGame();
-    }
-}
-
-function getRemainingPlayers() {
-    return Object.keys(gameState.players).filter((id) => gameState.players[id].isActive);
+    return gameResult;
 }
 
 
@@ -103,7 +108,6 @@ function playerFold(user_id) {
     }
 }
 
-// Setter function
 function startGame() {
     // Only start the game if there are at least two players
     if (Object.keys(gameState.players).length < 2) {
@@ -174,35 +178,6 @@ function getNextPlayer(currentPlayerId) {
 
     // Return the id of the next player
     return playerIds[nextPlayerIndex];
-}
-
-function playerLeaveGame(user_id) {
-    // Check if the player exists in the game
-    if (!gameState.players[user_id]) {
-        return `Player ${user_id} does not exist in the game`;
-    }
-
-    // If the player is the dealer, assign a new dealer
-    if (gameState.dealer === user_id) {
-        gameState.dealer = getNextPlayer(user_id);
-    }
-
-    // If the player is the current player, move to the next player
-    if (gameState.current_player === user_id) {
-        gameState.current_player = getNextPlayer(user_id);
-    }
-
-    // Remove the player from the game
-    delete gameState.players[user_id];
-    console.log("deleted player from game");
-
-    // Check if there's only one player left. If so, end the round.
-    if (Object.keys(gameState.players).length === 1) {
-        endRound();
-    }
-    console.log("ended round");
-
-    endGame();
 }
 
 function showCards(user_id) {
@@ -281,8 +256,16 @@ function determineWinner() {
 }
 
 function endRound() {
+    let roundResult = {
+        cards: {},
+        winner: null,
+        money: null,
+    };
+
     // Reveal each player's hand
     for (let user_id in gameState.players) {
+        let cards = showCards(user_id);
+        roundResult.cards[user_id] = cards;
         console.log(`${gameState.players[user_id].userName}'s hand: ${gameState.players[user_id].cards}`);
     }
 
@@ -291,13 +274,17 @@ function endRound() {
 
     if (Array.isArray(winners)) {
         console.log("It's a tie!");
+        roundResult.winner = "tie";
         // Split the pot between the winners
         winners.forEach((winner) => {
             gameState.players[winner].money += gameState.pot / winners.length;
+            roundResult.money = gameState.players[winner].money;
         });
     } else {
         console.log(`${gameState.players[winners].userName} wins the pot of ${gameState.pot}!`);
+        roundResult.winner = winners;
         gameState.players[winners].money += gameState.pot;
+        roundResult.money = gameState.players[winners].money;
     }
 
     // Reset the game state
@@ -311,18 +298,28 @@ function endRound() {
         gameState.players[user_id].bet_amount = 0;
         gameState.players[user_id].isActive = true;
     }
+
+    console.log(roundResult);
+
+    return roundResult;
 }
 
+function endGame() {
 
-function endGame(){
+    let result ={};
+    console.log("game is ended and game state erased");
 
     gameState = {
         pot: 0,
-        current_bet:0,
+        current_bet: 0,
         dealer: null,
-        current_player:null,
-        players:{},
-    }
+        current_player: null,
+        players: {},
+    };
+
+    result.gameState = gameState;
+
+    return result;
 }
 
 module.exports = {
@@ -336,9 +333,6 @@ module.exports = {
     determineWinner,
     endRound,
     showCards,
-    playerLeaveGame,
-    getRemainingPlayers,
     isUserInGame,
-    removeUserFromGame
-    
+    removeUserFromGame,
 };
