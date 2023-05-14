@@ -1,3 +1,5 @@
+const gamesModel = require("./gameModel");
+
 const suits = ["♠", "♥", "♦", "♣"];
 
 const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
@@ -61,10 +63,7 @@ function removeUserFromGame(user_id) {
         gameState.current_player = getNextPlayer(user_id);
     }
 
-    console.log("user State before leaving game", gameState.players[user_id]);
-    // Remove the player from the game
     delete gameState.players[user_id];
-    console.log("user State after leaving the game", gameState.players[user_id]);
 
     const remainingPlayers = Object.keys(gameState.players);
 
@@ -72,12 +71,12 @@ function removeUserFromGame(user_id) {
         console.log("only one player left in round.  end round is being called");
         gameResult.roundResult = endRound();
         console.log("game state before end game", gameState);
-        gameResult.endGameResult =endGame();
+        gameResult.endGameResult = endGame();
+        console.log("game state after end game", gameState);
     }
 
     return gameResult;
 }
-
 
 function playerJoinGame(user_id, userName) {
     gameState.players[user_id] = {
@@ -305,9 +304,8 @@ function endRound() {
 }
 
 function endGame() {
-
-    let result ={};
-    console.log("game is ended and game state erased");
+    let result = {};
+    console.log("game is ended and game state reset");
 
     gameState = {
         pot: 0,
