@@ -79,15 +79,14 @@ playerModel.getPlayersByGame = (game_id) => {
     });
 };
 
-playerModel.removePlayer = (player_id) => {
+playerModel.removePlayer = (user_id) => {
     return new Promise((resolve, reject) => {
-        const query = `DELETE FROM players WHERE player_id = $1 RETURNING *`;
-        const values = [player_id];
-
+        const query = `DELETE FROM players WHERE user_id = $1`;
+        const values = [user_id];
         db.query(query, values)
             .then((result) => {
                 if (result.rowCount > 0) {
-                    resolve(result.rows[0]);
+                    resolve(result.rowCount);
                 } else {
                     reject(new CustomError("No rows affected", 404));
                 }
@@ -97,6 +96,5 @@ playerModel.removePlayer = (player_id) => {
             });
     });
 };
-
 
 module.exports = playerModel;

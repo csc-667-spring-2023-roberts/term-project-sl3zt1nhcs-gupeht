@@ -1,4 +1,5 @@
 const gamesModel = require("./gameModel");
+const playerModel = require("./playerModels");
 
 const suits = ["♠", "♥", "♦", "♣"];
 
@@ -21,6 +22,7 @@ function shuffle(deck) {
         deck[i] = deck[j];
         deck[j] = temp;
     }
+    console.log("cards shuffle....");
     return deck;
 }
 
@@ -38,9 +40,10 @@ function getGameState() {
 }
 
 function isUserInGame(user_id) {
-    let result = !!gameState.players[user_id] ? "user is  in game" : "user is not  in game";
+    let result = !!gameState.players[user_id] ? `user is  in game` : `user is not  in game`;
 
     console.log(result);
+
     return !!gameState.players[user_id];
 }
 
@@ -63,9 +66,27 @@ function removeUserFromGame(user_id) {
         gameState.current_player = getNextPlayer(user_id);
     }
 
+    console.log("Deleting player game state");
+    console.log("player game state before", gameState.players[user_id]);
+    playerModel
+        .removePlayer(user_id)
+        .then((removePlayer) => {
+            if (!removePlayer) {
+                console.log("player  is not in the game");
+            }
+            console.log("player removed from database");
+          
+            console.log("player game state after", gameState.players[user_id]);
+        })
+        .catch((err) => {
+            console.error("error removing player", err);
+        });
+
     delete gameState.players[user_id];
 
     const remainingPlayers = Object.keys(gameState.players);
+
+    console.log("Player remaining in the game:", remainingPlayers);
 
     if (remainingPlayers.length <= 1) {
         console.log("only one player left in round.  end round is being called");
@@ -74,7 +95,7 @@ function removeUserFromGame(user_id) {
         gameResult.endGameResult = endGame();
         console.log("game state after end game", gameState);
     }
-
+    console.log("game result:", gameResult);
     return gameResult;
 }
 
@@ -261,6 +282,7 @@ function endRound() {
         money: null,
     };
 
+    console.log("revealing each players hand");
     // Reveal each player's hand
     for (let user_id in gameState.players) {
         let cards = showCards(user_id);
@@ -298,7 +320,7 @@ function endRound() {
         gameState.players[user_id].isActive = true;
     }
 
-    console.log(roundResult);
+    console.log("round result:", roundResult);
 
     return roundResult;
 }

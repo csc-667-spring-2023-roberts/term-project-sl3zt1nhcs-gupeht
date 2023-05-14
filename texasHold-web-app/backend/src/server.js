@@ -165,6 +165,7 @@ io.on("connection", (socket) => {
         //corresponding user id
         if (gameLogic.isUserInGame(socket.userId)) {
             //After we find the user then we delete the user gamestate for the game and  end game if is less or equal to one player
+            console.log("user id ",socket.userId);
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
             // If the game ends (check if endGameResult exists in gameResult)
             if (gameResult.endGameResult) {
@@ -173,15 +174,6 @@ io.on("connection", (socket) => {
                     .then((gameId) => {
                         gameModel.updateGame(gameResult.endGameResult.gameState, gameId).then((updatedGame) => {
                             console.log("Game state updated in the database");
-
-                            playerModel
-                                .removePlayer(socket.userId)
-                                .then((removePlayer) => {
-                                    console.log("player removed from database");
-                                })
-                                .catch((err) => {
-                                    console.error("error removing player", err);
-                                });
                         });
                     })
                     .catch((err) => {
