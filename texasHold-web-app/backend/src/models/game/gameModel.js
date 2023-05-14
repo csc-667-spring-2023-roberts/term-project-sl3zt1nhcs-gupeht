@@ -60,6 +60,9 @@ gamesModel.updateGame = (game_state_json, game_id) => {
     });
 };
 
+
+
+
 gamesModel.getRecentGameId = () => {
     return new Promise((resolve, reject) => {
         const query = "SELECT game_id FROM games ORDER BY game_id DESC LIMIT 1";

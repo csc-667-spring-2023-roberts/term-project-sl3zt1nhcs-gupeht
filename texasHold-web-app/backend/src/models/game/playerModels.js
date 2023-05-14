@@ -43,7 +43,7 @@ playerModel.getPlayerState = (player_id) => {
 
 playerModel.updatePlayerState = (player_id, player_state_json) => {
     return new Promise((resolve, reject) => {
-        const query = `UPDATE players SET player_state_json = $1 WHERE player_id = $2 RETURNING *`;
+        const query = `UPDATE players SET player_state_json = $1 WHERE player_id = $2 `;
         const values = [JSON.stringify(player_state_json), player_id];
 
         db.query(query, values)

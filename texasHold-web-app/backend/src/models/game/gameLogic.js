@@ -65,37 +65,35 @@ function removeUserFromGame(user_id) {
         console.log("user leaving the game was a current player");
         gameState.current_player = getNextPlayer(user_id);
     }
+    console.log("Updating player state");
 
-    console.log("Deleting player game state");
-    console.log("player game state before", gameState.players[user_id]);
+    let playState = gameState.players[user_id];
+
+    playState.isActive = false;
+
     playerModel
-        .removePlayer(user_id)
-        .then((removePlayer) => {
-            if (!removePlayer) {
-                console.log("player  is not in the game");
+        .updatePlayerState(user_id, playState)
+        .then((updatedPlayer) => {
+            if (!updatedPlayer) {
+                console.log("player is not in the game");
             }
-            console.log("player removed from database");
-          
-            console.log("player game state after", gameState.players[user_id]);
+            console.log("player state updated in database");
         })
         .catch((err) => {
-            console.error("error removing player", err);
+            console.error("erro updating player state", err);
         });
 
-    delete gameState.players[user_id];
+    let activePlayers = Object.values(gameState.players).filter((player) => player.isActive).length;
 
-    const remainingPlayers = Object.keys(gameState.players);
+    console.log("Active players remaining in the game:", activePlayers);
 
-    console.log("Player remaining in the game:", remainingPlayers);
-
-    if (remainingPlayers.length <= 1) {
+    if (activePlayers <= 1) {
         console.log("only one player left in round.  end round is being called");
         gameResult.roundResult = endRound();
-        console.log("game state before end game", gameState);
         gameResult.endGameResult = endGame();
-        console.log("game state after end game", gameState);
     }
-    console.log("game result:", gameResult);
+    console.log("game result:", gameResult.roundResult);
+
     return gameResult;
 }
 
@@ -106,6 +104,10 @@ function playerJoinGame(user_id, userName) {
         bet_amount: 0,
         money: 1000, // Let's give each player 1000 units of money to start
         isActive: true, // New property indicating if the player is active in the current round
+        roundsWon: 0,
+        roundsLost: 0,
+        gamesWon: 0,
+        gamesLost: 0,
     };
 
     // If this is the first player to join, they become the dealer
@@ -283,6 +285,7 @@ function endRound() {
     };
 
     console.log("revealing each players hand");
+
     // Reveal each player's hand
     for (let user_id in gameState.players) {
         let cards = showCards(user_id);
@@ -306,6 +309,24 @@ function endRound() {
         roundResult.winner = winners;
         gameState.players[winners].money += gameState.pot;
         roundResult.money = gameState.players[winners].money;
+        gameState.players[winners].roundsWon++;
+
+        for (let user_id in gameState.players) {
+            if (user_id !== winners) {
+                gameState.players[user_id].roundsLost++;
+            }
+        }
+    }
+
+    // Store the winners cards in the round result
+    if (Array.isArray(winners)) {
+        roundResult.winnersCard = []; // Initialize as an array
+        winners.forEach((winner) => {
+            roundResult.winnersCard.push(gameState.players[winner].cards); // Push each winner's cards
+        });
+    } else {
+        // Only one winner, so we don't need an array
+        roundResult.winnersCards = gameState.players[winners].cards;
     }
 
     // Reset the game state
@@ -329,13 +350,32 @@ function endGame() {
     let result = {};
     console.log("game is ended and game state reset");
 
-    gameState = {
-        pot: 0,
-        current_bet: 0,
-        dealer: null,
-        current_player: null,
-        players: {},
-    };
+    let winners = determineWinner();
+
+    if (Array.isArray(winners)) {
+        winners.forEach((winner) => {
+            gameState.players[winner].gamesWon++;
+        });
+
+        for (let player in gameState.players) {
+            if (!winners.includes(player)) {
+                gameState.players[player].gamesLost++;
+                gameState.players[player].isActive = false;
+            }
+        }
+    } else {
+        gameState.players[winners].gamesWon++;
+
+        for (let player in gameState.players) {
+            if (player !== winners) {
+                gameState.players[player].gamesLost++;
+                gameState.players[player].isActive = false;
+            }
+        }
+    }
+
+    // Mark the game as inactive
+    gameState.isActive = false;
 
     result.gameState = gameState;
 

@@ -165,7 +165,6 @@ io.on("connection", (socket) => {
         //corresponding user id
         if (gameLogic.isUserInGame(socket.userId)) {
             //After we find the user then we delete the user gamestate for the game and  end game if is less or equal to one player
-            console.log("user id ",socket.userId);
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
             // If the game ends (check if endGameResult exists in gameResult)
             if (gameResult.endGameResult) {
@@ -187,12 +186,13 @@ io.on("connection", (socket) => {
                     io.emit("game_end", {
                         winner: winner,
                         reason: `Game over. ${winner.userName} is the last player standing.`,
-                        gameResult: gameResult.roundResult,
+                        gameResult: gameResult.roundResult
                     });
+                    console.log("information being passed to fron end",winner,gameResult);
                 } else {
                     io.emit("game_end", {
                         reason: "Game over. All players have disconnected.",
-                        gameResult: gameResult.endGameResult.gameState,
+                        gameResult: gameResult
                     });
                 }
             } else {
