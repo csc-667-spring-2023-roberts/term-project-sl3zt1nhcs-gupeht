@@ -70,6 +70,7 @@ function removeUserFromGame(user_id) {
     let playState = gameState.players[user_id];
 
     playState.isActive = false;
+    playState.isParticipating = false;
 
     playerModel
         .updatePlayerState(user_id, playState)
@@ -104,6 +105,7 @@ function playerJoinGame(user_id, userName) {
         bet_amount: 0,
         money: 1000, // Let's give each player 1000 units of money to start
         isActive: true, // New property indicating if the player is active in the current round
+        isParticipating: true,
         roundsWon: 0,
         roundsLost: 0,
         gamesWon: 0,
@@ -132,7 +134,7 @@ function playerFold(user_id) {
 
 function startGame() {
     // Only start the game if there are at least two players
-    if (Object.keys(gameState.players).length < 2) {
+    if (Object.keys(gameState.players).length < 2 && Object.keys(gameState.players.isParticipating) === false) {
         return;
     }
 
@@ -142,8 +144,9 @@ function startGame() {
 
     // Deal two cards to each player
     for (let user_id in gameState.players) {
-        gameState.players[user_id].cards = [deck.pop(), deck.pop()];
+        gameState.players[user_id].cards = [deck.pop(), deck.pop(), deck.pop(), deck.pop(), deck.pop()];
         gameState.players[user_id].isActive = true;
+        gameState.players[user_id].isParticipating = true;
     }
 
     // The player after the dealer goes first if there's no current player
@@ -348,39 +351,41 @@ function endRound() {
 
 function endGame() {
     let result = {};
-    console.log("game is ended and game state reset");
 
-    let winners = determineWinner();
+    let maxRoundsWon = 0;
+    let winners = [];
 
-    if (Array.isArray(winners)) {
-        winners.forEach((winner) => {
-            gameState.players[winner].gamesWon++;
-        });
-
-        for (let player in gameState.players) {
-            if (!winners.includes(player)) {
-                gameState.players[player].gamesLost++;
-                gameState.players[player].isActive = false;
-            }
-        }
-    } else {
-        gameState.players[winners].gamesWon++;
-
-        for (let player in gameState.players) {
-            if (player !== winners) {
-                gameState.players[player].gamesLost++;
-                gameState.players[player].isActive = false;
-            }
+    // Determine the player(s) with the maximum rounds won
+    for (let user_id in gameState.players) {
+        if (gameState.players[user_id].roundsWon > maxRoundsWon) {
+            maxRoundsWon = gameState.players[user_id].roundsWon;
+            winners = [user_id]; // New winner found, reset the winners array
+        } else if (gameState.players[user_id].roundsWon === maxRoundsWon) {
+            winners.push(user_id); // Tie, add the player to the winners array
         }
     }
 
-    // Mark the game as inactive
+    // Increment the gamesWon for the winners and gamesLost for the others
+    for (let user_id in gameState.players) {
+        if (winners.includes(user_id)) {
+            gameState.players[user_id].gamesWon++;
+        } else {
+            gameState.players[user_id].gamesLost++;
+        }
+
+        // Reset the roundsWon and roundsLost for the next game
+        gameState.players[user_id].roundsWon = 0;
+        gameState.players[user_id].roundsLost = 0;
+    }
+
+    // Always return the winners as an array
+    let winnerNames = winners.map((id) => gameState.players[id].userName);
+    result.winners = winnerNames;
     gameState.isActive = false;
-
     result.gameState = gameState;
-
     return result;
 }
+
 
 module.exports = {
     createDeck,
