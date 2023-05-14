@@ -35,6 +35,45 @@ function getGameState() {
     return gameState;
 }
 
+function isUserInGame(user_id){
+    return !!gameState.players[user_id];
+}
+
+function removeUserFromGame(user_id) {
+    // Check if the player exists in the game
+    if (!gameState.players[user_id]) {
+        return `Player ${user_id} does not exist in the game`;
+    }
+
+    // If the player is the dealer, assign a new dealer
+    if (gameState.dealer === user_id) {
+        gameState.dealer = getNextPlayer(user_id);
+    }
+
+    // If the player is the current player, move to the next player
+    if (gameState.current_player === user_id) {
+        gameState.current_player = getNextPlayer(user_id);
+    }
+
+    // Remove the player from the game
+    delete gameState.players[user_id];
+
+    // Check if there's only one player left. If so, end the round.
+    if (Object.keys(gameState.players).length === 1) {
+        endRound();
+    }
+
+    // If no players left, end the game
+    if (Object.keys(gameState.players).length === 0) {
+        endGame();
+    }
+}
+
+function getRemainingPlayers() {
+    return Object.keys(gameState.players).filter((id) => gameState.players[id].isActive);
+}
+
+
 function playerJoinGame(user_id, userName) {
     gameState.players[user_id] = {
         userName: userName,
@@ -162,6 +201,8 @@ function playerLeaveGame(user_id) {
         endRound();
     }
     console.log("ended round");
+
+    endGame();
 }
 
 function showCards(user_id) {
@@ -272,6 +313,18 @@ function endRound() {
     }
 }
 
+
+function endGame(){
+
+    gameState = {
+        pot: 0,
+        current_bet:0,
+        dealer: null,
+        current_player:null,
+        players:{},
+    }
+}
+
 module.exports = {
     createDeck,
     shuffle,
@@ -284,4 +337,8 @@ module.exports = {
     endRound,
     showCards,
     playerLeaveGame,
+    getRemainingPlayers,
+    isUserInGame,
+    removeUserFromGame
+    
 };

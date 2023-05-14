@@ -104,6 +104,8 @@ export async function fetchLobby() {
 
             socket.on("game_start", async (data) => {
                 console.log("Game started with ID:", data.gameId);
+                //store game_id in local storage for use:
+                localStorage.setItem("game_id", data.gameId);
                 // Fetch the game content
                 const response = await fetch(`/user/game/${data.gameId}`, {
                     credentials: "include",
@@ -112,6 +114,34 @@ export async function fetchLobby() {
                 // Load the game content into the game div
                 document.getElementById("game").innerHTML = gameHtml;
             });
+
+            socket.on("user_left_game",(data)=>{
+                console.log(`${data.userName} left the game.`);
+                // remove the user from the user list
+                const userListElement = document.getElementById("user-list");
+                for (let i = 0; i < userListElement.children.length; i++) {
+                    const userElement = userListElement.children[i];
+                    if (userElement.textContent.startsWith(`${data.userName} is online`)) {
+                        userElement.remove();
+                        break;
+                    }
+                }
+            });
+            
+
+            socket.on("game_end",(data)=>{
+                console.log("Game ended. Reason:", data.reason);
+                if (data.winner) {
+                    console.log("Winner:", data.winner);
+                }
+                // you might want to do some cleanup here, like clearing the game HTML
+                document.getElementById("game").innerHTML = "";
+            });
+
+
+
+
+
 
             // Event handler for sending messages
             document.getElementById("message-form").addEventListener("submit", (event) => {
@@ -156,9 +186,11 @@ function handleLoginForm() {
     }
 }
 
+
 function handleLogout() {
     document.addEventListener("click", (event) => {
         if (event.target && event.target.id === "logout") {
+            
             event.preventDefault();
             logout();
         }

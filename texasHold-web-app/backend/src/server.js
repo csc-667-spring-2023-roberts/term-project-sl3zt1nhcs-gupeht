@@ -15,7 +15,7 @@ const server = http.createServer(app);
 const userModel = require("./models/users/userModel");
 const gameLogic = require("./models/game/gameLogic");
 const gameModel = require("./models/game/gameModel");
-const playerModel = require ("./models/game/playerModels");
+const playerModel = require("./models/game/playerModels");
 
 // keep list of online users
 let onlineUsers = {};
@@ -97,6 +97,8 @@ io.on("connection", (socket) => {
                                 console.error(err);
                             });
                     }
+                    // Emit the game_start event to the clients
+                    io.emit("game_start", { gameId: createdGame.game_id });
                 })
                 .catch((err) => {
                     console.error(err);
@@ -127,15 +129,31 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        // Remove user from onlineUsers object
         delete onlineUsers[socket.userId];
-
-        // Notify other users that this user has disconnected
+        // And Notify other users that this user has disconnected
         io.emit("update_user_list", onlineUsers);
-        //Broadcast that the user has connected on lobby
+        // Then broadcast that the user has connected on lobby
         io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has left the lobby` });
-
         console.log(`User ${socket.userName} disconnected`);
+
+        // If the user was part of a game, handle their disconnection
+        if (gameLogic.isUserInGame(socket.userId)) {
+            gameLogic.removeUserFromGame(socket.userId);
+
+            // If only one player is left, end the game
+            const remainingPlayers = gameLogic.getRemainingPlayers();
+            if (remainingPlayers && remainingPlayers.length === 1) {
+                io.emit("game_end", {
+                    winner: remainingPlayers[0],
+                    reason: `Game over. ${remainingPlayers[0].userName} is the last player standing.`,
+                });
+            } else if (remainingPlayers && remainingPlayers.length === 0) {
+                io.emit("game_end", { reason: "Game over. All players have disconnected." });
+            } else {
+                // Else, notify other players about the disconnection
+                io.emit("user_left_game", { userName: socket.userName });
+            }
+        }
     });
 });
 
@@ -163,7 +181,6 @@ app.use(customErrorHandler);
 
 //Creates database
 const { CreateTableError, createTables } = require("./database/createTables");
-
 
 const result = {};
 
