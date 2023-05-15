@@ -111,12 +111,21 @@ io.on("connection", (socket) => {
                                 console.error(err);
                             });
                     }
-                    // We then must emit the game start to the front end
-                    // upon game start the front end will render the game
-                    //page  as Single Application page
-                    // Front ent will just render the game div
-                    // end point for user/game/:gameId is set on the user router file
-                    io.emit("game_start", { gameId: createdGame.game_id });
+                    io.emit("game_start", {
+                        gameId: createdGame.game_id,
+                        gameState: {
+                            players: Object.keys(gameState.players).map((userId) => {
+                                return {
+                                    userId: userId,
+                                    userName: gameState.players[userId].userName,
+                                    cards: gameState.players[userId].cards,
+                                    bet_amount: gameState.players[userId].bet_amount,
+                                    money: gameState.players[userId].money,
+                                };
+                            }),
+                            current_player: gameState.current_player,
+                        },
+                    });
                 })
                 .catch((err) => {
                     console.error(err);
@@ -199,7 +208,7 @@ io.on("connection", (socket) => {
             } else {
                 io.emit("game_end", {
                     reason: "Game over. All players have disconnected.",
-                    gameResult: gameResult.endGameResult ? gameResult.endGameResult.gameState : {},
+                    gameResult: gameResult.endGameResult ? gameResult.endGameResult : {},
                 });
             }
         }
