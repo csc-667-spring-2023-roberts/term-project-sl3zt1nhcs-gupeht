@@ -102,17 +102,9 @@ export async function fetchLobby() {
                 }
             });
 
+
             socket.on("game_start", async (data) => {
-                console.log("Game started with ID:", data.gameId);
-                //store game_id in local storage for use:
-                localStorage.setItem("game_id", data.gameId);
-                // Fetch the game content
-                const response = await fetch(`/user/game/${data.gameId}`, {
-                    credentials: "include",
-                });
-                const gameHtml = await response.text();
-                // Load the game content into the game div
-                document.getElementById("game").innerHTML = gameHtml;
+              
             });
 
             socket.on("user_left_game",(data)=>{
@@ -128,7 +120,6 @@ export async function fetchLobby() {
                 }
             });
             
-
             socket.on("game_end",(data)=>{
                 console.log("Game ended. Reason:", data.reason);
                 if (data.winner) {

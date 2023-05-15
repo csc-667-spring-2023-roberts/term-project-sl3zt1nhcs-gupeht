@@ -19,6 +19,8 @@ const playerModel = require("./models/game/playerModels");
 // Set online users to be an object
 let onlineUsers = {};
 
+let socketIdMap = new Map();
+
 //set io and active cors
 const io = require("socket.io")(server, {
     cors: {
@@ -31,21 +33,30 @@ const io = require("socket.io")(server, {
 // Io connection functions start here
 io.on("connection", (socket) => {
     console.log(`Connection established on socket Id: ${socket.id}`);
-    //listening to front end join_lobby
-    socket.on("join_lobby", (data) => {
+    //listening to front end join_lobby event being emiited
+    socket.on("join_lobby", (data) => {  // data will be the userName along with user_id . the userName and user_id  is stored in the local storage
         onlineUsers[data.userId] = data.userName;
         // getting the userId and userName from the front end and adding to the socket object
+
         // that way we can retrieve the data if a certain function does not pass a parameter
         socket.userId = data.userId;
         socket.userName = data.userName;
+
+        // Mapping the user Id to the socket Id so we can broadcast data to a specific user. In this example, cards wil be broadcasted for the user
+        socketIdMap.set(data.userId, socket.id);
+
         // Emitting the updated user list to all connected sockets
         io.emit("update_user_list", onlineUsers);
+
         // Joining the user to the 'lobby' room
         socket.join("lobby");
+
         // Logging the join event
         console.log(`User ${data.userName} joined the lobby`);
+
         //Broadcast that the user has connected on lobby
         io.to("lobby").emit("receive_message", { userName: "System", message: ` ${data.userName} joined lobby` });
+
         // Fetching all messages from the database
         userModel
             .getMessages()
@@ -68,9 +79,7 @@ io.on("connection", (socket) => {
                 console.error(err);
             });
         /*
-            In this game we will set the game for only 2 players.
-            the game will be created, players will join, and game will start as 2 
-            players are found in the online userList
+            We will keep track of players connected in the online user
         */
         if (Object.keys(onlineUsers).length >= 2) {
             // Add all online users to the game
@@ -79,26 +88,22 @@ io.on("connection", (socket) => {
                 // it will then set the player object state
                 gameLogic.playerJoinGame(userId, onlineUsers[userId]);
             }
-            /*  Then start the game
-                shuffle cards
-                deal 2 cards each
-                determine dealer and next player
-            */
+
             gameLogic.startGame();
-            /*
-               Now, the game needs to be stored in the database
-            */
+
             const gameState = gameLogic.getGameState();
             // create a new game in the database
             gameModel
+
                 .createGame("Default", gameState)
                 .then((createdGame) => {
                     // the database will return the created game row but we console log the game_id
                     console.log(`Created new game with ID: ${createdGame.game_id}`);
+
                     /*
-                        Since both connected players need to join the game
-                        we loop through gameState.players object to get the user_id of each
-                    */
+                    Since both connected players need to join the game
+                    we loop through gameState.players object to get the user_id of each
+                */
                     for (let userId in gameState.players) {
                         // We call the database model join game that will add the data of
                         // user that is related to the created game Id
@@ -111,21 +116,29 @@ io.on("connection", (socket) => {
                                 console.error(err);
                             });
                     }
-                    io.emit("game_start", {
-                        gameId: createdGame.game_id,
-                        gameState: {
-                            players: Object.keys(gameState.players).map((userId) => {
-                                return {
-                                    userId: userId,
-                                    userName: gameState.players[userId].userName,
-                                    cards: gameState.players[userId].cards,
-                                    bet_amount: gameState.players[userId].bet_amount,
-                                    money: gameState.players[userId].money,
-                                };
-                            }),
+
+                    for (let userId in gameState.players) {
+                        let socketId = socketIdMap.get(userId);
+
+                        // Sends each individual their corresponding game state
+                        const playerGameState = gameState.players[userId];
+
+                        io.to(socketId).emit("game_start", {
+                            gameId: createdGame.game_id,
+                            gameState: playerGameState,
                             current_player: gameState.current_player,
-                        },
-                    });
+                        });
+                        /* Console.log for debugging to see what is being sent to the front end
+                        each player should be sent only their game state
+                        */
+                        console.log(
+                            `Sent game start data to player with ID: ${userId}. for gameId:  ${
+                                createdGame.game_id
+                            } Player Game State: ${JSON.stringify(playerGameState, null, 2)}, Opponent player:; ${
+                                gameState.current_player
+                            }`
+                        );
+                    }
                 })
                 .catch((err) => {
                     console.error(err);
@@ -160,20 +173,21 @@ io.on("connection", (socket) => {
                 socket.emit("message_error", { error: "An error occurred while storing the message." });
             });
     });
-    // Event to handle users disconnetcting from lobby and game
+
     socket.on("disconnect", () => {
-        // deleting the user from the list of online users
+        // Deleting the user from the list of online users
         delete onlineUsers[socket.userId];
-        // And Notify other users that this user has disconnected
+
+        // Notify other users that this user has disconnected
         io.emit("update_user_list", onlineUsers);
-        // Then broadcast that the user has connected on lobby
+        // Broadcast that the user has disconnected from the lobby
         io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has left the lobby` });
         console.log(`User ${socket.userName} disconnected`);
+
         // If the user was part of a game, handle their disconnection
-        // We need to check if user is part of game by checking the game state and looking at players object for the
-        //corresponding user id
         if (gameLogic.isUserInGame(socket.userId)) {
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
+
             if (gameResult.endGameResult) {
                 gameModel
                     .getRecentGameId()
@@ -190,25 +204,42 @@ io.on("connection", (socket) => {
 
                 if (gameResult.endGameResult.winners) {
                     let winners = gameResult.endGameResult.winners;
-
                     winners.forEach((winnerName) => {
                         let winnerId = Object.keys(gameResult.endGameResult.gameState.players).find(
                             (playerId) => gameResult.endGameResult.gameState.players[playerId].userName === winnerName
                         );
                         let winner = gameResult.endGameResult.gameState.players[winnerId];
                         console.log("winner::", winner);
-                        io.emit("game_end", {
-                            winner: winner,
-                            reason: `Game over. ${winner.userName} is a winner.`,
-                            gameResult: gameResult.roundResult,
+
+                        // Sending individualized data to each player
+                        Object.keys(gameResult.endGameResult.gameState.players).forEach((playerId) => {
+                            let socketId = socketIdMap.get(playerId);
+                            if (socketId) {
+                                if (playerId === winnerId) {
+                                    // If the player is the winner
+                                    io.to(socketId).emit("game_end", {
+                                        winner: winner,
+                                        reason: `Game over. ${winner.userName} is the winner.`,
+                                        gameResult: gameResult.roundResult,
+                                    });
+                                    console.log("information being passed to front end", winner, gameResult);
+                                } else {
+                                    // If the player is not the winner
+                                    io.to(socketId).emit("game_end", {
+                                        reason: `Game over. You lost. ${winner.userName} is the winner.`,
+                                        gameResult: gameResult.roundResult,
+                                    });
+                                    console.log("information being passed to front end", "Loser", gameResult);
+                                }
+                            }
                         });
-                        console.log("information being passed to front end", winner, gameResult);
                     });
                 }
             } else {
+                // If game ends without a clear winner (all players disconnected)
                 io.emit("game_end", {
                     reason: "Game over. All players have disconnected.",
-                    gameResult: gameResult.endGameResult ? gameResult.endGameResult : {},
+                    gameResult: gameResult.endGameResult ? gameResult.endGameResult.gameState : {},
                 });
             }
         }

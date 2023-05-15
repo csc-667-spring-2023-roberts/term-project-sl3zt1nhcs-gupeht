@@ -22,7 +22,7 @@ export async function register() {
 
             setTimeout(() => {
                 window.location.href = "/user/login";
-            }, 3000);
+            }, 2000);
         } else if (response.status === 409) {
             messageDiv.textContent = responseData.message;
         } else {

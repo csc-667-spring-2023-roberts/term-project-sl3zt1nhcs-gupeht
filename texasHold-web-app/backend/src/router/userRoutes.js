@@ -28,11 +28,5 @@ router.get("/login", (req, res) => {
     res.render("login");
 });
 
-// end point for game
-router.get("/game/:gameId", (req, res) => {
-    const gameId = req.params.gameId;
-    // TODO: Fetch any other data you need for the game
-    res.render("game", { gameId });
-});
 
 module.exports = router;
