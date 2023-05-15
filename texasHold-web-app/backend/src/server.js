@@ -34,7 +34,8 @@ const io = require("socket.io")(server, {
 io.on("connection", (socket) => {
     console.log(`Connection established on socket Id: ${socket.id}`);
     //listening to front end join_lobby event being emiited
-    socket.on("join_lobby", (data) => {  // data will be the userName along with user_id . the userName and user_id  is stored in the local storage
+    socket.on("join_lobby", (data) => {
+        // data will be the userName along with user_id . the userName and user_id  is stored in the local storage
         onlineUsers[data.userId] = data.userName;
         // getting the userId and userName from the front end and adding to the socket object
 
@@ -79,7 +80,8 @@ io.on("connection", (socket) => {
                 console.error(err);
             });
         /*
-            We will keep track of players connected in the online user
+            The game is initiated only when ther are 2 or more users
+            TODO must fix starting a new game when a third player  joins the game.
         */
         if (Object.keys(onlineUsers).length >= 2) {
             // Add all online users to the game
@@ -89,24 +91,21 @@ io.on("connection", (socket) => {
                 gameLogic.playerJoinGame(userId, onlineUsers[userId]);
             }
 
+            // Now after players joined the game we will start the game
             gameLogic.startGame();
 
+            // We need to store the game in the database
             const gameState = gameLogic.getGameState();
             // create a new game in the database
             gameModel
-
                 .createGame("Default", gameState)
                 .then((createdGame) => {
                     // the database will return the created game row but we console log the game_id
                     console.log(`Created new game with ID: ${createdGame.game_id}`);
-
                     /*
-                    Since both connected players need to join the game
-                    we loop through gameState.players object to get the user_id of each
-                */
+                    we loop through each player so we can record each individual player data on the database
+                    */
                     for (let userId in gameState.players) {
-                        // We call the database model join game that will add the data of
-                        // user that is related to the created game Id
                         playerModel
                             .joinGame(userId, createdGame.game_id, gameState.players[userId])
                             .then((createdPlayer) => {
@@ -116,7 +115,12 @@ io.on("connection", (socket) => {
                                 console.error(err);
                             });
                     }
-
+                    /*
+                      Loop to send to the front end each individual player
+                      their game state. We can accomplish this by assigining
+                      socketId  to socketIdMap.geet(userId) declared in the begginning
+                      of Io function
+                    */
                     for (let userId in gameState.players) {
                         let socketId = socketIdMap.get(userId);
 
@@ -245,6 +249,8 @@ io.on("connection", (socket) => {
         }
     });
 });
+
+// Server side code
 
 // view engine setup
 app.set("views", path.join(__dirname, "../../frontend/src/public/views"));
