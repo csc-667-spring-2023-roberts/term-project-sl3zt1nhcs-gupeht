@@ -40,7 +40,7 @@ function getGameState() {
 }
 
 function isUserInGame(user_id) {
-    let result = !!gameState.players[user_id] ? `user is  in game` : `user is not  in game`;
+    let result = !!gameState.players[user_id] ? `user leaving is  in game` : `user leaving is not  in game`;
 
     console.log(result);
 
@@ -65,26 +65,14 @@ function removeUserFromGame(user_id) {
         console.log("user leaving the game was a current player");
         gameState.current_player = getNextPlayer(user_id);
     }
+
     console.log("Updating player state");
 
     let playState = gameState.players[user_id];
-
     playState.isActive = false;
     playState.isParticipating = false;
 
-    playerModel
-        .updatePlayerState(user_id, playState)
-        .then((updatedPlayer) => {
-            if (!updatedPlayer) {
-                console.log("player is not in the game");
-            }
-            console.log("player state updated in database");
-        })
-        .catch((err) => {
-            console.error("erro updating player state", err);
-        });
-
-    let activePlayers = Object.values(gameState.players).filter((player) => player.isActive).length;
+    let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
 
     console.log("Active players remaining in the game:", activePlayers);
 
@@ -92,7 +80,27 @@ function removeUserFromGame(user_id) {
         console.log("only one player left in round.  end round is being called");
         gameResult.roundResult = endRound();
         gameResult.endGameResult = endGame();
+        Object.values(gameState.players).forEach((player) => {
+            player.isActive = false;
+            player.isParticipating = false;
+        });
     }
+
+    // update all player states in the database
+    for (let id in gameState.players) {
+        playerModel
+            .updatePlayerState(id, gameState.players[id])
+            .then((updatedPlayer) => {
+                if (!updatedPlayer) {
+                    console.log("player is not in the game");
+                }
+                console.log("player state updated in database");
+            })
+            .catch((err) => {
+                console.error("error updating player state", err);
+            });
+    }
+
     console.log("game result:", gameResult.roundResult);
 
     return gameResult;
@@ -112,12 +120,16 @@ function playerJoinGame(user_id, userName) {
         gamesLost: 0,
     };
 
-    // If this is the first player to join, they become the dealer
-    if (!gameState.dealer) {
-        gameState.dealer = user_id;
-    } else if (!gameState.current_player) {
-        // If this is the second player to join, they become the current player
-        gameState.current_player = user_id;
+    let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
+
+    if (activePlayers === 1) {
+        // If this is the first player to join, they become the dealer
+        if (!gameState.dealer) {
+            gameState.dealer = user_id;
+        } else if (!gameState.current_player) {
+            // If this is the second player to join, they become the current player
+            gameState.current_player = user_id;
+        }
     }
 }
 
@@ -142,7 +154,6 @@ function startGame() {
     let deck = createDeck();
     shuffle(deck);
 
-    // Deal two cards to each player
     for (let user_id in gameState.players) {
         gameState.players[user_id].cards = [deck.pop(), deck.pop(), deck.pop(), deck.pop(), deck.pop()];
         gameState.players[user_id].isActive = true;
@@ -374,8 +385,13 @@ function endGame() {
         }
 
         // Reset the roundsWon and roundsLost for the next game
-        gameState.players[user_id].roundsWon = 0;
-        gameState.players[user_id].roundsLost = 0;
+        // gameState.players[user_id].roundsWon = 0;
+        //   gameState.players[user_id].roundsLost = 0;
+    }
+
+    for (let user_id in gameState.players) {
+        gameState.players[user_id].isActive = false;
+        gameState.players[user_id].isParticipating = false;
     }
 
     // Always return the winners as an array
@@ -385,7 +401,6 @@ function endGame() {
     result.gameState = gameState;
     return result;
 }
-
 
 module.exports = {
     createDeck,
