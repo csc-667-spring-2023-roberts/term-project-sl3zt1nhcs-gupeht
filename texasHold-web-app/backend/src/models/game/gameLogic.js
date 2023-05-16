@@ -68,6 +68,7 @@ function removeUserFromGame(user_id) {
     console.log("Updating player state of the player leaving the game");
     let playState = gameState.players[user_id];
     playState.isParticipating = false;
+    gameState.players[user_id] = playState; // Update the gameState with the new player state
     playerModel.updatePlayerState(user_id, gameState.players[user_id]);
 
     let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
@@ -75,13 +76,16 @@ function removeUserFromGame(user_id) {
 
     if (activePlayers > 1) {
         console.log("more than one player left");
+        // we will count the cards
         gameResult.roundResult = endRound();
     } else if (activePlayers === 1) {
         console.log("only one player left");
+        // only the player who did not leave the game should be counted as winner regardless of the cards
         gameResult.endGameResult = endGame();
         Object.values(gameState.players).forEach((player) => {
             player.isActive = false;
             player.isParticipating = false;
+            gameState.players[player.userId] = player; // Update the gameState with the new player state
         });
     }
 
@@ -406,11 +410,14 @@ function endGame() {
     let result = {};
 
     let activePlayers = [];
+    let inactivePlayers = [];
 
     // Identify all active players
     for (let user_id in gameState.players) {
         if (gameState.players[user_id].isParticipating) {
             activePlayers.push(user_id);
+        } else {
+            inactivePlayers.push(user_id);
         }
     }
 
@@ -419,6 +426,11 @@ function endGame() {
         let winnerId = activePlayers[0];
         gameState.players[winnerId].gamesWon++;
         result.winners = [gameState.players[winnerId].userName];
+
+        // Increment gamesLost for all inactive players
+        inactivePlayers.forEach((playerId) => {
+            gameState.players[playerId].gamesLost++;
+        });
     } else {
         // If more than one player is active, determine the player(s) with the maximum rounds won
         let maxRoundsWon = 0;
@@ -460,13 +472,12 @@ function endGame() {
     // Update each player's state in the database
     for (let user_id in gameState.players) {
         let playerState = gameState.players[user_id];
-    
+
         playerModel.updatePlayerState(user_id, playerState);
     }
 
     return result;
 }
-
 
 module.exports = {
     createDeck,
