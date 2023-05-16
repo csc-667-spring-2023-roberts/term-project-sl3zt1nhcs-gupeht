@@ -79,10 +79,7 @@ io.on("connection", (socket) => {
                 // If an error occurs while fetching messages, log it
                 console.error(err);
             });
-        /*
-            The game is initiated only when ther are 2 or more users
-            TODO must fix starting a new game when a third player  joins the game.
-        */
+
         if (Object.keys(onlineUsers).length >= 2) {
             // Add all online users to the game
             for (let userId in onlineUsers) {
@@ -119,7 +116,7 @@ io.on("connection", (socket) => {
                       Loop to send to the front end each individual player
                       their game state. We can accomplish this by assigining
                       socketId  to socketIdMap.geet(userId) declared in the begginning
-                      of Io function
+                      of IO function
                     */
                     for (let userId in gameState.players) {
                         let socketId = socketIdMap.get(userId);
@@ -132,9 +129,8 @@ io.on("connection", (socket) => {
                             gameState: playerGameState,
                             current_player: gameState.current_player,
                         });
-                        /* Console.log for debugging to see what is being sent to the front end
-                        each player should be sent only their game state
-                        */
+
+                        //TODO for debugging
                         console.log(
                             `Sent game start data to player with ID: ${userId}. for gameId:  ${
                                 createdGame.game_id
@@ -179,14 +175,9 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
+        
         // Deleting the user from the list of online users
         delete onlineUsers[socket.userId];
-
-        // Notify other users that this user has disconnected
-        io.emit("update_user_list", onlineUsers);
-        // Broadcast that the user has disconnected from the lobby
-        io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has left the lobby` });
-        console.log(`User ${socket.userName} disconnected`);
 
         // If the user was part of a game, handle their disconnection
         if (gameLogic.isUserInGame(socket.userId)) {
@@ -205,7 +196,6 @@ io.on("connection", (socket) => {
                     .catch((err) => {
                         console.error("Error updating the game state", err);
                     });
-
                 if (gameResult.endGameResult.winners) {
                     let winners = gameResult.endGameResult.winners;
                     winners.forEach((winnerName) => {
@@ -219,36 +209,55 @@ io.on("connection", (socket) => {
                         Object.keys(gameResult.endGameResult.gameState.players).forEach((playerId) => {
                             let socketId = socketIdMap.get(playerId);
                             if (socketId) {
+                                let player = gameResult.endGameResult.gameState.players[playerId];
                                 if (playerId === winnerId) {
                                     // If the player is the winner
                                     io.to(socketId).emit("game_end", {
                                         winner: winner,
+                                        player: player,
                                         reason: `Game over. ${winner.userName} is the winner.`,
-                                        gameResult: gameResult.roundResult,
+                                        gameResult: gameResult.endGameResult.gameState,
                                     });
                                     console.log("information being passed to front end", winner, gameResult);
                                 } else {
                                     // If the player is not the winner
                                     io.to(socketId).emit("game_end", {
+                                        winner: winner,
+                                        player: player,
                                         reason: `Game over. You lost. ${winner.userName} is the winner.`,
-                                        gameResult: gameResult.roundResult,
+                                        gameResult: gameResult.endGameResult.gameState,
                                     });
                                     console.log("information being passed to front end", "Loser", gameResult);
                                 }
                             }
                         });
                     });
+                } else {
+                    // If game ends without a clear winner (all players disconnected)
+                    io.emit("game_end", {
+                        reason: "Game over. All players have disconnected.",
+                        gameResult: gameResult.endGameResult ? gameResult.endGameResult.gameState : {},
+                    });
                 }
-            } else {
-                // If game ends without a clear winner (all players disconnected)
-                io.emit("game_end", {
-                    reason: "Game over. All players have disconnected.",
-                    gameResult: gameResult.endGameResult ? gameResult.endGameResult.gameState : {},
-                });
             }
         }
+
+        // Delay the notification of other users that this user has disconnected
+        setTimeout(() => {
+            // Notify other users that this user has disconnected
+            io.emit("update_user_list", onlineUsers);
+            // Broadcast that the user has disconnected from the lobby
+            io.to("lobby").emit("receive_message", { userName: "System", message: `${socket.userName} has left the lobby` });
+        }, 1000);
+
+        console.log(`User ${socket.userName} disconnected`);
+        
     });
+
+    // end of connection
 });
+
+// end of connection
 
 // Server side code
 

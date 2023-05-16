@@ -1,4 +1,3 @@
-const gamesModel = require("./gameModel");
 const playerModel = require("./playerModels");
 
 const suits = ["♠", "♥", "♦", "♣"];
@@ -72,13 +71,15 @@ function removeUserFromGame(user_id) {
     playState.isActive = false;
     playState.isParticipating = false;
 
-    let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
+    let activePlayers = Object.values(gameState.players).filter((player) => player.isActive).length;
 
     console.log("Active players remaining in the game:", activePlayers);
 
-    if (activePlayers <= 1) {
-        console.log("only one player left in round.  end round is being called");
+    if (activePlayers > 1) {
+        console.log("more than one player left");
         gameResult.roundResult = endRound();
+    } else if (activePlayers === 1) {
+        console.log("only one player left");
         gameResult.endGameResult = endGame();
         Object.values(gameState.players).forEach((player) => {
             player.isActive = false;
@@ -86,22 +87,15 @@ function removeUserFromGame(user_id) {
         });
     }
 
-    // update all player states in the database
+    let updatePromises = [];
+
     for (let id in gameState.players) {
-        playerModel
-            .updatePlayerState(id, gameState.players[id])
-            .then((updatedPlayer) => {
-                if (!updatedPlayer) {
-                    console.log("player is not in the game");
-                }
-                console.log("player state updated in database");
-            })
-            .catch((err) => {
-                console.error("error updating player state", err);
-            });
+        updatePromises.push(playerModel.updatePlayerState(id, gameState.players[id]));
     }
 
-    console.log("game result:", gameResult.roundResult);
+    Promise.all(updatePromises)
+        .then(() => console.log("All player states updated in database"))
+        .catch((err) => console.error("Error updating player states", err));
 
     return gameResult;
 }
@@ -145,8 +139,8 @@ function playerFold(user_id) {
 }
 
 function startGame() {
-    // Only start the game if there are at least two players
-    if (Object.keys(gameState.players).length < 2 && Object.keys(gameState.players.isParticipating) === false) {
+    let participatingPlayers = Object.values(gameState.players).filter((player) => player.isParticipating);
+    if (participatingPlayers.length < 2) {
         return;
     }
 
@@ -195,6 +189,16 @@ function playerBet(user_id, amount) {
 
     // Move on to the next player
     gameState.current_player = getNextPlayer(user_id);
+
+    // Check if there is only one active player left
+    const nextPlayer = getNextPlayer(gameState.current_player);
+    if (nextPlayer === null) {
+        // If there is no next active player, end the round or the game
+        const activePlayers = Object.values(gameState.players).filter((player) => player.isActive);
+        if (activePlayers.length === 1) {
+            endRound();
+        }
+    }
 }
 
 function getNextPlayer(currentPlayerId) {
@@ -207,9 +211,16 @@ function getNextPlayer(currentPlayerId) {
     // Get the next player index
     let nextPlayerIndex = (currentPlayerIndex + 1) % playerIds.length;
 
-    // Skip over players who are not active
+    let loopCount = 0; // count how many times we've looped
+
     while (!gameState.players[playerIds[nextPlayerIndex]].isActive) {
         nextPlayerIndex = (nextPlayerIndex + 1) % playerIds.length;
+        loopCount++;
+
+        // If we've looped over all players and none are active, return null or some default value
+        if (loopCount >= playerIds.length) {
+            return null;
+        }
     }
 
     // Return the id of the next player
@@ -291,6 +302,45 @@ function determineWinner() {
     }
 }
 
+// Function to draw a card from the deck
+function drawCard(user_id) {
+    // Make sure it's the player's turn
+    if (gameState.current_player !== user_id) {
+        return `It's not ${gameState.players[user_id].userName}'s turn to draw a card`;
+    }
+
+    // Draw a card from the deck
+    let card = deck.pop();
+
+    // Add the card to the player's hand
+    gameState.players[user_id].cards.push(card);
+}
+
+// Function to pass the turn to the next player
+function passTurn(user_id) {
+    // Make sure it's the player's turn
+    if (gameState.current_player !== user_id) {
+        return `It's not ${gameState.players[user_id].userName}'s turn to pass`;
+    }
+
+    // Pass the turn to the next player
+    gameState.current_player = getNextPlayer(user_id);
+}
+
+// Functions to bet more or less
+function betMore(user_id, additionalAmount) {
+    playerBet(user_id, gameState.players[user_id].bet_amount + additionalAmount);
+}
+
+function betLess(user_id, lessAmount) {
+    playerBet(user_id, gameState.players[user_id].bet_amount - lessAmount);
+}
+
+// Function to bet all
+function betAll(user_id) {
+    playerBet(user_id, gameState.players[user_id].money);
+}
+
 function endRound() {
     let roundResult = {
         cards: {},
@@ -303,8 +353,12 @@ function endRound() {
     // Reveal each player's hand
     for (let user_id in gameState.players) {
         let cards = showCards(user_id);
-        roundResult.cards[user_id] = cards;
-        console.log(`${gameState.players[user_id].userName}'s hand: ${gameState.players[user_id].cards}`);
+        if (Array.isArray(cards)) {
+            roundResult.cards[user_id] = cards;
+            console.log(`${gameState.players[user_id].userName}'s hand: ${cards}`);
+        } else {
+            console.log(cards); // Log the error message
+        }
     }
 
     // Determine the winner
@@ -363,42 +417,57 @@ function endRound() {
 function endGame() {
     let result = {};
 
-    let maxRoundsWon = 0;
-    let winners = [];
+    let activePlayers = [];
 
-    // Determine the player(s) with the maximum rounds won
+    // Identify all active players
     for (let user_id in gameState.players) {
-        if (gameState.players[user_id].roundsWon > maxRoundsWon) {
-            maxRoundsWon = gameState.players[user_id].roundsWon;
-            winners = [user_id]; // New winner found, reset the winners array
-        } else if (gameState.players[user_id].roundsWon === maxRoundsWon) {
-            winners.push(user_id); // Tie, add the player to the winners array
+        if (gameState.players[user_id].isActive) {
+            activePlayers.push(user_id);
         }
     }
 
-    // Increment the gamesWon for the winners and gamesLost for the others
-    for (let user_id in gameState.players) {
-        if (winners.includes(user_id)) {
-            gameState.players[user_id].gamesWon++;
-        } else {
-            gameState.players[user_id].gamesLost++;
+    // If only one player is active, they're the winner
+    if (activePlayers.length === 1) {
+        let winnerId = activePlayers[0];
+        gameState.players[winnerId].gamesWon++;
+        result.winners = [gameState.players[winnerId].userName];
+    } else {
+        // If more than one player is active, determine the player(s) with the maximum rounds won
+        let maxRoundsWon = 0;
+        let winners = [];
+
+        for (let user_id in gameState.players) {
+            if (gameState.players[user_id].roundsWon > maxRoundsWon) {
+                maxRoundsWon = gameState.players[user_id].roundsWon;
+                winners = [user_id]; // New winner found, reset the winners array
+            } else if (gameState.players[user_id].roundsWon === maxRoundsWon) {
+                winners.push(user_id); // Tie, add the player to the winners array
+            }
         }
 
-        // Reset the roundsWon and roundsLost for the next game
-        // gameState.players[user_id].roundsWon = 0;
-        //   gameState.players[user_id].roundsLost = 0;
+        // Increment the gamesWon for the winners and gamesLost for the others
+        for (let user_id in gameState.players) {
+            if (winners.includes(user_id)) {
+                gameState.players[user_id].gamesWon++;
+            } else {
+                gameState.players[user_id].gamesLost++;
+            }
+        }
+
+        let winnerNames = winners.map((id) => gameState.players[id].userName);
+        result.winners = winnerNames;
     }
 
+    // Set all players to inactive and not participating
     for (let user_id in gameState.players) {
         gameState.players[user_id].isActive = false;
         gameState.players[user_id].isParticipating = false;
     }
 
-    // Always return the winners as an array
-    let winnerNames = winners.map((id) => gameState.players[id].userName);
-    result.winners = winnerNames;
+    // Set the game state to inactive
     gameState.isActive = false;
     result.gameState = gameState;
+
     return result;
 }
 
