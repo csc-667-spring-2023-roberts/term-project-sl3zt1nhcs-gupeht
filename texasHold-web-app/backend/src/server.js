@@ -183,9 +183,8 @@ io.on("connection", (socket) => {
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
 
             if (gameResult.remainingPlayers < 2) {
-
                 gameResult.endGameResult = gameLogic.endGame();
-            } 
+            } else {
                 if (gameResult.endGameResult) {
                     gameModel
                         .getRecentGameId()
@@ -201,12 +200,27 @@ io.on("connection", (socket) => {
                         });
                     if (gameResult.endGameResult.winners) {
                         let winners = gameResult.endGameResult.winners;
+
                         winners.forEach((winnerName) => {
                             let winnerId = Object.keys(gameResult.endGameResult.gameState.players).find(
                                 (playerId) => gameResult.endGameResult.gameState.players[playerId].userName === winnerName
                             );
+
                             let winner = gameResult.endGameResult.gameState.players[winnerId];
-                            console.log("winner::", winner);
+
+                            let loserId;
+
+                            for (let playerId in gameResult.endGameResult.gameState.players) {
+                                if (playerId !== winnerId) {
+                                    loserId = playerId;
+                                    break;
+                                }
+                            }
+
+                            let loser = gameResult.endGameResult.gameState.players[loserId]
+
+                            console.log("Debug loser",loser);
+                            console.log("Debug loser",winner);
 
                             // Sending individualized data to each player
                             Object.keys(gameResult.endGameResult.gameState.players).forEach((playerId) => {
@@ -219,7 +233,8 @@ io.on("connection", (socket) => {
                                             winner: winner,
                                             player: player,
                                             reason: `Game over. ${winner.userName} is the winner.`,
-                                            gameResult: gameResult.endGameResult.gameState, // Check this line
+                                            winnersCard: winner.cards,
+                                            losersCard: loser.cards
                                         });
                                         console.log("information being passed to front end", winner, gameResult);
                                     } else {
@@ -228,7 +243,8 @@ io.on("connection", (socket) => {
                                             winner: winner,
                                             player: player,
                                             reason: `Game over. You lost. ${winner.userName} is the winner.`,
-                                            gameResult: gameResult.endGameResult.gameState, // Check this line
+                                            winnersCard: winner.cards,
+                                            losersCard: loser.cards
                                         });
                                         console.log("information being passed to front end", "Loser", gameResult);
                                     }
@@ -243,7 +259,7 @@ io.on("connection", (socket) => {
                         });
                     }
                 }
-            
+            }
         }
 
         // Delay the notification of other users that this user has disconnected

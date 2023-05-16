@@ -167,12 +167,14 @@ export async function fetchLobby() {
                     gameResultElement.innerHTML = `
                         <p>Winner: ${data.winner.userName}</p>
                         <p>Reason: ${data.reason}</p>
-                        <p>Game Result: ${JSON.stringify(data.gameResult)}</p>
+                        <p>WinnersCard: ${JSON.stringify(data.winnersCard)}</p>
+                        <p>LosersCard: ${JSON.stringify(data.losersCard)}</p>
                     `;
                 } else {
                     gameResultElement.innerHTML = `
                         <p>Reason: ${data.reason}</p>
-                        <p>Game Result: ${JSON.stringify(data.gameResult)}</p>
+                        <p>WinnersCard: ${JSON.stringify(data.winnersCard)}</p>
+                        <p>LosersCard: ${JSON.stringify(data.losersCard)}</p>
                     `;
                 }
             

@@ -26,6 +26,7 @@ function shuffle(deck) {
 }
 
 let gameState = {
+    isActive: true,
     pot: 0,
     current_bet: 0,
     dealer: null,
@@ -476,7 +477,9 @@ function endGame() {
         playerModel.updatePlayerState(user_id, playerState);
     }
 
+
     return result;
+
 }
 
 module.exports = {
