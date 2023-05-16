@@ -175,7 +175,6 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        
         // Deleting the user from the list of online users
         delete onlineUsers[socket.userId];
 
@@ -183,6 +182,9 @@ io.on("connection", (socket) => {
         if (gameLogic.isUserInGame(socket.userId)) {
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
 
+            if (gameResult.remainingPlayers < 2) {
+                gameResult.endGameResult = gameLogic.endGame();
+            }
             if (gameResult.endGameResult) {
                 gameModel
                     .getRecentGameId()
@@ -216,7 +218,7 @@ io.on("connection", (socket) => {
                                         winner: winner,
                                         player: player,
                                         reason: `Game over. ${winner.userName} is the winner.`,
-                                        gameResult: gameResult.endGameResult.gameState,
+                                        gameResult: gameResult.endGameResult.gameState, // Check this line
                                     });
                                     console.log("information being passed to front end", winner, gameResult);
                                 } else {
@@ -225,7 +227,7 @@ io.on("connection", (socket) => {
                                         winner: winner,
                                         player: player,
                                         reason: `Game over. You lost. ${winner.userName} is the winner.`,
-                                        gameResult: gameResult.endGameResult.gameState,
+                                        gameResult: gameResult.endGameResult.gameState, // Check this line
                                     });
                                     console.log("information being passed to front end", "Loser", gameResult);
                                 }
@@ -251,13 +253,10 @@ io.on("connection", (socket) => {
         }, 1000);
 
         console.log(`User ${socket.userName} disconnected`);
-        
     });
 
     // end of connection
 });
-
-// end of connection
 
 // Server side code
 

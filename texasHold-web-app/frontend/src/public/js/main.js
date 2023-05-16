@@ -102,37 +102,93 @@ export async function fetchLobby() {
                 }
             });
 
-
             socket.on("game_start", async (data) => {
-              
+                // Access the game div
+                const gameElement = document.getElementById("game");
+
+                // Clear the game div
+                gameElement.innerHTML = "";
+
+                // Create the scoreboard
+                const scoreBoardElement = document.createElement("div");
+                scoreBoardElement.classList.add("score-board");
+                scoreBoardElement.innerHTML = `
+                    <p>Game ID: ${data.gameId}</p>
+                    <p>Current player: ${data.current_player}</p>
+                    <p>Your Round wons: ${data.gameState.roundsWon}</p>
+                    <p>Your Round wons: ${data.gameState.roundsWon}</p>
+                `;
+
+                // Add the scoreboard to the game div
+                gameElement.appendChild(scoreBoardElement);
+
+                // Create the user card
+                const userCardElement = document.createElement("div");
+                userCardElement.classList.add("user-card");
+
+                // Loop through the cards array and add each card to userCardElement
+                for (let card of data.gameState.cards) {
+                    const cardElement = document.createElement("div");
+                    cardElement.classList.add("card");
+                    cardElement.textContent = card;
+                    userCardElement.appendChild(cardElement);
+                }
+
+                // Add the user card to the game div
+                gameElement.appendChild(userCardElement);
+
+                // Create the game buttons
+                const buttonsElement = document.createElement("div");
+                buttonsElement.classList.add("buttons");
+                buttonsElement.innerHTML = `
+                    <button id="hit-button">Hit</button>
+                    <button id="stand-button">Stand</button>
+                `;
+
+                // Add the game buttons to the game div
+                gameElement.appendChild(buttonsElement);
             });
 
-            socket.on("user_left_game",(data)=>{
-                console.log(`${data.userName} left the game.`);
-                // remove the user from the user list
-                const userListElement = document.getElementById("user-list");
-                for (let i = 0; i < userListElement.children.length; i++) {
-                    const userElement = userListElement.children[i];
-                    if (userElement.textContent.startsWith(`${data.userName} is online`)) {
-                        userElement.remove();
-                        break;
-                    }
+            socket.on("game_end", (data) => {
+                console.log(" front end game_end Game ended. Reason:", data.reason);
+            
+                // Access the game div
+                const gameElement = document.getElementById("game");
+            
+                // Clear the game div
+                gameElement.innerHTML = "";
+            
+                // Create a new div for the game result
+                const gameResultElement = document.createElement("div");
+                gameResultElement.classList.add("game-result");
+            
+                // Add the game result to the new div
+                if (data.winner) {
+                    gameResultElement.innerHTML = `
+                        <p>Winner: ${data.winner.userName}</p>
+                        <p>Reason: ${data.reason}</p>
+                        <p>Game Result: ${JSON.stringify(data.gameResult)}</p>
+                    `;
+                } else {
+                    gameResultElement.innerHTML = `
+                        <p>Reason: ${data.reason}</p>
+                        <p>Game Result: ${JSON.stringify(data.gameResult)}</p>
+                    `;
                 }
+            
+                // Add the game result div to the game div
+                gameElement.appendChild(gameResultElement);
+            
+                // Show waiting message
+                const waitingMessage = document.getElementById("waiting-message");
+                waitingMessage.style.display = "block";
+            
+                // Hide waiting message after 5 seconds
+                setTimeout(() => {
+                    waitingMessage.style.display = "none";
+                }, 2000);
             });
             
-            socket.on("game_end",(data)=>{
-                console.log("Game ended. Reason:", data.reason);
-                if (data.winner) {
-                    console.log("Winner:", data.winner);
-                }
-                // you might want to do some cleanup here, like clearing the game HTML
-                document.getElementById("game").innerHTML = "";
-            });
-
-
-
-
-
 
             // Event handler for sending messages
             document.getElementById("message-form").addEventListener("submit", (event) => {
@@ -177,11 +233,9 @@ function handleLoginForm() {
     }
 }
 
-
 function handleLogout() {
     document.addEventListener("click", (event) => {
         if (event.target && event.target.id === "logout") {
-            
             event.preventDefault();
             logout();
         }

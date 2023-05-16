@@ -65,14 +65,12 @@ function removeUserFromGame(user_id) {
         gameState.current_player = getNextPlayer(user_id);
     }
 
-    console.log("Updating player state");
-
+    console.log("Updating player state of the player leaving the game");
     let playState = gameState.players[user_id];
-    playState.isActive = false;
     playState.isParticipating = false;
+    playerModel.updatePlayerState(user_id, gameState.players[user_id]);
 
-    let activePlayers = Object.values(gameState.players).filter((player) => player.isActive).length;
-
+    let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
     console.log("Active players remaining in the game:", activePlayers);
 
     if (activePlayers > 1) {
@@ -86,16 +84,6 @@ function removeUserFromGame(user_id) {
             player.isParticipating = false;
         });
     }
-
-    let updatePromises = [];
-
-    for (let id in gameState.players) {
-        updatePromises.push(playerModel.updatePlayerState(id, gameState.players[id]));
-    }
-
-    Promise.all(updatePromises)
-        .then(() => console.log("All player states updated in database"))
-        .catch((err) => console.error("Error updating player states", err));
 
     return gameResult;
 }
@@ -407,13 +395,13 @@ function endRound() {
         gameState.players[user_id].cards = [];
         gameState.players[user_id].bet_amount = 0;
         gameState.players[user_id].isActive = true;
+        playerModel.updatePlayerState(user_id, gameState.players[user_id]);
     }
 
     console.log("round result:", roundResult);
 
     return roundResult;
 }
-
 function endGame() {
     let result = {};
 
@@ -421,7 +409,7 @@ function endGame() {
 
     // Identify all active players
     for (let user_id in gameState.players) {
-        if (gameState.players[user_id].isActive) {
+        if (gameState.players[user_id].isParticipating) {
             activePlayers.push(user_id);
         }
     }
@@ -462,14 +450,23 @@ function endGame() {
     for (let user_id in gameState.players) {
         gameState.players[user_id].isActive = false;
         gameState.players[user_id].isParticipating = false;
+        playerModel.updatePlayerState(user_id, gameState.players[user_id]);
     }
 
     // Set the game state to inactive
     gameState.isActive = false;
     result.gameState = gameState;
 
+    // Update each player's state in the database
+    for (let user_id in gameState.players) {
+        let playerState = gameState.players[user_id];
+    
+        playerModel.updatePlayerState(user_id, playerState);
+    }
+
     return result;
 }
+
 
 module.exports = {
     createDeck,
