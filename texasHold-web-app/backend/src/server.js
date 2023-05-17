@@ -231,7 +231,7 @@ io.on("connection", (socket) => {
             if (!io.sockets.sockets.has(reconnectedSocketId)) {
                 handlePlayerDisconnection(socket);
             }
-        }, 2000);
+        }, 4000);
     });
 
     function handlePlayerDisconnection(socket) {

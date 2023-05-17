@@ -73,16 +73,10 @@ function removeUserFromGame(user_id) {
     playState.isParticipating = false;
     gameState.players[user_id] = playState; // Update the gameState with the new player state
 
-   
-
     playerModel.updatePlayerState(user_id, gameState.players[user_id]);
 
     let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
     console.log("Active players remaining in the game:", activePlayers);
-
-     // Remove the player from the game
-     delete gameState.players[user_id];
-
 
     if (activePlayers > 1) {
         console.log("more than one player left");
@@ -95,11 +89,8 @@ function removeUserFromGame(user_id) {
         Object.values(gameState.players).forEach((player) => {
             player.isActive = false;
             player.isParticipating = false;
-
         });
     }
-
-   
 
     return gameResult;
 }
@@ -488,7 +479,7 @@ function endGame() {
         let winnerNames = winners.map((id) => gameState.players[id].userName);
         result.winners = winnerNames;
 
-        console.log("debugging end game winners list", result.winners)
+        console.log("debugging end game winners list", result.winners);
     }
 
     // Set all players to inactive and not participating
@@ -511,7 +502,7 @@ function endGame() {
         playerModel.updatePlayerState(user_id, playerState);
     }
 
-    console.log("debugging RESULT", result)
+    console.log("debugging RESULT", result);
     return result;
 }
 
