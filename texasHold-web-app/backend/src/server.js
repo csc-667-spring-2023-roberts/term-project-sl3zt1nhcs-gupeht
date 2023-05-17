@@ -89,7 +89,7 @@ io.on("connection", (socket) => {
 
                 // Rejoin all players to the active game
                 for (let userId in activeGameState.players) {
-                    console.log("user_id on rejoin game")
+                    console.log("user_id on rejoin game");
                     const activeGameStatePlayer = activeGameState.players[userId];
                     gameLogic.playerRejoinGame(userId, activeGameStatePlayer);
                 }
@@ -213,8 +213,11 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-
-        console.log(`User ${socket.userName} disconnected`);
+        if (!socket.userId || socket.userName === undefined) {
+            console.log("ignoring Ignoring disconnect event for unassociated socket");
+        } else {
+            console.log(`User ${socket.userName} disconnected`);
+        }
 
         // Wait for 5 seconds before handling the disconnection
         setTimeout(() => {
@@ -240,7 +243,7 @@ io.on("connection", (socket) => {
                         .then((gameId) => {
                             if (gameResult.endGameResult.gameState) {
                                 //TODO
-                                console.log("debugging end game",gameResult.endGameResult.gameState);
+                                console.log("debugging end game", gameResult.endGameResult.gameState);
 
                                 gameModel.updateGame(gameResult.endGameResult.gameState, gameId).then(() => {
                                     console.log("Game state updated in the database");
