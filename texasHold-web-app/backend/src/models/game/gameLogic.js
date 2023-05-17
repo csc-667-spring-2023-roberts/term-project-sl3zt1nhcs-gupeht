@@ -66,14 +66,23 @@ function removeUserFromGame(user_id) {
         gameState.current_player = getNextPlayer(user_id);
     }
 
-    console.log("Updating player state of the player leaving the game");
     let playState = gameState.players[user_id];
+
+    console.log(" Debugigng updating player state of the player leaving the game", gameState.players);
+
     playState.isParticipating = false;
     gameState.players[user_id] = playState; // Update the gameState with the new player state
+
+   
+
     playerModel.updatePlayerState(user_id, gameState.players[user_id]);
 
     let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
     console.log("Active players remaining in the game:", activePlayers);
+
+     // Remove the player from the game
+     delete gameState.players[user_id];
+
 
     if (activePlayers > 1) {
         console.log("more than one player left");
@@ -86,15 +95,16 @@ function removeUserFromGame(user_id) {
         Object.values(gameState.players).forEach((player) => {
             player.isActive = false;
             player.isParticipating = false;
-            gameState.players[player.userId] = player; // Update the gameState with the new player state
+
         });
     }
+
+   
 
     return gameResult;
 }
 
 function playerJoinGame(user_id, userName) {
-    
     if (!user_id || !userName) {
         console.error("invalid user_id or username", user_id, userName);
         return;
@@ -419,6 +429,7 @@ function endRound() {
 
     return roundResult;
 }
+
 function endGame() {
     let result = {};
 
@@ -427,6 +438,8 @@ function endGame() {
 
     // Identify all active players
     for (let user_id in gameState.players) {
+        if (user_id === "undefined") continue; // Prevent undefined user_id
+
         if (gameState.players[user_id].isParticipating) {
             activePlayers.push(user_id);
         } else {
@@ -440,10 +453,10 @@ function endGame() {
         gameState.players[winnerId].gamesWon++;
         result.winners = [gameState.players[winnerId].userName];
 
-        // Increment gamesLost for all inactive players
-        inactivePlayers.forEach((playerId) => {
+        // Increment gamesLost for all inactive players and store their usernames
+        result.losers = inactivePlayers.map((playerId) => {
             gameState.players[playerId].gamesLost++;
-            result.losers = [gameState.players[playerId].userName];
+            return gameState.players[playerId].userName;
         });
     } else {
         // If more than one player is active, determine the player(s) with the maximum rounds won
@@ -451,6 +464,8 @@ function endGame() {
         let winners = [];
 
         for (let user_id in gameState.players) {
+            if (user_id === "undefined") continue; // Prevent undefined user_id
+
             if (gameState.players[user_id].roundsWon > maxRoundsWon) {
                 maxRoundsWon = gameState.players[user_id].roundsWon;
                 winners = [user_id]; // New winner found, reset the winners array
@@ -461,6 +476,8 @@ function endGame() {
 
         // Increment the gamesWon for the winners and gamesLost for the others
         for (let user_id in gameState.players) {
+            if (user_id === "undefined") continue; // Prevent undefined user_id
+
             if (winners.includes(user_id)) {
                 gameState.players[user_id].gamesWon++;
             } else {
@@ -470,13 +487,16 @@ function endGame() {
 
         let winnerNames = winners.map((id) => gameState.players[id].userName);
         result.winners = winnerNames;
+
+        console.log("debugging end game winners list", result.winners)
     }
 
     // Set all players to inactive and not participating
     for (let user_id in gameState.players) {
+        if (user_id === "undefined") continue; // Prevent undefined user_id
+
         gameState.players[user_id].isActive = false;
         gameState.players[user_id].isParticipating = false;
-        playerModel.updatePlayerState(user_id, gameState.players[user_id]);
     }
 
     // Set the game state to inactive
@@ -485,10 +505,13 @@ function endGame() {
 
     // Update each player's state in the database
     for (let user_id in gameState.players) {
+        if (user_id === "undefined") continue; // Prevent undefined user_id
+
         let playerState = gameState.players[user_id];
         playerModel.updatePlayerState(user_id, playerState);
     }
 
+    console.log("debugging RESULT", result)
     return result;
 }
 

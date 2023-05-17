@@ -36,6 +36,10 @@ io.on("connection", (socket) => {
 
     //listening to front end join_lobby event being emiited
     socket.on("join_lobby", (data) => {
+        if (!data.userId || !data.userName) {
+            console.error("Invalid user data received during join_lobby", data);
+            return; // Don't process this lobby join
+        }
         // data will be the userName along with user_id . the userName and user_id  is stored in the local storage
         onlineUsers[data.userId] = data.userName;
         // getting the userId and userName from the front end and adding to the socket object
@@ -82,7 +86,7 @@ io.on("connection", (socket) => {
             });
         gameModel.getActiveGame().then((activeGame) => {
             if (activeGame) {
-                console.log(activeGame);
+                console.log("Debugging active games",activeGame);
 
                 // Load active game state
                 const activeGameState = activeGame.game_state_json;
@@ -213,11 +217,12 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
-        if (!socket.userId || socket.userName === undefined) {
-            console.log("ignoring Ignoring disconnect event for unassociated socket");
-        } else {
-            console.log(`User ${socket.userName} disconnected`);
+        if (!socket.userId) {
+            console.log("Ignoring player disconnection for unassociated socket");
+            return; // If socket.userId is undefined, stop execution here
         }
+      
+        console.log(`User ${socket.userName} disconnected`);
 
         // Wait for 5 seconds before handling the disconnection
         setTimeout(() => {
@@ -230,11 +235,16 @@ io.on("connection", (socket) => {
     });
 
     function handlePlayerDisconnection(socket) {
+        if (!socket.userId) {
+            console.log("Ignoring player disconnection for unassociated socket");
+            return; // If socket.userId is undefined, stop execution here
+        }
         // If the user was part of a game, handle their disconnection
         if (gameLogic.isUserInGame(socket.userId)) {
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
 
-            if (gameResult.remainingPlayers < 2) {
+            if (gameResult.remainingPlayers === 1) {
+                
                 gameResult.endGameResult = gameLogic.endGame();
             } else {
                 if (gameResult.endGameResult) {
@@ -319,8 +329,13 @@ io.on("connection", (socket) => {
         // Delay the notification of other users that this user has disconnected
         setTimeout(() => {
             // Remove user from onlineUsers and socketIdMap
-            delete onlineUsers[socket.userId];
-            socketIdMap.delete(socket.userId);
+
+            if (socket.userId) {
+                // Remove user from onlineUsers and socketIdMap
+                delete onlineUsers[socket.userId];
+                socketIdMap.delete(socket.userId);
+            }
+
             // Notify other users that this user has disconnected
             io.emit("update_user_list", onlineUsers);
             // Broadcast that the user has disconnected from the lobby
