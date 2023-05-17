@@ -60,9 +60,6 @@ gamesModel.updateGame = (game_state_json, game_id) => {
     });
 };
 
-
-
-
 gamesModel.getRecentGameId = () => {
     return new Promise((resolve, reject) => {
         const query = "SELECT game_id FROM games ORDER BY game_id DESC LIMIT 1";
@@ -81,5 +78,22 @@ gamesModel.getRecentGameId = () => {
     });
 };
 
+gamesModel.getActiveGame = () => {
+    return new Promise((resolve, reject) => {
+        const query = `SELECT * FROM games WHERE game_state_json ->> 'isActive' = 'true' `;
+
+        db.query(query)
+            .then((result) => {
+                if (result.rowCount > 0) {
+                    resolve(result.rows[0]);
+                } else {
+                    resolve(null);
+                }
+            })
+            .catch((err) => {
+                reject(err);
+            });
+    });
+};
 
 module.exports = gamesModel;

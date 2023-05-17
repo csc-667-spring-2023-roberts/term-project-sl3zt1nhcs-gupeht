@@ -477,9 +477,26 @@ function endGame() {
         playerModel.updatePlayerState(user_id, playerState);
     }
 
-
     return result;
+}
 
+// for individual player
+function playerRejoinGame(user_id, playerGameState) {
+    if (!gameState.players[user_id]) {
+        console.log(`Player with id ${user_id} does not exist in the game.`);
+        return;
+    }
+
+    // Update the player's game state with the provided game state
+    gameState.players[user_id] = playerGameState;
+
+    // Set player to active and participating
+    gameState.players[user_id].isActive = true;
+    gameState.players[user_id].isParticipating = true;
+    console.log(`Player with id ${user_id} has rejoined the game.`);
+
+
+    playerModel.updatePlayerState(user_id, playerState);
 }
 
 module.exports = {
@@ -495,4 +512,5 @@ module.exports = {
     showCards,
     isUserInGame,
     removeUserFromGame,
+    playerRejoinGame,
 };

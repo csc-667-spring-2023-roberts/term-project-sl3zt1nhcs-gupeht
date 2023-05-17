@@ -33,6 +33,7 @@ const io = require("socket.io")(server, {
 // Io connection functions start here
 io.on("connection", (socket) => {
     console.log(`Connection established on socket Id: ${socket.id}`);
+
     //listening to front end join_lobby event being emiited
     socket.on("join_lobby", (data) => {
         // data will be the userName along with user_id . the userName and user_id  is stored in the local storage
@@ -79,71 +80,107 @@ io.on("connection", (socket) => {
                 // If an error occurs while fetching messages, log it
                 console.error(err);
             });
+        gameModel.getActiveGame().then((activeGame) => {
+            if (activeGame) {
+                console.log(activeGame);
 
-        if (Object.keys(onlineUsers).length >= 2) {
-            // Add all online users to the game
-            for (let userId in onlineUsers) {
-                // it will use the userId and get the userName by userId from onlineUser
-                // it will then set the player object state
-                gameLogic.playerJoinGame(userId, onlineUsers[userId]);
-            }
+                // Load active game state
+                const activeGameState = activeGame.game_state_json;
 
-            // Now after players joined the game we will start the game
-            gameLogic.startGame();
+                // Rejoin all players to the active game
+                for (let userId in activeGameState.players) {
+                    const activeGameStatePlayer = activeGameState.players[userId];
+                    gameLogic.playerRejoinGame(userId, activeGameStatePlayer);
+                }
 
-            // We need to store the game in the database
-            const gameState = gameLogic.getGameState();
-            // create a new game in the database
-            gameModel
-                .createGame("Default", gameState)
-                .then((createdGame) => {
-                    // the database will return the created game row but we console log the game_id
-                    console.log(`Created new game with ID: ${createdGame.game_id}`);
-                    /*
-                    we loop through each player so we can record each individual player data on the database
-                    */
-                    for (let userId in gameState.players) {
-                        playerModel
-                            .joinGame(userId, createdGame.game_id, gameState.players[userId])
-                            .then((createdPlayer) => {
-                                console.log(`Added player with ID: ${userId} to game with ID: ${createdGame.game_id}`);
-                            })
-                            .catch((err) => {
-                                console.error(err);
-                            });
+                // Send each individual player their corresponding game state
+                for (let userId in activeGameState.players) {
+                    let socketId = socketIdMap.get(userId);
+                    const playerGameState = activeGameState.players[userId];
+
+                    io.to(socketId).emit("game_resume", {
+                        gameId: activeGame.game_id,
+                        gameState: playerGameState,
+                        current_player: activeGameState.current_player,
+                    });
+
+                    console.log(
+                        `Sent game resume data to player with ID: ${userId}. for gameId: ${
+                            activeGame.game_id
+                        } Player Game State: ${JSON.stringify(playerGameState, null, 2)}, Current player: ${
+                            activeGameState.current_player
+                        }`
+                    );
+                }
+
+                console.log(`Resumed game with ID: ${activeGame.game_id}`);
+            } else {
+                if (Object.keys(onlineUsers).length >= 2) {
+                    // Add all online users to the game
+                    for (let userId in onlineUsers) {
+                        // it will use the userId and get the userName by userId from onlineUser
+                        // it will then set the player object state
+                        gameLogic.playerJoinGame(userId, onlineUsers[userId]);
                     }
-                    /*
-                      Loop to send to the front end each individual player
-                      their game state. We can accomplish this by assigining
-                      socketId  to socketIdMap.geet(userId) declared in the begginning
-                      of IO function
-                    */
-                    for (let userId in gameState.players) {
-                        let socketId = socketIdMap.get(userId);
 
-                        // Sends each individual their corresponding game state
-                        const playerGameState = gameState.players[userId];
+                    // Now after players joined the game we will start the game
+                    gameLogic.startGame();
 
-                        io.to(socketId).emit("game_start", {
-                            gameId: createdGame.game_id,
-                            gameState: playerGameState,
-                            current_player: gameState.current_player,
+                    // We need to store the game in the database
+                    const gameState = gameLogic.getGameState();
+                    // create a new game in the database
+                    gameModel
+                        .createGame("Default", gameState)
+                        .then((createdGame) => {
+                            // the database will return the created game row but we console log the game_id
+                            console.log(`Created new game with ID: ${createdGame.game_id}`);
+                            /*
+                            we loop through each player so we can record each individual player data on the database
+                            */
+                            for (let userId in gameState.players) {
+                                playerModel
+                                    .joinGame(userId, createdGame.game_id, gameState.players[userId])
+                                    .then((createdPlayer) => {
+                                        console.log(`Added player with ID: ${userId} to game with ID: ${createdGame.game_id}`);
+                                    })
+                                    .catch((err) => {
+                                        console.error(err);
+                                    });
+                            }
+                            /*
+                              Loop to send to the front end each individual player
+                              their game state. We can accomplish this by assigining
+                              socketId  to socketIdMap.geet(userId) declared in the begginning
+                              of IO function
+                            */
+                            for (let userId in gameState.players) {
+                                let socketId = socketIdMap.get(userId);
+
+                                // Sends each individual their corresponding game state
+                                const playerGameState = gameState.players[userId];
+
+                                io.to(socketId).emit("game_start", {
+                                    gameId: createdGame.game_id,
+                                    gameState: playerGameState,
+                                    current_player: gameState.current_player,
+                                });
+
+                                //TODO for debugging
+                                console.log(
+                                    `Sent game start data to player with ID: ${userId}. for gameId:  ${
+                                        createdGame.game_id
+                                    } Player Game State: ${JSON.stringify(playerGameState, null, 2)}, Opponent player:; ${
+                                        gameState.current_player
+                                    }`
+                                );
+                            }
+                        })
+                        .catch((err) => {
+                            console.error(err);
                         });
-
-                        //TODO for debugging
-                        console.log(
-                            `Sent game start data to player with ID: ${userId}. for gameId:  ${
-                                createdGame.game_id
-                            } Player Game State: ${JSON.stringify(playerGameState, null, 2)}, Opponent player:; ${
-                                gameState.current_player
-                            }`
-                        );
-                    }
-                })
-                .catch((err) => {
-                    console.error(err);
-                });
-        }
+                }
+            }
+        });
     });
 
     // Event to listen to messages sent from the client side
@@ -175,6 +212,19 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
+        console.log(`User ${socket.userName} disconnected`);
+
+        // Wait for 5 seconds before handling the disconnection
+        setTimeout(() => {
+            // If the user has not reconnected within the timeout period, handle their disconnection
+            const reconnectedSocketId = socketIdMap.get(socket.userId);
+            if (!io.sockets.sockets.has(reconnectedSocketId)) {
+                handlePlayerDisconnection(socket);
+            }
+        }, 2000);
+    });
+
+    function handlePlayerDisconnection(socket) {
         // Deleting the user from the list of online users
         delete onlineUsers[socket.userId];
 
@@ -217,10 +267,10 @@ io.on("connection", (socket) => {
                                 }
                             }
 
-                            let loser = gameResult.endGameResult.gameState.players[loserId]
+                            let loser = gameResult.endGameResult.gameState.players[loserId];
 
-                            console.log("Debug loser",loser);
-                            console.log("Debug loser",winner);
+                            console.log("Debug loser", loser);
+                            console.log("Debug loser", winner);
 
                             // Sending individualized data to each player
                             Object.keys(gameResult.endGameResult.gameState.players).forEach((playerId) => {
@@ -234,7 +284,7 @@ io.on("connection", (socket) => {
                                             player: player,
                                             reason: `Game over. ${winner.userName} is the winner.`,
                                             winnersCard: winner.cards,
-                                            losersCard: loser.cards
+                                            losersCard: loser.cards,
                                         });
                                         console.log("information being passed to front end", winner, gameResult);
                                     } else {
@@ -244,7 +294,7 @@ io.on("connection", (socket) => {
                                             player: player,
                                             reason: `Game over. You lost. ${winner.userName} is the winner.`,
                                             winnersCard: winner.cards,
-                                            losersCard: loser.cards
+                                            losersCard: loser.cards,
                                         });
                                         console.log("information being passed to front end", "Loser", gameResult);
                                     }
@@ -261,7 +311,6 @@ io.on("connection", (socket) => {
                 }
             }
         }
-
         // Delay the notification of other users that this user has disconnected
         setTimeout(() => {
             // Notify other users that this user has disconnected
@@ -271,9 +320,7 @@ io.on("connection", (socket) => {
         }, 1000);
 
         console.log(`User ${socket.userName} disconnected`);
-    });
-
-    // end of connection
+    }
 });
 
 // Server side code
