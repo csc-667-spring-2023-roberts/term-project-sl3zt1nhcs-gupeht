@@ -102,9 +102,14 @@ function playerJoinGame(user_id, userName) {
     }
 
     if (gameState.players[user_id]) {
-        // User exists, update their state to reflect that they have reconnected
-        gameState.players[user_id].isActive = true;
-        gameState.players[user_id].isParticipating = true;
+        if (gameState.players[user_id].isParticipating) {
+            console.error("User is already active", user_id, userName);
+            return;
+        } else {
+            // User exists, update their state to reflect that they have reconnected
+            gameState.players[user_id].isActive = true;
+            gameState.players[user_id].isParticipating = true;
+        }
     } else {
         gameState.players[user_id] = {
             userName: userName,
@@ -123,12 +128,10 @@ function playerJoinGame(user_id, userName) {
 
         if (activePlayers === 1) {
             // If this is the first player to join, they become the dealer
-            if (!gameState.dealer) {
-                gameState.dealer = user_id;
-            } else if (!gameState.current_player) {
-                // If this is the second player to join, they become the current player
-                gameState.current_player = user_id;
-            }
+            gameState.dealer = user_id;
+        } else if (activePlayers === 2 && !gameState.current_player) {
+            // If this is the second player to join, they become the current player
+            gameState.current_player = user_id;
         }
     }
 }
@@ -516,9 +519,10 @@ function playerRejoinGame(user_id, playerGameState) {
     // Update the player's game state with the provided game state
     gameState.players[user_id] = playerGameState;
 
-    // Set player to active and participating
+    /*
     gameState.players[user_id].isActive = true;
     gameState.players[user_id].isParticipating = true;
+    */
 
     const playerState = gameState.players[user_id];
 

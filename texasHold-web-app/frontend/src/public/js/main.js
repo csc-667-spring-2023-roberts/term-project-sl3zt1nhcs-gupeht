@@ -123,7 +123,7 @@ export async function fetchLobby() {
                 messagesElement.scrollTop = messagesElement.scrollHeight;
                 console.log("Received a message:", data);
             });
-            // Socket to update the list of users
+
             socket.on("update_user_list", (users) => {
                 const userListElement = document.getElementById("user-list");
                 const waitingMessage = document.getElementById("waiting-message");
@@ -156,7 +156,7 @@ export async function fetchLobby() {
             socket.on("game_resume", async (data) => {
                 renderGame(data);
             });
-            
+
             socket.on("game_end", (data) => {
                 console.log(" front end game_end Game ended. Reason:", data.reason);
 
@@ -189,14 +189,14 @@ export async function fetchLobby() {
                 // Add the game result div to the game div
                 gameElement.appendChild(gameResultElement);
 
-                // Show waiting message
-                const waitingMessage = document.getElementById("waiting-message");
-                waitingMessage.style.display = "block";
-
-                // Hide waiting message after 5 seconds
+                // Show game result for 4 seconds then hide it and show the waiting message
                 setTimeout(() => {
-                    waitingMessage.style.display = "none";
-                }, 2000);
+                    // Clear the game result
+                    gameElement.innerHTML = "";
+                    // Show waiting message
+                    const waitingMessage = document.getElementById("waiting-message");
+                    waitingMessage.style.display = "block";
+                }, 4000);
             });
 
             // Event handler for sending messages

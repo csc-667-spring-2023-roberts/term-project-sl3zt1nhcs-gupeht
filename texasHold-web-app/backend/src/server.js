@@ -231,7 +231,7 @@ io.on("connection", (socket) => {
             if (!io.sockets.sockets.has(reconnectedSocketId)) {
                 handlePlayerDisconnection(socket);
             }
-        }, 4000);
+        }, 3000);
     });
 
     function handlePlayerDisconnection(socket) {
@@ -241,10 +241,11 @@ io.on("connection", (socket) => {
         }
         // If the user was part of a game, handle their disconnection
         if (gameLogic.isUserInGame(socket.userId)) {
+            
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
 
             if (gameResult.remainingPlayers === 1) {
-                
+
                 gameResult.endGameResult = gameLogic.endGame();
             } else {
                 if (gameResult.endGameResult) {
