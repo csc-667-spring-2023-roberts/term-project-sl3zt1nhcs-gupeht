@@ -94,28 +94,40 @@ function removeUserFromGame(user_id) {
 }
 
 function playerJoinGame(user_id, userName) {
-    gameState.players[user_id] = {
-        userName: userName,
-        cards: [],
-        bet_amount: 0,
-        money: 1000, // Let's give each player 1000 units of money to start
-        isActive: true, // New property indicating if the player is active in the current round
-        isParticipating: true,
-        roundsWon: 0,
-        roundsLost: 0,
-        gamesWon: 0,
-        gamesLost: 0,
-    };
+    
+    if (!user_id || !userName) {
+        console.error("invalid user_id or username", user_id, userName);
+        return;
+    }
 
-    let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
+    if (gameState.players[user_id]) {
+        // User exists, update their state to reflect that they have reconnected
+        gameState.players[user_id].isActive = true;
+        gameState.players[user_id].isParticipating = true;
+    } else {
+        gameState.players[user_id] = {
+            userName: userName,
+            cards: [],
+            bet_amount: 0,
+            money: 1000, // Let's give each player 1000 units of money to start
+            isActive: true, // New property indicating if the player is active in the current round
+            isParticipating: true,
+            roundsWon: 0,
+            roundsLost: 0,
+            gamesWon: 0,
+            gamesLost: 0,
+        };
 
-    if (activePlayers === 1) {
-        // If this is the first player to join, they become the dealer
-        if (!gameState.dealer) {
-            gameState.dealer = user_id;
-        } else if (!gameState.current_player) {
-            // If this is the second player to join, they become the current player
-            gameState.current_player = user_id;
+        let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
+
+        if (activePlayers === 1) {
+            // If this is the first player to join, they become the dealer
+            if (!gameState.dealer) {
+                gameState.dealer = user_id;
+            } else if (!gameState.current_player) {
+                // If this is the second player to join, they become the current player
+                gameState.current_player = user_id;
+            }
         }
     }
 }
@@ -367,7 +379,7 @@ function endRound() {
         });
     } else {
         console.log(`${gameState.players[winners].userName} wins the pot of ${gameState.pot}!`);
-        roundResult.winner = winners;
+        roundResult.winner = gameState.players[winners].userName;
         gameState.players[winners].money += gameState.pot;
         roundResult.money = gameState.players[winners].money;
         gameState.players[winners].roundsWon++;
@@ -431,6 +443,7 @@ function endGame() {
         // Increment gamesLost for all inactive players
         inactivePlayers.forEach((playerId) => {
             gameState.players[playerId].gamesLost++;
+            result.losers = [gameState.players[playerId].userName];
         });
     } else {
         // If more than one player is active, determine the player(s) with the maximum rounds won
@@ -473,7 +486,6 @@ function endGame() {
     // Update each player's state in the database
     for (let user_id in gameState.players) {
         let playerState = gameState.players[user_id];
-
         playerModel.updatePlayerState(user_id, playerState);
     }
 
@@ -493,8 +505,8 @@ function playerRejoinGame(user_id, playerGameState) {
     // Set player to active and participating
     gameState.players[user_id].isActive = true;
     gameState.players[user_id].isParticipating = true;
-    console.log(`Player with id ${user_id} has rejoined the game.`);
 
+    const playerState = gameState.players[user_id];
 
     playerModel.updatePlayerState(user_id, playerState);
 }

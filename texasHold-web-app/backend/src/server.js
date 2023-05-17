@@ -44,7 +44,7 @@ io.on("connection", (socket) => {
         socket.userId = data.userId;
         socket.userName = data.userName;
 
-        // Mapping the user Id to the socket Id so we can broadcast data to a specific user. In this example, cards wil be broadcasted for the user
+        //Updating the socket ID mapping
         socketIdMap.set(data.userId, socket.id);
 
         // Emitting the updated user list to all connected sockets
@@ -89,6 +89,7 @@ io.on("connection", (socket) => {
 
                 // Rejoin all players to the active game
                 for (let userId in activeGameState.players) {
+                    console.log("user_id on rejoin game")
                     const activeGameStatePlayer = activeGameState.players[userId];
                     gameLogic.playerRejoinGame(userId, activeGameStatePlayer);
                 }
@@ -212,6 +213,7 @@ io.on("connection", (socket) => {
     });
 
     socket.on("disconnect", () => {
+
         console.log(`User ${socket.userName} disconnected`);
 
         // Wait for 5 seconds before handling the disconnection
@@ -225,9 +227,6 @@ io.on("connection", (socket) => {
     });
 
     function handlePlayerDisconnection(socket) {
-        // Deleting the user from the list of online users
-        delete onlineUsers[socket.userId];
-
         // If the user was part of a game, handle their disconnection
         if (gameLogic.isUserInGame(socket.userId)) {
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
@@ -240,6 +239,9 @@ io.on("connection", (socket) => {
                         .getRecentGameId()
                         .then((gameId) => {
                             if (gameResult.endGameResult.gameState) {
+                                //TODO
+                                console.log("debugging end game",gameResult.endGameResult.gameState);
+
                                 gameModel.updateGame(gameResult.endGameResult.gameState, gameId).then(() => {
                                     console.log("Game state updated in the database");
                                 });
@@ -270,7 +272,7 @@ io.on("connection", (socket) => {
                             let loser = gameResult.endGameResult.gameState.players[loserId];
 
                             console.log("Debug loser", loser);
-                            console.log("Debug loser", winner);
+                            console.log("Debug winner", winner);
 
                             // Sending individualized data to each player
                             Object.keys(gameResult.endGameResult.gameState.players).forEach((playerId) => {
@@ -313,6 +315,9 @@ io.on("connection", (socket) => {
         }
         // Delay the notification of other users that this user has disconnected
         setTimeout(() => {
+            // Remove user from onlineUsers and socketIdMap
+            delete onlineUsers[socket.userId];
+            socketIdMap.delete(socket.userId);
             // Notify other users that this user has disconnected
             io.emit("update_user_list", onlineUsers);
             // Broadcast that the user has disconnected from the lobby
