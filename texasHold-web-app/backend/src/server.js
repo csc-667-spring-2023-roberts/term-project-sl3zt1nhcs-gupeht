@@ -86,7 +86,7 @@ io.on("connection", (socket) => {
             });
         gameModel.getActiveGame().then((activeGame) => {
             if (activeGame) {
-                console.log("Debugging active games",activeGame);
+                console.log("Debugging active games", activeGame);
 
                 // Load active game state
                 const activeGameState = activeGame.game_state_json;
@@ -221,7 +221,7 @@ io.on("connection", (socket) => {
             console.log("Ignoring player disconnection for unassociated socket");
             return; // If socket.userId is undefined, stop execution here
         }
-      
+
         console.log(`User ${socket.userName} disconnected`);
 
         // Wait for 5 seconds before handling the disconnection
@@ -241,11 +241,9 @@ io.on("connection", (socket) => {
         }
         // If the user was part of a game, handle their disconnection
         if (gameLogic.isUserInGame(socket.userId)) {
-            
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
 
             if (gameResult.remainingPlayers === 1) {
-
                 gameResult.endGameResult = gameLogic.endGame();
             } else {
                 if (gameResult.endGameResult) {
@@ -253,9 +251,6 @@ io.on("connection", (socket) => {
                         .getRecentGameId()
                         .then((gameId) => {
                             if (gameResult.endGameResult.gameState) {
-                                //TODO
-                                console.log("debugging end game", gameResult.endGameResult.gameState);
-
                                 gameModel.updateGame(gameResult.endGameResult.gameState, gameId).then(() => {
                                     console.log("Game state updated in the database");
                                 });
@@ -285,9 +280,6 @@ io.on("connection", (socket) => {
 
                             let loser = gameResult.endGameResult.gameState.players[loserId];
 
-                            console.log("Debug loser", loser);
-                            console.log("Debug winner", winner);
-
                             // Sending individualized data to each player
                             Object.keys(gameResult.endGameResult.gameState.players).forEach((playerId) => {
                                 let socketId = socketIdMap.get(playerId);
@@ -302,7 +294,6 @@ io.on("connection", (socket) => {
                                             winnersCard: winner.cards,
                                             losersCard: loser.cards,
                                         });
-                                        console.log("information being passed to front end", winner, gameResult);
                                     } else {
                                         // If the player is not the winner
                                         io.to(socketId).emit("game_end", {
@@ -312,7 +303,6 @@ io.on("connection", (socket) => {
                                             winnersCard: winner.cards,
                                             losersCard: loser.cards,
                                         });
-                                        console.log("information being passed to front end", "Loser", gameResult);
                                     }
                                 }
                             });

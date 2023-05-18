@@ -482,7 +482,7 @@ function endGame() {
         let winnerNames = winners.map((id) => gameState.players[id].userName);
         result.winners = winnerNames;
 
-        console.log("debugging end game winners list", result.winners);
+
     }
 
     // Set all players to inactive and not participating
@@ -518,11 +518,6 @@ function playerRejoinGame(user_id, playerGameState) {
 
     // Update the player's game state with the provided game state
     gameState.players[user_id] = playerGameState;
-
-    /*
-    gameState.players[user_id].isActive = true;
-    gameState.players[user_id].isParticipating = true;
-    */
 
     const playerState = gameState.players[user_id];
 
