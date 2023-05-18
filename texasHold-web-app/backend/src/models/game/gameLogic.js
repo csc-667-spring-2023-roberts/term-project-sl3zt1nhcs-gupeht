@@ -110,7 +110,7 @@ function playerJoinGame(user_id, userName) {
         gameState.players[user_id] = {
             userName: userName,
             cards: [],
-            bet_amount:0,
+            bet_amount: 0,
             money: 50, // Let's give each player 1000 units of money to start
             isActive: true, // New property indicating if the player is active in the current round
             isParticipating: true,
@@ -166,50 +166,58 @@ function startGame() {
 }
 
 function playerBet(user_id, amount) {
-
     let player = gameState.players[user_id];
 
+    let result = {};
 
     // Make sure the player has enough money to make the bet
     if (player.money < amount) {
-        return `${player.userName} does not have enough money to bet ${amount}`;
+        console.log(`${player.userName} does not have enough money to bet ${amount}`);
+
+        result.playerHasNoMoney = `${player.userName} does not have enough money to bet ${amount}`;
     }
 
     // Make sure it's the player's turn
     if (gameState.current_player !== user_id) {
-        return `It's not ${player.userName}'s turn to bet`;
+        result.playerTurn = `It's not ${player.userName}'s turn to bet`;
     }
 
     // Make sure the player is active
     if (!player.isActive) {
-        return `${player.userName} can't bet because they have folded`;
+        result.isPlayerActive = `${player.userName} can't bet because they have folded`;
     }
 
-    player.bet_amount += amount
+    player.bet_amount += amount;
     player.money -= amount;
     gameState.pot += amount;
 
-    console.log("debugging player", player)
-    console.log("debugging gameStatePt", gameState.pot)
-
+    console.log("debugging player", player);
+    console.log("debugging gameStatePt", gameState);
 
     // If the player has bet all their money, they are all in
     if (player.money === 0) {
-        return `${player.userName} is all in!`;
+        result.allIn = `${player.userName} is all in!`;
     }
 
-    // Move on to the next player
+    // move on to the next player
     gameState.current_player = getNextPlayer(user_id);
+
+    result.nextPlayer = gameState.current_player;
 
     // Check if there is only one active player left
     const nextPlayer = getNextPlayer(gameState.current_player);
+
     if (nextPlayer === null) {
+        console.log("there is no active players");
+        result.noActivePlayers = nextPlayer === null;
         // If there is no next active player, end the round or the game
         const activePlayers = Object.values(gameState.players).filter((player) => player.isActive);
         if (activePlayers.length === 1) {
             endRound();
         }
     }
+
+    return result;
 }
 
 function getNextPlayer(currentPlayerId) {
@@ -312,7 +320,6 @@ function determineWinner() {
         return winners[0];
     }
 }
-
 
 function endRound() {
     let roundResult = {

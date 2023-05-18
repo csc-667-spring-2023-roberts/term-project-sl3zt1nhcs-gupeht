@@ -186,12 +186,13 @@ io.on("connection", (socket) => {
     });
 
     socket.on("bet", (data) => {
-        const amount = Number(data.amount);
-      
-        setTimeout(()=>{
-            const betResult = gameLogic.playerBet(socket.userId, amount);
-        },2000)
-     
+        
+        let betAmount = parseInt(data.amount,10);
+    
+
+        const betResult = gameLogic.playerBet(socket.userId, betAmount);
+
+        console.log(betResult);
     });
 
     // Event to listen to messages sent from the client side
