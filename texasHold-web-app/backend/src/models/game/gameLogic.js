@@ -145,6 +145,7 @@ function playerFold(user_id) {
 
 function startGame() {
     let participatingPlayers = Object.values(gameState.players).filter((player) => player.isParticipating);
+
     if (participatingPlayers.length < 2) {
         return;
     }
@@ -168,53 +169,60 @@ function startGame() {
 function playerBet(user_id, amount) {
     let player = gameState.players[user_id];
 
-    let result = {};
+    let result = {
+        playerId: user_id,
+        playerHasNoMoney: false,
+        playerTurn: false,
+        allIn: false,
+
+    };
 
     // Make sure the player has enough money to make the bet
     if (player.money < amount) {
         console.log(`${player.userName} does not have enough money to bet ${amount}`);
-
-        result.playerHasNoMoney = `${player.userName} does not have enough money to bet ${amount}`;
+        result.playerHasNoMoney = true;
+        result.playerHasNoMoneyMessage = `${player.userName} does not have enough money to bet ${amount}`;
     }
 
     // Make sure it's the player's turn
-    if (gameState.current_player !== user_id) {
-        result.playerTurn = `It's not ${player.userName}'s turn to bet`;
-    }
+    else if (gameState.current_player !== user_id) {
+        console.log(`It's not ${player.userName}'s turn to bet`);
+        result.playerTurn = false;
+        result.playerTurnMessage = `It's not ${player.userName}'s turn to bet`;
+    } else {
+        result.playerTurn = true;
+        result.playerTurnMessage = `It's ${player.userName}'s turn to bet`;
+        player.bet_amount += amount;
+        player.money -= amount;
+        gameState.pot += amount;
 
-    // Make sure the player is active
-    if (!player.isActive) {
-        result.isPlayerActive = `${player.userName} can't bet because they have folded`;
-    }
+        console.log("debugging player", player);
 
-    player.bet_amount += amount;
-    player.money -= amount;
-    gameState.pot += amount;
+        console.log("debugging gameStatePt", gameState);
 
-    console.log("debugging player", player);
-    console.log("debugging gameStatePt", gameState);
-
-    // If the player has bet all their money, they are all in
-    if (player.money === 0) {
-        result.allIn = `${player.userName} is all in!`;
-    }
-
-    // move on to the next player
-    gameState.current_player = getNextPlayer(user_id);
-
-    result.nextPlayer = gameState.current_player;
-
-    // Check if there is only one active player left
-    const nextPlayer = getNextPlayer(gameState.current_player);
-
-    if (nextPlayer === null) {
-        console.log("there is no active players");
-        result.noActivePlayers = nextPlayer === null;
-        // If there is no next active player, end the round or the game
-        const activePlayers = Object.values(gameState.players).filter((player) => player.isActive);
-        if (activePlayers.length === 1) {
-            endRound();
+        // If the player has bet all their money, they are all in
+        if (player.money === 0) {
+            result.allIn = true;
+            result.allInMessage = `${player.userName} is all in!`;
         }
+
+        /*
+        // move on to the next player
+        gameState.current_player = getNextPlayer(user_id);
+       
+        // Check if there is only one active player left
+        const nextPlayer = getNextPlayer(gameState.current_player);
+
+        if (nextPlayer === null) {
+            console.log("there is no active players");
+            result.noActivePlayers = nextPlayer === null;
+            // If there is no next active player, end the round or the game
+            const activePlayers = Object.values(gameState.players).filter((player) => player.isActive);
+            if (activePlayers.length === 1) {
+                endRound();
+            }
+        }
+        */
     }
 
     return result;
