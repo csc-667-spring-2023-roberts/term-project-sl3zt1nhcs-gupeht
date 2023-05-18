@@ -71,19 +71,19 @@ function removeUserFromGame(user_id) {
     console.log(" Debugigng updating player state of the player leaving the game", gameState.players);
 
     playState.isParticipating = false;
-    gameState.players[user_id] = playState; // Update the gameState with the new player state
+
 
     playerModel.updatePlayerState(user_id, gameState.players[user_id]);
 
     let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
     console.log("Active players remaining in the game:", activePlayers);
 
-    if (activePlayers > 1) {
+    if (activePlayers > 2) {
         console.log("more than one player left");
         // we will count the cards
         gameResult.roundResult = endRound();
-    } else if (activePlayers === 1) {
-        console.log("only one player left");
+    } else if (activePlayers <= 2) {
+        console.log(" 2 or less players left. End game!");
         // only the player who did not leave the game should be counted as winner regardless of the cards
         gameResult.endGameResult = endGame();
         Object.values(gameState.players).forEach((player) => {
@@ -493,8 +493,6 @@ function endGame() {
         gameState.players[user_id].isParticipating = false;
     }
 
-    // Set the game state to inactive
-    gameState.isActive = false;
     result.gameState = gameState;
 
     // Update each player's state in the database

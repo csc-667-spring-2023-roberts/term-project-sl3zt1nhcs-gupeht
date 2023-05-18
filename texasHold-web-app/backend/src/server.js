@@ -86,14 +86,11 @@ io.on("connection", (socket) => {
             });
         gameModel.getActiveGame().then((activeGame) => {
             if (activeGame) {
-                console.log("Debugging active games", activeGame);
-
                 // Load active game state
                 const activeGameState = activeGame.game_state_json;
 
                 // Rejoin all players to the active game
                 for (let userId in activeGameState.players) {
-                    console.log("user_id on rejoin game");
                     const activeGameStatePlayer = activeGameState.players[userId];
                     gameLogic.playerRejoinGame(userId, activeGameStatePlayer);
                 }
@@ -243,77 +240,74 @@ io.on("connection", (socket) => {
         if (gameLogic.isUserInGame(socket.userId)) {
             let gameResult = gameLogic.removeUserFromGame(socket.userId);
 
-            if (gameResult.remainingPlayers === 1) {
-                gameResult.endGameResult = gameLogic.endGame();
-            } else {
-                if (gameResult.endGameResult) {
-                    gameModel
-                        .getRecentGameId()
-                        .then((gameId) => {
-                            if (gameResult.endGameResult.gameState) {
-                                gameModel.updateGame(gameResult.endGameResult.gameState, gameId).then(() => {
-                                    console.log("Game state updated in the database");
-                                });
-                            }
-                        })
-                        .catch((err) => {
-                            console.error("Error updating the game state", err);
-                        });
-                    if (gameResult.endGameResult.winners) {
-                        let winners = gameResult.endGameResult.winners;
-
-                        winners.forEach((winnerName) => {
-                            let winnerId = Object.keys(gameResult.endGameResult.gameState.players).find(
-                                (playerId) => gameResult.endGameResult.gameState.players[playerId].userName === winnerName
-                            );
-
-                            let winner = gameResult.endGameResult.gameState.players[winnerId];
-
-                            let loserId;
-
-                            for (let playerId in gameResult.endGameResult.gameState.players) {
-                                if (playerId !== winnerId) {
-                                    loserId = playerId;
-                                    break;
-                                }
-                            }
-
-                            let loser = gameResult.endGameResult.gameState.players[loserId];
-
-                            // Sending individualized data to each player
-                            Object.keys(gameResult.endGameResult.gameState.players).forEach((playerId) => {
-                                let socketId = socketIdMap.get(playerId);
-                                if (socketId) {
-                                    let player = gameResult.endGameResult.gameState.players[playerId];
-                                    if (playerId === winnerId) {
-                                        // If the player is the winner
-                                        io.to(socketId).emit("game_end", {
-                                            winner: winner,
-                                            player: player,
-                                            reason: `Game over. ${winner.userName} is the winner.`,
-                                            winnersCard: winner.cards,
-                                            losersCard: loser.cards,
-                                        });
-                                    } else {
-                                        // If the player is not the winner
-                                        io.to(socketId).emit("game_end", {
-                                            winner: winner,
-                                            player: player,
-                                            reason: `Game over. You lost. ${winner.userName} is the winner.`,
-                                            winnersCard: winner.cards,
-                                            losersCard: loser.cards,
-                                        });
-                                    }
-                                }
+            if (gameResult.endGameResult) {
+                gameModel
+                    .getRecentGameId()
+                    .then((gameId) => {
+                        if (gameResult.endGameResult.gameState) {
+                            gameResult.endGameResult.gameState.isActive = false;
+                            gameModel.updateGame(gameResult.endGameResult.gameState, gameId).then(() => {
+                                
                             });
+                        }
+                    })
+                    .catch((err) => {
+                        console.error("Error updating the game state", err);
+                    });
+                if (gameResult.endGameResult.winners) {
+                    let winners = gameResult.endGameResult.winners;
+
+                    winners.forEach((winnerName) => {
+                        let winnerId = Object.keys(gameResult.endGameResult.gameState.players).find(
+                            (playerId) => gameResult.endGameResult.gameState.players[playerId].userName === winnerName
+                        );
+
+                        let winner = gameResult.endGameResult.gameState.players[winnerId];
+
+                        let loserId;
+
+                        for (let playerId in gameResult.endGameResult.gameState.players) {
+                            if (playerId !== winnerId) {
+                                loserId = playerId;
+                                break;
+                            }
+                        }
+
+                        let loser = gameResult.endGameResult.gameState.players[loserId];
+
+                        // Sending individualized data to each player
+                        Object.keys(gameResult.endGameResult.gameState.players).forEach((playerId) => {
+                            let socketId = socketIdMap.get(playerId);
+                            if (socketId) {
+                                let player = gameResult.endGameResult.gameState.players[playerId];
+                                if (playerId === winnerId) {
+                                    // If the player is the winner
+                                    io.to(socketId).emit("game_end", {
+                                        winner: winner,
+                                        player: player,
+                                        reason: `Game over. ${winner.userName} is the winner.`,
+                                        winnersCard: winner.cards,
+                                        losersCard: loser.cards,
+                                    });
+                                } else {
+                                    // If the player is not the winner
+                                    io.to(socketId).emit("game_end", {
+                                        winner: winner,
+                                        player: player,
+                                        reason: `Game over. You lost. ${winner.userName} is the winner.`,
+                                        winnersCard: winner.cards,
+                                        losersCard: loser.cards,
+                                    });
+                                }
+                            }
                         });
-                    } else {
-                        // If game ends without a clear winner (all players disconnected)
-                        io.emit("game_end", {
-                            reason: "Game over. All players have disconnected.",
-                            gameResult: gameResult.endGameResult ? gameResult.endGameResult.gameState : {},
-                        });
-                    }
+                    });
+                } else {
+                    // If game ends without a clear winner (all players disconnected)
+                    io.emit("game_end", {
+                        reason: "Game over. All players have disconnected.",
+                        gameResult: gameResult.endGameResult ? gameResult.endGameResult.gameState : {},
+                    });
                 }
             }
         }
