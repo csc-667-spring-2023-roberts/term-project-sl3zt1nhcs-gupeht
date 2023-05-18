@@ -53,13 +53,28 @@ function renderGame(data) {
     // Create the game buttons
     const buttonsElement = document.createElement("div");
     buttonsElement.classList.add("buttons");
-    buttonsElement.innerHTML = `
-           <button id="hit-button">Hit</button>
-           <button id="stand-button">Stand</button>
-       `;
+
+    const betInput = document.createElement("input");
+    betInput.type = "number";
+    betInput.id = "bet-input";
+    betInput.min = 5;
+    betInput.max = data.gameState.money;
+    buttonsElement.appendChild(betInput);
+
+    const betButton = document.createElement("button");
+    betButton.id = "bet-button";
+    betButton.textContent = "Bet";
+    buttonsElement.appendChild(betButton);
 
     // Add the game buttons to the game div
     gameElement.appendChild(buttonsElement);
+
+    document.getElementById("bet-button").addEventListener("click", (e) => {
+        e.preventDefault();
+        const betAmount = document.getElementById("bet-input").value;
+        console.log("bet pressed", betAmount);
+        socket.emit("bet", { amount: betAmount });
+    });
 }
 
 async function redirectToLobbyIfAuthenticated() {

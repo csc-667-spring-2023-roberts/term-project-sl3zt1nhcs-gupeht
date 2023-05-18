@@ -185,6 +185,15 @@ io.on("connection", (socket) => {
         });
     });
 
+    socket.on("bet", (data) => {
+        const amount = Number(data.amount);
+      
+        setTimeout(()=>{
+            const betResult = gameLogic.playerBet(socket.userId, amount);
+        },2000)
+     
+    });
+
     // Event to listen to messages sent from the client side
     socket.on("send_message", (data) => {
         // breaking the message by descontruction the parameter data
@@ -221,7 +230,7 @@ io.on("connection", (socket) => {
 
         console.log(`User ${socket.userName} disconnected`);
 
-        // Wait for 5 seconds before handling the disconnection
+        // Wait for 3 seconds before handling the disconnection
         setTimeout(() => {
             // If the user has not reconnected within the timeout period, handle their disconnection
             const reconnectedSocketId = socketIdMap.get(socket.userId);
@@ -246,9 +255,7 @@ io.on("connection", (socket) => {
                     .then((gameId) => {
                         if (gameResult.endGameResult.gameState) {
                             gameResult.endGameResult.gameState.isActive = false;
-                            gameModel.updateGame(gameResult.endGameResult.gameState, gameId).then(() => {
-                                
-                            });
+                            gameModel.updateGame(gameResult.endGameResult.gameState, gameId).then(() => {});
                         }
                     })
                     .catch((err) => {

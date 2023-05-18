@@ -67,12 +67,7 @@ function removeUserFromGame(user_id) {
     }
 
     let playState = gameState.players[user_id];
-
-    console.log(" Debugigng updating player state of the player leaving the game", gameState.players);
-
     playState.isParticipating = false;
-
-
     playerModel.updatePlayerState(user_id, gameState.players[user_id]);
 
     let activePlayers = Object.values(gameState.players).filter((player) => player.isParticipating).length;
@@ -89,6 +84,7 @@ function removeUserFromGame(user_id) {
         Object.values(gameState.players).forEach((player) => {
             player.isActive = false;
             player.isParticipating = false;
+            playerModel.updatePlayerState(user_id, gameState.players[user_id]);
         });
     }
 
@@ -114,8 +110,8 @@ function playerJoinGame(user_id, userName) {
         gameState.players[user_id] = {
             userName: userName,
             cards: [],
-            bet_amount: 0,
-            money: 1000, // Let's give each player 1000 units of money to start
+            bet_amount:0,
+            money: 50, // Let's give each player 1000 units of money to start
             isActive: true, // New property indicating if the player is active in the current round
             isParticipating: true,
             roundsWon: 0,
@@ -158,7 +154,7 @@ function startGame() {
     shuffle(deck);
 
     for (let user_id in gameState.players) {
-        gameState.players[user_id].cards = [deck.pop(), deck.pop(), deck.pop(), deck.pop(), deck.pop()];
+        gameState.players[user_id].cards = [deck.pop(), deck.pop()];
         gameState.players[user_id].isActive = true;
         gameState.players[user_id].isParticipating = true;
     }
@@ -170,7 +166,9 @@ function startGame() {
 }
 
 function playerBet(user_id, amount) {
+
     let player = gameState.players[user_id];
+
 
     // Make sure the player has enough money to make the bet
     if (player.money < amount) {
@@ -187,9 +185,13 @@ function playerBet(user_id, amount) {
         return `${player.userName} can't bet because they have folded`;
     }
 
+    player.bet_amount += amount
     player.money -= amount;
-    player.bet_amount += amount;
     gameState.pot += amount;
+
+    console.log("debugging player", player)
+    console.log("debugging gameStatePt", gameState.pot)
+
 
     // If the player has bet all their money, they are all in
     if (player.money === 0) {
@@ -311,44 +313,6 @@ function determineWinner() {
     }
 }
 
-// Function to draw a card from the deck
-function drawCard(user_id) {
-    // Make sure it's the player's turn
-    if (gameState.current_player !== user_id) {
-        return `It's not ${gameState.players[user_id].userName}'s turn to draw a card`;
-    }
-
-    // Draw a card from the deck
-    let card = deck.pop();
-
-    // Add the card to the player's hand
-    gameState.players[user_id].cards.push(card);
-}
-
-// Function to pass the turn to the next player
-function passTurn(user_id) {
-    // Make sure it's the player's turn
-    if (gameState.current_player !== user_id) {
-        return `It's not ${gameState.players[user_id].userName}'s turn to pass`;
-    }
-
-    // Pass the turn to the next player
-    gameState.current_player = getNextPlayer(user_id);
-}
-
-// Functions to bet more or less
-function betMore(user_id, additionalAmount) {
-    playerBet(user_id, gameState.players[user_id].bet_amount + additionalAmount);
-}
-
-function betLess(user_id, lessAmount) {
-    playerBet(user_id, gameState.players[user_id].bet_amount - lessAmount);
-}
-
-// Function to bet all
-function betAll(user_id) {
-    playerBet(user_id, gameState.players[user_id].money);
-}
 
 function endRound() {
     let roundResult = {
@@ -481,29 +445,22 @@ function endGame() {
 
         let winnerNames = winners.map((id) => gameState.players[id].userName);
         result.winners = winnerNames;
-
-
     }
 
     // Set all players to inactive and not participating
     for (let user_id in gameState.players) {
         if (user_id === "undefined") continue; // Prevent undefined user_id
 
-        gameState.players[user_id].isActive = false;
-        gameState.players[user_id].isParticipating = false;
+        let playerState = gameState.players[user_id];
+        playerState.isActive = false;
+        playerState.isParticipating = false;
+        console.log("debugging end game players status before the database call", playerState);
+        playerModel.updatePlayerState(user_id, playerState);
     }
 
     result.gameState = gameState;
 
-    // Update each player's state in the database
-    for (let user_id in gameState.players) {
-        if (user_id === "undefined") continue; // Prevent undefined user_id
-
-        let playerState = gameState.players[user_id];
-        playerModel.updatePlayerState(user_id, playerState);
-    }
-
-    console.log("debugging RESULT", result);
+    console.log("debugging end game players status", result.gameState.players);
     return result;
 }
 
