@@ -200,7 +200,7 @@ function playerBet(user_id, amount) {
     let activePlayers = Object.values(gameState.players).filter((p) => p.isActive);
     if (activePlayers.length === 0) {
         console.log("End round, all players are inactive");
-        endRound();
+        result.endRound = endRound();
     }
 
     gameState.current_player = getNextPlayer(user_id);
@@ -214,17 +214,20 @@ function playerBet(user_id, amount) {
     // Update the game state in the database after all changes
     console.log("Updating game state in the database");
 
-    gamesModel.getRecentGameId().then((gameId) => {
-        console.log("retrieved the gameId", gameId);
+    gamesModel
+        .getRecentGameId()
+        .then((gameId) => {
+            console.log("retrieved the gameId", gameId);
 
-        return gamesModel.updateGame(gameState, gameId);
-    }).then((result)=>{
-        console.log(`Game state updated successfully, ${result} row(s) affected`)
-    }).catch((err) => console.log("Error updating game state: ", err));
+            return gamesModel.updateGame(gameState, gameId);
+        })
+        .then((result) => {
+            console.log(`Game state updated successfully, ${result} row(s) affected`);
+        })
+        .catch((err) => console.log("Error updating game state: ", err));
 
     console.log("GameState after player bet: ", gameState);
 
-  
     return result;
 }
 
@@ -336,6 +339,8 @@ function endRound() {
         money: null,
     };
 
+    roundResult.message = "revealing each players hand";
+
     console.log("revealing each players hand");
 
     // Reveal each player's hand
@@ -343,6 +348,7 @@ function endRound() {
         let cards = showCards(user_id);
         if (Array.isArray(cards)) {
             roundResult.cards[user_id] = cards;
+            roundResult.playersHand = `${gameState.players[user_id].userName}'s hand: ${cards}`;
             console.log(`${gameState.players[user_id].userName}'s hand: ${cards}`);
         } else {
             console.log(cards); // Log the error message
@@ -385,22 +391,58 @@ function endRound() {
         roundResult.winnersCards = gameState.players[winners].cards;
     }
 
-    // Reset the game state
+    for (let user_id in gameState.players) {
+        playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+    }
+
+    console.log("round result:", roundResult);
+
+    // Start a new round if any player still has money
+    let activePlayers = Object.values(gameState.players).filter((p) => p.money > 0);
+    if (activePlayers.length > 1) {
+       
+        startNewRound();
+    } else {
+        console.log("Game over! We have a winner!");
+        // TODO set use to ina
+    }
+
+    return roundResult;
+}
+
+function startNewRound() {
+
+    console.log("started new round")
+    let participatingPlayers = Object.values(gameState.players).filter((player) => player.isParticipating);
+
+    // Check if we have more than one player who can participate
+    if (participatingPlayers.length < 2) {
+        return;
+    }
+    // Create and shuffle the deck
+
+    let deck = createDeck();
+    shuffle(deck);
+
+    // Reset the game state for the new round
     gameState.pot = 0;
     gameState.current_bet = 0;
     gameState.dealer = getNextPlayer(gameState.dealer);
     gameState.current_player = gameState.dealer;
 
     for (let user_id in gameState.players) {
-        gameState.players[user_id].cards = [];
-        gameState.players[user_id].bet_amount = 0;
+        // Skip players who can't participate
+
+        if (gameState.players[user_id].money <= 0) {
+            gameState.players[user_id].isParticipating = false;
+            continue;
+        }
+
+        // Distribute cards to players and reset their state
+        gameState.players[user_id].cards = [deck.pop(), deck.pop()];
         gameState.players[user_id].isActive = true;
-        playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+        gameState.players[user_id].bet_amount = 0;
     }
-
-    console.log("round result:", roundResult);
-
-    return roundResult;
 }
 
 function endGame() {
@@ -508,4 +550,5 @@ module.exports = {
     isUserInGame,
     removeUserFromGame,
     playerRejoinGame,
+    startNewRound,
 };
