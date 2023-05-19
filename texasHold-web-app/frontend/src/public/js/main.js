@@ -175,13 +175,24 @@ export async function fetchLobby() {
                 renderGame(data);
             });
 
-            socket.on("bet_result",(data)=>{
+            socket.on("bet_result", (data) => {
                 console.log("Bet result received: ", data);
+
+                let message = "";
+                if (data.isNotPlayerTurn) {
+                    message = "It's not your turn!";
+                } else if (data.playerHasNoMoney) {
+                    message = "You don't have enough money for this bet!";
+                } else if (data.allIn) {
+                    message = "You are all in!";
+                } else {
+                    message = "Bet placed successfully.";
+                }
+
                 // Display the result of the bet in the notification area
                 const notificationElement = document.getElementById("notifications");
-                notificationElement.textContent = data.message;
-
-            })
+                notificationElement.textContent = message;
+            });
 
             socket.on("game_resume", async (data) => {
                 renderGame(data);
