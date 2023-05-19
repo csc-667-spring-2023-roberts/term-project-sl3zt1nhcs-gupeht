@@ -167,7 +167,7 @@ function startGame() {
     }
 }
 
-function playerBet(user_id, amount) {
+async function playerBet(user_id, amount) {
     let player = gameState.players[user_id];
 
     const result = {};
@@ -192,6 +192,14 @@ function playerBet(user_id, amount) {
 
     console.log("Player after bet: ", player);
 
+    try {
+        console.log("Updating player state in the database: ", user_id);
+        await playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+        console.log(`Player state ${user_id} updated in the database.`);
+    } catch (err) {
+        console.log("Error updating player state: ", err);
+    }
+
     if (player.money === 0) {
         result.allIn = true;
         console.log("Player is all in");
@@ -200,16 +208,11 @@ function playerBet(user_id, amount) {
     let activePlayers = Object.values(gameState.players).filter((p) => p.isActive);
     if (activePlayers.length === 0) {
         console.log("End round, all players are inactive");
-        result.endRound = endRound();
+        result.endRound = await endRound();
     }
 
     gameState.current_player = getNextPlayer(user_id);
     console.log("Current player: ", gameState.current_player);
-
-    for (let user_id in gameState.players) {
-        console.log("Updating player state in the database: ", user_id);
-        playerModel.updatePlayerState(user_id, gameState.players[user_id]);
-    }
 
     // Update the game state in the database after all changes
     console.log("Updating game state in the database");
@@ -226,9 +229,7 @@ function playerBet(user_id, amount) {
         })
         .catch((err) => console.log("Error updating game state: ", err));
 
-    console.log("GameState after player bet: ", gameState);
-
-    
+    console.log("GameState: ", gameState);
 
     return result;
 }
@@ -334,7 +335,7 @@ function determineWinner() {
     }
 }
 
-function endRound() {
+async function endRound() {
     let roundResult = {
         cards: {},
         winner: null,
@@ -345,7 +346,6 @@ function endRound() {
 
     console.log("revealing each players hand");
 
-    // Reveal each player's hand
     for (let user_id in gameState.players) {
         let cards = showCards(user_id);
         if (Array.isArray(cards)) {
@@ -353,17 +353,15 @@ function endRound() {
             roundResult.playersHand = `${gameState.players[user_id].userName}'s hand: ${cards}`;
             console.log(`${gameState.players[user_id].userName}'s hand: ${cards}`);
         } else {
-            console.log(cards); // Log the error message
+            console.log(cards);
         }
     }
 
-    // Determine the winner
     let winners = determineWinner();
 
     if (Array.isArray(winners)) {
         console.log("It's a tie!");
         roundResult.winner = "tie";
-        // Split the pot between the winners
         winners.forEach((winner) => {
             gameState.players[winner].money += gameState.pot / winners.length;
             roundResult.money = gameState.players[winner].money;
@@ -382,70 +380,84 @@ function endRound() {
         }
     }
 
-    // Store the winners cards in the round result
     if (Array.isArray(winners)) {
-        roundResult.winnersCard = []; // Initialize as an array
+        roundResult.winnersCard = [];
         winners.forEach((winner) => {
-            roundResult.winnersCard.push(gameState.players[winner].cards); // Push each winner's cards
+            roundResult.winnersCard.push(gameState.players[winner].cards);
         });
     } else {
-        // Only one winner, so we don't need an array
         roundResult.winnersCards = gameState.players[winners].cards;
     }
 
     for (let user_id in gameState.players) {
-        playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+        try {
+            await playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+            console.log(`Player state ${user_id} updated in the database.`);
+        } catch (err) {
+            console.log("Error updating player state: ", err);
+        }
     }
 
     console.log("round result:", roundResult);
 
-    // Start a new round if any player still has money
     let activePlayers = Object.values(gameState.players).filter((p) => p.money > 0);
     if (activePlayers.length > 1) {
-       
         startNewRound();
     } else {
         console.log("Game over! We have a winner!");
-        // TODO set use to ina
     }
 
     return roundResult;
 }
-
 function startNewRound() {
-
-    console.log("started new round")
+    console.log("started new round");
     let participatingPlayers = Object.values(gameState.players).filter((player) => player.isParticipating);
 
-    // Check if we have more than one player who can participate
     if (participatingPlayers.length < 2) {
         return;
     }
-    // Create and shuffle the deck
 
     let deck = createDeck();
     shuffle(deck);
 
-    // Reset the game state for the new round
     gameState.pot = 0;
     gameState.current_bet = 0;
-    gameState.dealer = getNextPlayer(gameState.dealer);
-    gameState.current_player = gameState.dealer;
 
+    // First set all participating players as active
     for (let user_id in gameState.players) {
-        // Skip players who can't participate
-
         if (gameState.players[user_id].money <= 0) {
             gameState.players[user_id].isParticipating = false;
             continue;
         }
-
-        // Distribute cards to players and reset their state
-        gameState.players[user_id].cards = [deck.pop(), deck.pop()];
         gameState.players[user_id].isActive = true;
+    }
+
+    // Now get the next dealer and current player
+    gameState.dealer = getNextPlayer(gameState.dealer);
+    console.log("debugging null dealer", gameState.dealer)
+    gameState.current_player = getNextPlayer(gameState.dealer); // assuming that the current player is the one after the dealer
+
+    // Then continue with the round setup
+    for (let user_id in gameState.players) {
+        if (!gameState.players[user_id].isParticipating) {
+            continue;
+        }
+        gameState.players[user_id].cards = [deck.pop(), deck.pop()];
         gameState.players[user_id].bet_amount = 0;
     }
+
+    // Update players' state at the beginning of a new round.
+    for (let user_id in gameState.players) {
+        try {
+            console.log("Updating player state in the database new round: ", user_id);
+            playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+            console.log(`Player state ${user_id} updated in the database for new round.`);
+        } catch (err) {
+            console.log("Error updating player state: ", err);
+        }
+    }
 }
+
 
 function endGame() {
     let result = {};
