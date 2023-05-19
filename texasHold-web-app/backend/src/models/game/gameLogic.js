@@ -228,6 +228,8 @@ function playerBet(user_id, amount) {
 
     console.log("GameState after player bet: ", gameState);
 
+    
+
     return result;
 }
 
