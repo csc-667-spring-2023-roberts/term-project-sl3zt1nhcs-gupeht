@@ -165,8 +165,23 @@ export async function fetchLobby() {
             });
 
             socket.on("game_start", async (data) => {
+                console.log("Game data received: ", data);
                 renderGame(data);
             });
+
+            socket.on("game_update", async (data) => {
+                console.log("Game update received: ", data);
+                // Call renderGame to update the display with the new game state
+                renderGame(data);
+            });
+
+            socket.on("bet_result",(data)=>{
+                console.log("Bet result received: ", data);
+                // Display the result of the bet in the notification area
+                const notificationElement = document.getElementById("notifications");
+                notificationElement.textContent = data.message;
+
+            })
 
             socket.on("game_resume", async (data) => {
                 renderGame(data);

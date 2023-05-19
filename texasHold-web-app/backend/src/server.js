@@ -185,15 +185,49 @@ io.on("connection", (socket) => {
         });
     });
 
-    socket.on("bet", (data) => {
-        
-        let betAmount = parseInt(data.amount,10);
+    socket.on("bet", async (data) => {
+        let betAmount = parseInt(data.amount, 10);
 
-        const betResult = gameLogic.playerBet(socket.userId, betAmount);
+        const betResult = await gameLogic.playerBet(socket.userId, betAmount);
 
+        //for debugging
         console.log(betResult);
 
-        
+        // If the bet was successful, get the updated game state and player states
+        if (!betResult.playerHasNoMoney && !betResult.isNotPlayerTurn) {
+            await gameModel.getRecentGameId().then(async (game_id) => {
+                const gameId = game_id;
+                console.log("GAME ID", gameId);
+
+                return await gameModel.getGame(gameId).then((game) => {
+                    let updatedGameState = game.game_state_json;
+                    console.log("UPDATED GAME STATE", updatedGameState);
+
+                    for (let userId in updatedGameState.players) {
+                        let socketId = socketIdMap.get(userId);
+
+                        // Sends each individual their corresponding game state
+                        const playerGameState = updatedGameState.players[userId];
+                        console.log("UPDATED PLAYER GAME STATE", playerGameState);
+                        io.to(socketId).emit("game_update", {
+                            gameId: game.game_id,
+                            gameState: playerGameState,
+                            current_player: updatedGameState.current_player,
+                        });
+                    }
+                });
+            });
+
+            // Send the result of the bet to all players
+            io.emit("bet_result", {
+                player: socket.userId,
+                amount: betAmount,
+                message: `Player ${socket.userId} has made a bet of ${betAmount}`,
+            });
+        } else {
+            // If the bet was not successful, just send the result to the player who made the bet
+            socket.emit("bet_result", betResult);
+        }
     });
 
     // Event to listen to messages sent from the client side
