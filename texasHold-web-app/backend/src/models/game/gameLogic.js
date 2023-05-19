@@ -1,4 +1,5 @@
 const playerModel = require("./playerModels");
+const gamesModel = require("../game/gameModel");
 
 const suits = ["♠", "♥", "♦", "♣"];
 
@@ -169,62 +170,61 @@ function startGame() {
 function playerBet(user_id, amount) {
     let player = gameState.players[user_id];
 
-    let result = {
-        playerId: user_id,
-        playerHasNoMoney: false,
-        playerTurn: false,
-        allIn: false,
+    const result = {};
 
-    };
+    console.log("PlayerBet Called: ", user_id, amount);
 
-    // Make sure the player has enough money to make the bet
     if (player.money < amount) {
-        console.log(`${player.userName} does not have enough money to bet ${amount}`);
         result.playerHasNoMoney = true;
-        result.playerHasNoMoneyMessage = `${player.userName} does not have enough money to bet ${amount}`;
+        console.log("Player has no money for this bet");
+        return result;
+    } else if (gameState.current_player !== user_id) {
+        result.isNotPlayerTurn = true;
+        console.log("Not the turn of this player");
+        return result;
     }
 
-    // Make sure it's the player's turn
-    else if (gameState.current_player !== user_id) {
-        console.log(`It's not ${player.userName}'s turn to bet`);
-        result.playerTurn = false;
-        result.playerTurnMessage = `It's not ${player.userName}'s turn to bet`;
-    } else {
-        result.playerTurn = true;
-        result.playerTurnMessage = `It's ${player.userName}'s turn to bet`;
-        player.bet_amount += amount;
-        player.money -= amount;
-        gameState.pot += amount;
+    player.bet_amount += amount;
+    gameState.current_bet = player.bet_amount;
+    player.money -= amount;
+    gameState.pot += amount;
+    player.isActive = false;
 
-        console.log("debugging player", player);
+    console.log("Player after bet: ", player);
 
-        console.log("debugging gameStatePt", gameState);
-
-        // If the player has bet all their money, they are all in
-        if (player.money === 0) {
-            result.allIn = true;
-            result.allInMessage = `${player.userName} is all in!`;
-        }
-
-        /*
-        // move on to the next player
-        gameState.current_player = getNextPlayer(user_id);
-       
-        // Check if there is only one active player left
-        const nextPlayer = getNextPlayer(gameState.current_player);
-
-        if (nextPlayer === null) {
-            console.log("there is no active players");
-            result.noActivePlayers = nextPlayer === null;
-            // If there is no next active player, end the round or the game
-            const activePlayers = Object.values(gameState.players).filter((player) => player.isActive);
-            if (activePlayers.length === 1) {
-                endRound();
-            }
-        }
-        */
+    if (player.money === 0) {
+        result.allIn = true;
+        console.log("Player is all in");
     }
 
+    let activePlayers = Object.values(gameState.players).filter((p) => p.isActive);
+    if (activePlayers.length === 0) {
+        console.log("End round, all players are inactive");
+        endRound();
+    }
+
+    gameState.current_player = getNextPlayer(user_id);
+    console.log("Current player: ", gameState.current_player);
+
+    for (let user_id in gameState.players) {
+        console.log("Updating player state in the database: ", user_id);
+        playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+    }
+
+    // Update the game state in the database after all changes
+    console.log("Updating game state in the database");
+
+    gamesModel.getRecentGameId().then((gameId) => {
+        console.log("retrieved the gameId", gameId);
+
+        return gamesModel.updateGame(gameState, gameId);
+    }).then((result)=>{
+        console.log(`Game state updated successfully, ${result} row(s) affected`)
+    }).catch((err) => console.log("Error updating game state: ", err));
+
+    console.log("GameState after player bet: ", gameState);
+
+  
     return result;
 }
 
