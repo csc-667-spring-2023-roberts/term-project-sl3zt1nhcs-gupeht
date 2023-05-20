@@ -26,8 +26,12 @@ function renderGame(data) {
     const scoreBoardElement = document.createElement("div");
     scoreBoardElement.classList.add("score-board");
     scoreBoardElement.innerHTML = `
+               
            <p>Game ID: ${data.gameId}</p>
+           <p>Game pot: ${data.pot}</p>
+           <p>Game current_bet: ${data.current_bet}</p>
            <p>Current player: ${data.current_player}</p>
+           <p>money: $${data.gameState.money}</p>
            <p>Your Round wons: ${data.gameState.roundsWon}</p>
            <p>Your Round loss: ${data.gameState.roundsLost}</p>
        `;
@@ -179,14 +183,17 @@ export async function fetchLobby() {
                 console.log("Bet result received: ", data);
 
                 let message = "";
-                if (data.isNotPlayerTurn) {
-                    message = "It's not your turn!";
-                } else if (data.playerHasNoMoney) {
-                    message = "You don't have enough money for this bet!";
-                } else if (data.allIn) {
-                    message = "You are all in!";
+
+                if (data.success) {
+                    message = data.message;
                 } else {
-                    message = "Bet placed successfully.";
+                    if (data.isNotPlayerTurn) {
+                        message = "It's not your turn!";
+                    } else if (data.playerHasNoMoney) {
+                        message = "You don't have enough money for this bet!";
+                    } else if (data.allIn) {
+                        message = "You are all in!";
+                    } 
                 }
 
                 // Display the result of the bet in the notification area

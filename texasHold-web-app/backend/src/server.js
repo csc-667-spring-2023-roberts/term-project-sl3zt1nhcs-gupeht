@@ -104,6 +104,8 @@ io.on("connection", (socket) => {
                         gameId: activeGame.game_id,
                         gameState: playerGameState,
                         current_player: activeGameState.current_player,
+                        pot: activeGameState.pot,
+                        current_bet: activeGameState.current_bet,
                     });
 
                     console.log(
@@ -165,16 +167,9 @@ io.on("connection", (socket) => {
                                     gameId: createdGame.game_id,
                                     gameState: playerGameState,
                                     current_player: gameState.current_player,
+                                    pot: gameState.pot,
+                                    current_bet: gameState.current_bet,
                                 });
-
-                                //TODO for debugging
-                                console.log(
-                                    `Sent game start data to player with ID: ${userId}. for gameId:  ${
-                                        createdGame.game_id
-                                    } Player Game State: ${JSON.stringify(playerGameState, null, 2)}, Opponent player:; ${
-                                        gameState.current_player
-                                    }`
-                                );
                             }
                         })
                         .catch((err) => {
@@ -213,6 +208,8 @@ io.on("connection", (socket) => {
                             gameId: game.game_id,
                             gameState: playerGameState,
                             current_player: updatedGameState.current_player,
+                            pot: updatedGameState.pot,
+                            current_bet: updatedGameState.current_bet,
                         });
                     }
                 });
@@ -220,13 +217,17 @@ io.on("connection", (socket) => {
 
             // Send the result of the bet to all players
             io.emit("bet_result", {
+                success: true,
                 player: socket.userId,
                 amount: betAmount,
                 message: `Player ${socket.userId} has made a bet of ${betAmount}`,
             });
         } else {
             // If the bet was not successful, just send the result to the player who made the bet
-            socket.emit("bet_result", betResult);
+            socket.emit("bet_result", {
+                success: false,
+                ...betResult,
+            });
         }
     });
 
