@@ -133,15 +133,46 @@ function playerJoinGame(user_id, userName) {
     }
 }
 
-function playerFold(user_id) {
-    // If the player folds, mark them as inactive
-    gameState.players[user_id].isActive = false;
+async function playerFold(user_id) {
+    let player = gameState.players[user_id];
 
-    // If there's only one active player left, they win the game
-    const activePlayers = Object.values(gameState.players).filter((player) => player.isActive);
-    if (activePlayers.length === 1) {
-        endRound();
+    gameState.foldedPlayers += 1;
+
+    player.isActive = false;
+
+    try {
+        console.log("Updating player state in the database: ", user_id);
+        await playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+        console.log(`Player state ${user_id} updated in the database.`);
+    } catch (err) {
+        console.log("Error updating player state: ", err);
     }
+
+    // getting the other player
+    gameState.current_player = getNextPlayer(user_id);
+
+    let activePlayers = Object.values(gameState.players).filter((p) => p.isActive);
+
+    if (activePlayers.length < 2) {
+        console.log(" starting a new round due to fold");
+        startNewRound();
+
+        console.log("Updating game state in the database");
+
+        gamesModel
+            .getRecentGameId()
+            .then((gameId) => {
+                console.log("retrieved the gameId", gameId);
+
+                return gamesModel.updateGame(gameState, gameId);
+            })
+            .then((result) => {
+                console.log(`Game state updated successfully, ${result} row(s) affected`);
+            })
+            .catch((err) => console.log("Error updating game state: ", err));
+        return true;
+    }
+    return false;
 }
 
 function startGame() {
@@ -417,11 +448,12 @@ function startNewRound() {
         return;
     }
 
-    let deck = createDeck();
-    shuffle(deck);
-
     gameState.pot = 0;
     gameState.current_bet = 0;
+   
+
+    let deck = createDeck();
+    shuffle(deck);
 
     // First set all participating players as active
     for (let user_id in gameState.players) {
@@ -431,10 +463,11 @@ function startNewRound() {
         }
         gameState.players[user_id].isActive = true;
     }
-
     // Now get the next dealer and current player
     gameState.dealer = getNextPlayer(gameState.dealer);
-    console.log("debugging null dealer", gameState.dealer)
+
+    console.log("debugging null dealer", gameState.dealer);
+
     gameState.current_player = getNextPlayer(gameState.dealer); // assuming that the current player is the one after the dealer
 
     // Then continue with the round setup
@@ -457,7 +490,6 @@ function startNewRound() {
         }
     }
 }
-
 
 function endGame() {
     let result = {};

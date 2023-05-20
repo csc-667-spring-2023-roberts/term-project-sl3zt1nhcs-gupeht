@@ -4,8 +4,10 @@ import { logout } from "./logout";
 import { io } from "socket.io-client";
 let socket;
 
+
 async function isUserLoggedin() {
     const user_id = localStorage.getItem("user_id");
+    
 
     if (!user_id) {
         console.log("User is not logged in");
@@ -17,7 +19,10 @@ async function isUserLoggedin() {
 
 function renderGame(data) {
     // stored locally when logging in. Check the log in  js file
-    let userName = localStorage.getItem("userName");
+    const userId = localStorage.getItem("user_id");
+    const userName = localStorage.getItem("userName");
+
+   
     // Access the game div
     const gameElement = document.getElementById("game");
 
@@ -74,7 +79,6 @@ function renderGame(data) {
 
             userCardElement.appendChild(cardElement);
         }
-        
     }
 
     // Add the user card to the game div
@@ -104,32 +108,34 @@ function renderGame(data) {
     // Add the game buttons to the game div
     gameElement.appendChild(buttonsElement);
 
+    // Event listener for bet-button
+    document.getElementById("bet-button").addEventListener("click", (e) => {
+        e.preventDefault();
+        const betAmount = document.getElementById("bet-input").value;
+        // For debugginh
+        console.log("bet pressed", betAmount);
+        socket.emit("bet", { amount: betAmount });
+    });
 
+    //event listener for the fold button
+    document.getElementById("fold-button").addEventListener("click", (e) => {
+        e.preventDefault();
 
-        // Event listener for bet-button
-        document.getElementById("bet-button").addEventListener("click", (e) => {
-            e.preventDefault();
-            const betAmount = document.getElementById("bet-input").value;
-            // For debugginh
-            console.log("bet pressed", betAmount);
-            socket.emit("bet", { amount: betAmount });
-        });
+        const cards = document.getElementsByClassName("card");
 
+        console.log("fold pressed");
+        for (let i = 0; i < cards.length; i++) {
+            cards[i].style.transform = "rotateY(180deg)";
+        }
 
-        //event listener for the fold button
-        document.getElementById("fold-button").addEventListener("click", (e) => {
-            e.preventDefault();
+        socket.emit("fold", { userName: userName, userId: userId });
+    });
 
-            const cards = document.getElementsByClassName("card");
-
-            console.log("fold pressed");
-            for (let i = 0; i < cards.length; i++) {
-                cards[i].style.transform = "rotateY(180deg)";
-            }
-
-            socket.emit("fold", { userName: userName });
-        });
-        
+    //  unfolding cards
+    const cards = document.getElementsByClassName("card");
+    for (let i = 0; i < cards.length; i++) {
+        cards[i].style.transform = "rotateY(0deg)";
+    }
 }
 
 async function redirectToLobbyIfAuthenticated() {
@@ -230,19 +236,12 @@ export async function fetchLobby() {
                 renderGame(data);
             });
 
-            
             socket.on("user_folded", (data) => {
-
-            
-        
-                console.log(data.userName + " has folded");
+                console.log(`${data.userName}  has folded`);
 
                 const notificationElement = document.getElementById("notifications");
-                notificationElement.innerHTML = data.userName + "has folded";
-
-
+                notificationElement.innerHTML = data.userName + "has folded." + data.message;
             });
-            
 
             socket.on("bet_result", (data) => {
                 console.log("Bet result received: ", data);

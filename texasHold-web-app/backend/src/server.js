@@ -215,7 +215,6 @@ io.on("connection", (socket) => {
                 });
             });
 
-         
             let success = betResult.endRound ? false : true;
 
             // Send the result of the bet to all players
@@ -235,18 +234,47 @@ io.on("connection", (socket) => {
         }
     });
 
-//TODO***********************************************
+    //TODO
+    socket.on("fold", async (data) => {
+        console.log(data.userName + " has folded" + " with Id " + data.userId);
 
+        const folded = gameLogic.playerFold(data.userId);
 
-    socket.on("fold",(data)=>{
+        console.log("debugging folded", folded);
 
-        console.log(data.userName + " has folded");
+        if (folded) {
+            setTimeout(async () => {
+                await gameModel.getRecentGameId().then(async (game_id) => {
+                    const gameId = game_id;
+                    console.log("GAME ID", gameId);
 
+                    return await gameModel.getGame(gameId).then((game) => {
+                        let updatedGameState = game.game_state_json;
+                        console.log("UPDATED GAME STATE", updatedGameState);
 
+                        for (let userId in updatedGameState.players) {
+                            let socketId = socketIdMap.get(userId);
 
-        socket.broadcast.emit("user_folded",{userName:data.userName})
-    })
-    //TODO************************************************
+                            // Sends each individual their corresponding game state
+                            const playerGameState = updatedGameState.players[userId];
+                            console.log("UPDATED PLAYER GAME STATE", playerGameState);
+                            io.to(socketId).emit("game_update", {
+                                gameId: game.game_id,
+                                gameState: playerGameState,
+                                current_player: updatedGameState.current_player,
+                                pot: updatedGameState.pot,
+                                current_bet: updatedGameState.current_bet,
+                            });
+                        }
+                    });
+                });
+            },4000);
+
+            io.emit("user_folded", { userName: data.userName, message: "Starting a new round" });
+        }
+
+        // socket.broadcast.emit("user_folded", { userName: data.userName });
+    });
 
     // Event to listen to messages sent from the client side
     socket.on("send_message", (data) => {
