@@ -235,6 +235,19 @@ io.on("connection", (socket) => {
         }
     });
 
+//TODO***********************************************
+
+
+    socket.on("fold",(data)=>{
+
+        console.log(data.userName + " has folded");
+
+
+
+        socket.broadcast.emit("user_folded",{userName:data.userName})
+    })
+    //TODO************************************************
+
     // Event to listen to messages sent from the client side
     socket.on("send_message", (data) => {
         // breaking the message by descontruction the parameter data

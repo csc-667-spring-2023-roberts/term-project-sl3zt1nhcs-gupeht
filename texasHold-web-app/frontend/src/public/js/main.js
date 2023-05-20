@@ -16,6 +16,8 @@ async function isUserLoggedin() {
 }
 
 function renderGame(data) {
+    // stored locally when logging in. Check the log in  js file
+    let userName = localStorage.getItem("userName");
     // Access the game div
     const gameElement = document.getElementById("game");
 
@@ -45,31 +47,34 @@ function renderGame(data) {
     // Loop through the cards array and add each card to userCardElement
 
     if (data.gameState.cards) {
-
         for (let card of data.gameState.cards) {
             const cardElement = document.createElement("div");
             cardElement.classList.add("card");
-    
+
             const cardRank = card.split(" ")[0];
             const cardSuit = card.split(" ")[1];
-    
+
             const cardFrontElement = document.createElement("div");
             cardFrontElement.classList.add("card-front");
             cardElement.appendChild(cardFrontElement);
-    
+
             const cardValueElement = document.createElement("div");
             cardValueElement.classList.add("card-value");
             cardValueElement.textContent = cardRank;
             cardFrontElement.appendChild(cardValueElement);
-    
+
             const cardSuitElement = document.createElement("div");
             cardSuitElement.classList.add("card-suit");
             cardSuitElement.textContent = cardSuit;
             cardFrontElement.appendChild(cardSuitElement);
-    
+
+            const cardBackElement = document.createElement("div");
+            cardBackElement.classList.add("card-back");
+            cardElement.appendChild(cardBackElement);
+
             userCardElement.appendChild(cardElement);
         }
-      
+        
     }
 
     // Add the user card to the game div
@@ -91,15 +96,40 @@ function renderGame(data) {
     betButton.textContent = "Bet";
     buttonsElement.appendChild(betButton);
 
+    const foldButton = document.createElement("button");
+    foldButton.id = "fold-button";
+    foldButton.textContent = "Fold";
+    buttonsElement.appendChild(foldButton);
+
     // Add the game buttons to the game div
     gameElement.appendChild(buttonsElement);
 
-    document.getElementById("bet-button").addEventListener("click", (e) => {
-        e.preventDefault();
-        const betAmount = document.getElementById("bet-input").value;
-        console.log("bet pressed", betAmount);
-        socket.emit("bet", { amount: betAmount });
-    });
+
+
+        // Event listener for bet-button
+        document.getElementById("bet-button").addEventListener("click", (e) => {
+            e.preventDefault();
+            const betAmount = document.getElementById("bet-input").value;
+            // For debugginh
+            console.log("bet pressed", betAmount);
+            socket.emit("bet", { amount: betAmount });
+        });
+
+
+        //event listener for the fold button
+        document.getElementById("fold-button").addEventListener("click", (e) => {
+            e.preventDefault();
+
+            const cards = document.getElementsByClassName("card");
+
+            console.log("fold pressed");
+            for (let i = 0; i < cards.length; i++) {
+                cards[i].style.transform = "rotateY(180deg)";
+            }
+
+            socket.emit("fold", { userName: userName });
+        });
+        
 }
 
 async function redirectToLobbyIfAuthenticated() {
@@ -200,6 +230,20 @@ export async function fetchLobby() {
                 renderGame(data);
             });
 
+            
+            socket.on("user_folded", (data) => {
+
+            
+        
+                console.log(data.userName + " has folded");
+
+                const notificationElement = document.getElementById("notifications");
+                notificationElement.innerHTML = data.userName + "has folded";
+
+
+            });
+            
+
             socket.on("bet_result", (data) => {
                 console.log("Bet result received: ", data);
 
@@ -217,29 +261,28 @@ export async function fetchLobby() {
                     for (let card of winnersCards) {
                         const cardElement = document.createElement("div");
                         cardElement.classList.add("card");
-                    
+
                         const cardRank = card.split(" ")[0];
                         const cardSuit = card.split(" ")[1];
-                    
+
                         const cardFrontElement = document.createElement("div");
                         cardFrontElement.classList.add("card-front");
                         cardElement.appendChild(cardFrontElement);
-                    
+
                         const cardValueElement = document.createElement("div");
                         cardValueElement.classList.add("card-value");
                         cardValueElement.textContent = cardRank;
                         cardFrontElement.appendChild(cardValueElement);
-                    
+
                         const cardSuitElement = document.createElement("div");
                         cardSuitElement.classList.add("card-suit");
                         cardSuitElement.textContent = cardSuit;
                         cardFrontElement.appendChild(cardSuitElement);
-            
+
                         winnersCardElements.appendChild(cardElement);
                     }
 
-                    message += winnersCardElements.outerHTML ;
-                    
+                    message += winnersCardElements.outerHTML;
                 } else if (data.success) {
                     message = data.message;
                 } else {
@@ -254,7 +297,7 @@ export async function fetchLobby() {
 
                 // Display the result of the bet in the notification area
                 const notificationElement = document.getElementById("notifications");
-                notificationElement.innerHTML = message
+                notificationElement.innerHTML = message;
             });
 
             socket.on("game_resume", async (data) => {
