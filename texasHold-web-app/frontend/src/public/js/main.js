@@ -67,15 +67,7 @@ function renderGame(data) {
         cardSuitElement.textContent = cardSuit;
         cardFrontElement.appendChild(cardSuitElement);
 
-        const cardBackElement = document.createElement("div");
-        cardBackElement.classList.add("card-back");
-        cardElement.appendChild(cardBackElement);
-    
         userCardElement.appendChild(cardElement);
-
-        cardElement.addEventListener("click", () => {
-            cardElement.classList.toggle("flipped");
-        });
     }
 
     // Add the user card to the game div

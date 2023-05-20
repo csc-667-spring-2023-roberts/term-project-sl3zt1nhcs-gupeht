@@ -137,22 +137,6 @@ body {
 
 
 
-.card .front {
-    transform: rotateY(180deg);
-  }
-  
-  .card.flipped {
-    transform: rotateY(0deg);
-  }
-  
-  .card .back {
-    transform: rotateY(0deg);
-    background-color: #ececec;
-   
-  }
-
-
-
 #bet-button {
     background-color: #4CAF50; /* Green background */
     border: none; /* No border */
