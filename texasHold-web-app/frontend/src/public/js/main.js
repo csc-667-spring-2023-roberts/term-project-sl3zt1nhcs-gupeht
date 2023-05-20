@@ -44,30 +44,32 @@ function renderGame(data) {
     userCardElement.classList.add("user-card");
     // Loop through the cards array and add each card to userCardElement
 
-    // Loop through the cards array and add each card to userCardElement
+    if (data.gameState.cards) {
 
-    for (let card of data.gameState.cards) {
-        const cardElement = document.createElement("div");
-        cardElement.classList.add("card");
-
-        const cardRank = card.split(" ")[0];
-        const cardSuit = card.split(" ")[1];
-
-        const cardFrontElement = document.createElement("div");
-        cardFrontElement.classList.add("card-front");
-        cardElement.appendChild(cardFrontElement);
-
-        const cardValueElement = document.createElement("div");
-        cardValueElement.classList.add("card-value");
-        cardValueElement.textContent = cardRank;
-        cardFrontElement.appendChild(cardValueElement);
-
-        const cardSuitElement = document.createElement("div");
-        cardSuitElement.classList.add("card-suit");
-        cardSuitElement.textContent = cardSuit;
-        cardFrontElement.appendChild(cardSuitElement);
-
-        userCardElement.appendChild(cardElement);
+        for (let card of data.gameState.cards) {
+            const cardElement = document.createElement("div");
+            cardElement.classList.add("card");
+    
+            const cardRank = card.split(" ")[0];
+            const cardSuit = card.split(" ")[1];
+    
+            const cardFrontElement = document.createElement("div");
+            cardFrontElement.classList.add("card-front");
+            cardElement.appendChild(cardFrontElement);
+    
+            const cardValueElement = document.createElement("div");
+            cardValueElement.classList.add("card-value");
+            cardValueElement.textContent = cardRank;
+            cardFrontElement.appendChild(cardValueElement);
+    
+            const cardSuitElement = document.createElement("div");
+            cardSuitElement.classList.add("card-suit");
+            cardSuitElement.textContent = cardSuit;
+            cardFrontElement.appendChild(cardSuitElement);
+    
+            userCardElement.appendChild(cardElement);
+        }
+      
     }
 
     // Add the user card to the game div
@@ -203,7 +205,42 @@ export async function fetchLobby() {
 
                 let message = "";
 
-                if (data.success) {
+                console.log(data.endRound);
+
+                if (data.endRound) {
+                    const winnersCards = data.endRound.winnersCards || [];
+                    message = "The round has ended! Winner's cards: " + winnersCards;
+
+                    const winnersCardElements = document.createElement("div");
+                    winnersCardElements.classList.add("winners-cards");
+
+                    for (let card of winnersCards) {
+                        const cardElement = document.createElement("div");
+                        cardElement.classList.add("card");
+                    
+                        const cardRank = card.split(" ")[0];
+                        const cardSuit = card.split(" ")[1];
+                    
+                        const cardFrontElement = document.createElement("div");
+                        cardFrontElement.classList.add("card-front");
+                        cardElement.appendChild(cardFrontElement);
+                    
+                        const cardValueElement = document.createElement("div");
+                        cardValueElement.classList.add("card-value");
+                        cardValueElement.textContent = cardRank;
+                        cardFrontElement.appendChild(cardValueElement);
+                    
+                        const cardSuitElement = document.createElement("div");
+                        cardSuitElement.classList.add("card-suit");
+                        cardSuitElement.textContent = cardSuit;
+                        cardFrontElement.appendChild(cardSuitElement);
+            
+                        winnersCardElements.appendChild(cardElement);
+                    }
+
+                    message += winnersCardElements.outerHTML ;
+                    
+                } else if (data.success) {
                     message = data.message;
                 } else {
                     if (data.isNotPlayerTurn) {
@@ -217,7 +254,7 @@ export async function fetchLobby() {
 
                 // Display the result of the bet in the notification area
                 const notificationElement = document.getElementById("notifications");
-                notificationElement.textContent = message;
+                notificationElement.innerHTML = message
             });
 
             socket.on("game_resume", async (data) => {

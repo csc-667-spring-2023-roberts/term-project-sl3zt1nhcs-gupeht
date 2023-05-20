@@ -95,46 +95,6 @@ body {
 }
 
 
-.card {
-    border: 1px solid #000;
-    border-radius: 5px;
-    width: 100px;   /* increased width */
-    height: 150px;  /* increased height */
-    padding: 5px;
-    background-color: white;
-    box-shadow: 0px 0px 5px rgba(0,0,0,0.3);
-    position: relative;
-    display: inline-block;
-    text-align: center;
-    font-family: Arial, sans-serif;
-    margin-right: 20px;  /* added right margin */
-    transition: transform 0.5s ease;
-    transform-style: preserve-3d;
-    transform: rotateY(180deg);
-}
-
-.card-value {
-    font-size: 20px;
-    position: absolute;
-    top: 5px;
-    left: 5px;
-}
-
-.card-suit {
-    font-size: 20px;
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-}
-
-.card .card-value, .card .card-suit {
-    color: black;
-}
-
-.card[data-suit="♥"], .card[data-suit="♦"] {
-    color: red;
-}
-
 
 
 #bet-button {
@@ -165,6 +125,61 @@ body {
     font-size: 14px; /* Adjust font size */
 }
 
+.card {
+  border: 1px solid #000;
+  border-radius: 5px;
+  width: 100px;   /* increased width */
+  height: 150px;  /* increased height */
+  padding: 5px;
+  background-color: white;
+  box-shadow: 0px 0px 5px rgba(0,0,0,0.3);
+  position: relative;
+  display: inline-block;
+  text-align: center;
+  font-family: Arial, sans-serif;
+  margin-right: 20px;  /* added right margin */
+  transform-style: preserve-3d;
+
+}
+
+.card-value {
+  font-size: 20px;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+.card-suit {
+  font-size: 20px;
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+}
+
+.card .card-value, .card .card-suit {
+  color: black;
+}
+
+.card[data-suit="♥"], .card[data-suit="♦"] {
+  color: red;
+}
+
+
+
+#bet-button {
+  background-color: #4CAF50; /* Green background */
+  border: none; /* No border */
+  color: white; /* White text color */
+  padding: 8px 15px; /* Adjust padding */
+  text-align: center; /* Center the text */
+  text-decoration: none; /* No underline */
+  display: inline-block;
+  font-size: 14px; /* Adjust font size */
+  margin: 4px 2px;
+  cursor: pointer; /* Add a mouse pointer on hover */
+  border-radius: 4px; /* Adjust border radius */
+  transition-duration: 0.4s; /* Add animation */
+}
 
 
 .message {

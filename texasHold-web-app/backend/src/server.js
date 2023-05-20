@@ -189,7 +189,7 @@ io.on("connection", (socket) => {
         console.log(betResult);
 
         // If the bet was successful, get the updated game state and player states
-        if (!betResult.playerHasNoMoney && !betResult.isNotPlayerTurn) {
+        if ((!betResult.playerHasNoMoney && !betResult.isNotPlayerTurn) || betResult.endRound) {
             await gameModel.getRecentGameId().then(async (game_id) => {
                 const gameId = game_id;
                 console.log("GAME ID", gameId);
@@ -215,11 +215,15 @@ io.on("connection", (socket) => {
                 });
             });
 
+         
+            let success = betResult.endRound ? false : true;
+
             // Send the result of the bet to all players
             io.emit("bet_result", {
-                success: true,
+                success: success,
                 player: socket.userId,
                 amount: betAmount,
+                endRound: betResult.endRound,
                 message: `Player ${socket.userId} has made a bet of ${betAmount}`,
             });
         } else {
