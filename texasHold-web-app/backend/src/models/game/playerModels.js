@@ -49,9 +49,9 @@ playerModel.updatePlayerState = (player_id, player_state_json) => {
         db.query(query, values)
             .then((result) => {
                 if (result.rowCount > 0) {
-                    resolve(result.rows[0]);
+                    resolve(result.rowCount);
                 } else {
-                    reject(new CustomError("No rows affected", 404));
+                    reject(new Error("No rows were updated."));
                 }
             })
             .catch((err) => {

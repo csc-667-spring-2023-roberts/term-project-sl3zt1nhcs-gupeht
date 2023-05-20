@@ -4,10 +4,8 @@ import { logout } from "./logout";
 import { io } from "socket.io-client";
 let socket;
 
-
 async function isUserLoggedin() {
     const user_id = localStorage.getItem("user_id");
-    
 
     if (!user_id) {
         console.log("User is not logged in");
@@ -22,7 +20,6 @@ function renderGame(data) {
     const userId = localStorage.getItem("user_id");
     const userName = localStorage.getItem("userName");
 
-   
     // Access the game div
     const gameElement = document.getElementById("game");
 
@@ -130,12 +127,6 @@ function renderGame(data) {
 
         socket.emit("fold", { userName: userName, userId: userId });
     });
-
-    //  unfolding cards
-    const cards = document.getElementsByClassName("card");
-    for (let i = 0; i < cards.length; i++) {
-        cards[i].style.transform = "rotateY(0deg)";
-    }
 }
 
 async function redirectToLobbyIfAuthenticated() {
@@ -241,6 +232,19 @@ export async function fetchLobby() {
 
                 const notificationElement = document.getElementById("notifications");
                 notificationElement.innerHTML = data.userName + "has folded." + data.message;
+
+                setTimeout(() => {
+                    notificationElement.innerHTML = "";
+                }, 4000);
+
+                //  unfolding cards/
+
+                const cards = document.getElementsByClassName("card");
+                setTimeout(() => {
+                    for (let i = 0; i < cards.length; i++) {
+                        cards[i].style.transform = "rotateY(0deg)";
+                    }
+                }, 3700);
             });
 
             socket.on("bet_result", (data) => {
@@ -297,6 +301,10 @@ export async function fetchLobby() {
                 // Display the result of the bet in the notification area
                 const notificationElement = document.getElementById("notifications");
                 notificationElement.innerHTML = message;
+
+                setTimeout(() => {
+                    notificationElement.innerHTML = "";
+                }, 4000);
             });
 
             socket.on("game_resume", async (data) => {
@@ -304,7 +312,7 @@ export async function fetchLobby() {
             });
 
             socket.on("game_end", (data) => {
-                console.log(" front end game_end Game ended. Reason:", data.reason);
+                console.log("front end game_end Game ended. Reason:", data.reason);
 
                 // Access the game div
                 const gameElement = document.getElementById("game");
@@ -316,19 +324,39 @@ export async function fetchLobby() {
                 const gameResultElement = document.createElement("div");
                 gameResultElement.classList.add("game-result");
 
-                // Add the game result to the new div
+                // Create new divs for winner and loser cards
+                const winnerCardsElement = document.createElement("div");
+                winnerCardsElement.classList.add("winner-cards");
+                const loserCardsElement = document.createElement("div");
+                loserCardsElement.classList.add("loser-cards");
+
+                for (let card of data.winnersCard) {
+                    const cardElement = createCardElement(card);
+                    winnerCardsElement.appendChild(cardElement);
+                }
+
+                for (let card of data.losersCard) {
+                    const cardElement = createCardElement(card);
+                    loserCardsElement.appendChild(cardElement);
+                }
+
+                // Add the game result and card elements to the game result div
                 if (data.winner) {
                     gameResultElement.innerHTML = `
                         <p>Winner: ${data.winner.userName}</p>
                         <p>Reason: ${data.reason}</p>
-                        <p>WinnersCard: ${JSON.stringify(data.winnersCard)}</p>
-                        <p>LosersCard: ${JSON.stringify(data.losersCard)}</p>
+                        <p>Winner's Cards:</p>
+                        ${winnerCardsElement.outerHTML}
+                        <p>Loser's Cards:</p>
+                        ${loserCardsElement.outerHTML}
                     `;
                 } else {
                     gameResultElement.innerHTML = `
                         <p>Reason: ${data.reason}</p>
-                        <p>WinnersCard: ${JSON.stringify(data.winnersCard)}</p>
-                        <p>LosersCard: ${JSON.stringify(data.losersCard)}</p>
+                        <p>Winner's Cards:</p>
+                        ${winnerCardsElement.outerHTML}
+                        <p>Loser's Cards:</p>
+                        ${loserCardsElement.outerHTML}
                     `;
                 }
 
@@ -344,6 +372,34 @@ export async function fetchLobby() {
                     waitingMessage.style.display = "block";
                 }, 4000);
             });
+
+            function createCardElement(card) {
+                const cardElement = document.createElement("div");
+                cardElement.classList.add("card");
+
+                const cardRank = card.split(" ")[0];
+                const cardSuit = card.split(" ")[1];
+
+                const cardFrontElement = document.createElement("div");
+                cardFrontElement.classList.add("card-front");
+                cardElement.appendChild(cardFrontElement);
+
+                const cardValueElement = document.createElement("div");
+                cardValueElement.classList.add("card-value");
+                cardValueElement.textContent = cardRank;
+                cardFrontElement.appendChild(cardValueElement);
+
+                const cardSuitElement = document.createElement("div");
+                cardSuitElement.classList.add("card-suit");
+                cardSuitElement.textContent = cardSuit;
+                cardFrontElement.appendChild(cardSuitElement);
+
+                const cardBackElement = document.createElement("div");
+                cardBackElement.classList.add("card-back");
+                cardElement.appendChild(cardBackElement);
+
+                return cardElement;
+            }
 
             // Event handler for sending messages
             document.getElementById("message-form").addEventListener("submit", (event) => {
