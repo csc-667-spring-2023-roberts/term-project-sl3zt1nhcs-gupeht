@@ -42,13 +42,40 @@ function renderGame(data) {
     // Create the user card
     const userCardElement = document.createElement("div");
     userCardElement.classList.add("user-card");
+    // Loop through the cards array and add each card to userCardElement
 
     // Loop through the cards array and add each card to userCardElement
+
     for (let card of data.gameState.cards) {
         const cardElement = document.createElement("div");
         cardElement.classList.add("card");
-        cardElement.textContent = card;
+
+        const cardRank = card.split(" ")[0];
+        const cardSuit = card.split(" ")[1];
+
+        const cardFrontElement = document.createElement("div");
+        cardFrontElement.classList.add("card-front");
+        cardElement.appendChild(cardFrontElement);
+
+        const cardValueElement = document.createElement("div");
+        cardValueElement.classList.add("card-value");
+        cardValueElement.textContent = cardRank;
+        cardFrontElement.appendChild(cardValueElement);
+
+        const cardSuitElement = document.createElement("div");
+        cardSuitElement.classList.add("card-suit");
+        cardSuitElement.textContent = cardSuit;
+        cardFrontElement.appendChild(cardSuitElement);
+
+        const cardBackElement = document.createElement("div");
+        cardBackElement.classList.add("card-back");
+        cardElement.appendChild(cardBackElement);
+    
         userCardElement.appendChild(cardElement);
+
+        cardElement.addEventListener("click", () => {
+            cardElement.classList.toggle("flipped");
+        });
     }
 
     // Add the user card to the game div
@@ -193,7 +220,7 @@ export async function fetchLobby() {
                         message = "You don't have enough money for this bet!";
                     } else if (data.allIn) {
                         message = "You are all in!";
-                    } 
+                    }
                 }
 
                 // Display the result of the bet in the notification area
