@@ -1,5 +1,5 @@
 const path = require("path");
-require("dotenv").config();
+require("dotenv").config({ path: path.join(__dirname, "config", ".env") });
 const express = require("express");
 const bodyParser = require("body-parser");
 const http = require("http");
