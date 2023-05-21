@@ -136,7 +136,6 @@ function playerJoinGame(user_id, userName) {
 async function playerFold(user_id) {
     let player = gameState.players[user_id];
 
-    gameState.foldedPlayers += 1;
 
     player.isActive = false;
 
