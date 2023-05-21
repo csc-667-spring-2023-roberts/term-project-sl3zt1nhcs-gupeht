@@ -24,7 +24,7 @@ let socketIdMap = new Map();
 //set io and active cors
 const io = require("socket.io")(server, {
     cors: {
-        origin: "*", // replace * with your frontend domain in production
+        origin: "https://texas-hold-poker-game.onrender.com",
         methods: ["GET", "POST"],
     },
 });
