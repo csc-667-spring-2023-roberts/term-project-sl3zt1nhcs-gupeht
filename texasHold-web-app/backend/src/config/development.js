@@ -1,12 +1,12 @@
-//todo set your .env
+// Set for render
 module.exports ={
     database:{
-        host:"localhost",
+        host:"dpg-chkullu7avj2178459n0-a",
         port: "5432" ,
-        user:"",
-        password:"", // default
-       database:"postgres",
+        user:"mohamedsharif",
+        password:"7lr6wAt5AnDCAD20YweCMrr0amTjjG8a",
+       database:"project_y8kj",
     },
 
-    PORT: process.env.PORT,
+    PORT: 3000,
 };
