@@ -163,7 +163,7 @@ export async function fetchLobby() {
             window.history.pushState({}, "", "/user/lobby");
 
             if (!socket) {
-                socket = io("http://localhost:3000");
+                socket = io("https://texas-hold-poker-game.onrender.com");
             }
 
             socket.emit("join_lobby", { userId: userId, userName: userName });
