@@ -9,9 +9,9 @@
   },
   "scripts": {
     "prestart": "npm install",
-    "start": "cd ../../  && node backend/src/server.js",
+    "start": "cd ../../  &&  npm install dotenv &&   node backend/src/server.js",
     "build": "cross-env NODE_ENV=production webpack",
-    "prebuild":"npm install",
+    "prebuild": "npm install",
     "dev": "cross-env NODE_ENV=development webpack --watch"
   },
   "dependencies": {
