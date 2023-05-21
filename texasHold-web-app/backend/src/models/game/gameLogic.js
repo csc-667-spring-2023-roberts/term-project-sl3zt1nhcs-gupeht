@@ -435,12 +435,42 @@ async function endRound() {
         startNewRound();
     } else {
         console.log("Game over! We have a winner!");
+        endGame();
     }
+
+
+    gamesModel
+        .getRecentGameId()
+        .then((gameId) => {
+            console.log("retrieved the gameId", gameId);
+
+            return gamesModel.updateGame(gameState, gameId);
+        })
+        .then((result) => {
+            console.log(`Game state updated successfully, ${result} row(s) affected`);
+        })
+        .catch((err) => console.log("Error updating game state: ", err));
+
+    console.log("GameState: ", gameState);
 
     return roundResult;
 }
 function startNewRound() {
     console.log("started new round");
+
+
+     // Update players' state at the beginning of a new round.
+     for (let user_id in gameState.players) {
+        try {
+            console.log("Updating player state in the database new round: ", user_id);
+            playerModel.updatePlayerState(user_id, gameState.players[user_id]);
+            console.log(`Player state ${user_id} updated in the database for new round.`);
+        } catch (err) {
+            console.log("Error updating player state: ", err);
+        }
+    }
+
+
     let participatingPlayers = Object.values(gameState.players).filter((player) => player.isParticipating);
 
     if (participatingPlayers.length < 2) {
@@ -478,16 +508,7 @@ function startNewRound() {
         gameState.players[user_id].bet_amount = 0;
     }
 
-    // Update players' state at the beginning of a new round.
-    for (let user_id in gameState.players) {
-        try {
-            console.log("Updating player state in the database new round: ", user_id);
-            playerModel.updatePlayerState(user_id, gameState.players[user_id]);
-            console.log(`Player state ${user_id} updated in the database for new round.`);
-        } catch (err) {
-            console.log("Error updating player state: ", err);
-        }
-    }
+   
 }
 
 function endGame() {
