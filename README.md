@@ -9,6 +9,10 @@ PROJECT: CSC667 TERM PROJECT
 Texas Hold Poker Game Term Project
 
 
+The project is live on 
+
+https://texas-hold-poker-game.onrender.com
+
 This is a simplified version of a poker game with abiltiy to bet or fold. The score are based of deck of 2-3 cards. 
 The minimum amount of players are 2 and the game will end if there are less than 2 players
 
