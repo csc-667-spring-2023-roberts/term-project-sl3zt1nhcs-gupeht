@@ -5,7 +5,6 @@ STUDENT ID: 920703534
 PROJECT: CSC667 TERM PROJECT
 
 
-
 Texas Hold Poker Game Term Project
 
 
@@ -19,7 +18,6 @@ This is a simplified version of a poker game with abiltiy to bet or fold. The sc
 The minimum amount of players are 2 and the game will end if there are less than 2 players
 
 
-
 To run the project:
 
 
@@ -27,8 +25,6 @@ Before:  cd backend/src/config/development.js and add your database credentials
 
 
 Also:
-
-
 
 //set io and active cors
 const io = require("socket.io")(server, {
@@ -51,9 +47,6 @@ change to the local host
 
 this way having your database credentials, serveer cors set * and socket io to local host, you are able to test locally. The current configuration
 is ready to test on render.
-
-
-
 
 
 
