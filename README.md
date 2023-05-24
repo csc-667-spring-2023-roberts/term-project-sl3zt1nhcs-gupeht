@@ -11,6 +11,8 @@ Texas Hold Poker Game Term Project
 
 The project is live on 
 
+Note: I have the free edition of render so to work I have to login and press to run the application.
+
 https://texas-hold-poker-game.onrender.com
 
 This is a simplified version of a poker game with abiltiy to bet or fold. The score are based of deck of 2-3 cards. 
@@ -51,7 +53,6 @@ this way having your database credentials, serveer cors set * and socket io to l
 is ready to test on render.
 
 
-Note: I have the free edition of render so to work I have to login and press to run the application.
 
 
 
