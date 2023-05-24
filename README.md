@@ -45,7 +45,7 @@ in main.js
 change to the local host
 
 
-this way having your database credentials, serveer cors set * and socket io to local host, you are able to test locally. The current configuration
+this way having your database credentials, server cors set * and socket io to local host, you are able to test locally. The current configuration
 is ready to test on render.
 
 
