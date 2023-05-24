@@ -23,6 +23,20 @@ To run the project:
 
 Before:  cd backend/src/config/development.js and add your database credentials
 
+
+Also:
+
+in main.js
+
+
+   if (!socket) {
+                socket = io("https://texas-hold-poker-game.onrender.com");
+            }
+change to the local host
+
+
+
+
 then
 
 1- cd frontend/src
