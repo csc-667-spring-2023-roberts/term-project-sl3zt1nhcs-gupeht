@@ -26,6 +26,18 @@ Before:  cd backend/src/config/development.js and add your database credentials
 
 Also:
 
+
+
+//set io and active cors
+const io = require("socket.io")(server, {
+    cors: {
+        origin: "https://texas-hold-poker-game.onrender.com",
+        methods: ["GET", "POST"],
+    },
+});
+
+replace with *
+
 in main.js
 
 
@@ -35,12 +47,19 @@ in main.js
 change to the local host
 
 
+this way having your database credentials, serveer cors set * and socket io to local host, you are able to test locally. The current configuration
+is ready to test on render.
 
 
-then
+Note: I have the free edition of render so to work I have to login and press to run the application.
+
+
+
+
+To build and run locally:
 
 1- cd frontend/src
 2- npm run build
 3- npm start
 
-The env variable is already 
+The env variable is added
