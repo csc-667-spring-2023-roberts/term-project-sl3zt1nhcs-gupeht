@@ -11,7 +11,7 @@ Texas Hold Poker Game Term Project
 
 The project is live on 
 
-Note: I have the free edition of render so to work I have to login and press to run the application.
+Note: I have the free edition of render. It will take about 2-4 minutes to render and start application after clicking the link
 
 https://texas-hold-poker-game.onrender.com
 
